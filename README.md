@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/logo-elo-financeiro.png" alt="Logo do Elo Financeiro" width="460" />
+</p>
+
 # Elo Financeiro
 
 **Sua próxima decisão, com mais clareza.**
