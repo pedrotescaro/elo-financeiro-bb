@@ -1,0 +1,14 @@
+[
+  {
+    "id":"of-consent","title":"Open Finance: acesso autorizado e revogável",
+    "topics":["cashflow"],"type":"paráfrase educativa","reviewed_at":"2026-10-07",
+    "text":"O compartilhamento depende do consentimento do cliente. Uma integração real precisa seguir a jornada das instituições participantes. Nesta demonstração não existe conexão bancária.",
+    "url":"https://www.bcb.gov.br/meubc/faqs/s/open-finance"
+  },
+  {
+    "id":"pix-demo","title":"Verificar antes de decidir",
+    "topics":["pix"],"type":"orientação do protótipo","reviewed_at":"2026-10-07",
+    "text":"Confirme a identidade do destinatário por um canal independente. Os sinais apresentados aqui são regras sintéticas: não constituem confirmação de fraude nem certificação de segurança.",
+    "url":null
+  }
+]

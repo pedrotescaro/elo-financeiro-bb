@@ -1,0 +1,31 @@
+{
+  "month": {
+    "title": "Chegar ao próximo recebimento", "synthetic": true,
+    "as_of": "2026-10-07", "horizon": "2026-10-15", "balance_cents": 150000,
+    "buffer_cents": 20000, "typical_pix_cents": 10000,
+    "events": [
+      {"id":"rent","date":"2026-10-08","label":"Moradia","amount_cents":85000,"direction":"out","flexible":false},
+      {"id":"card","date":"2026-10-10","label":"Fatura já comprometida","amount_cents":35000,"direction":"out","flexible":false},
+      {"id":"food","date":"2026-10-11","label":"Alimentação essencial","amount_cents":10000,"direction":"out","flexible":false},
+      {"id":"leisure","date":"2026-10-13","label":"Lazer previsto","amount_cents":30000,"direction":"out","flexible":true},
+      {"id":"income","date":"2026-10-15","label":"Recebimento esperado","amount_cents":180000,"direction":"in","flexible":false}
+    ]
+  },
+  "purchase": {
+    "title": "Decidir sobre uma compra", "synthetic": true,
+    "as_of": "2026-10-07", "horizon": "2026-10-15", "balance_cents":500000,
+    "buffer_cents":200000,"typical_pix_cents":10000,
+    "events":[
+      {"id":"bills","date":"2026-10-10","label":"Contas essenciais","amount_cents":180000,"direction":"out","flexible":false},
+      {"id":"income","date":"2026-10-15","label":"Recebimento esperado","amount_cents":280000,"direction":"in","flexible":false}
+    ],
+    "purchase":{"label":"Celular","price_cents":350000,"installments":10}
+  },
+  "pix": {
+    "title":"Verificar sinais de risco", "synthetic":true,
+    "as_of":"2026-10-07","horizon":"2026-10-15","balance_cents":200000,
+    "buffer_cents":20000,"typical_pix_cents":10000,
+    "events":[{"id":"bills","date":"2026-10-10","label":"Contas essenciais","amount_cents":60000,"direction":"out","flexible":false}],
+    "pix":{"amount_cents":85000,"new_recipient":true,"urgency_message":true}
+  }
+}

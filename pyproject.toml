@@ -1,0 +1,6 @@
+[project]
+name = "elo-financeiro-bb"
+version = "0.1.0"
+description = "Protótipo acadêmico para serviços financeiros inteligentes, seguros e inclusivos"
+requires-python = ">=3.11"
+dependencies = []

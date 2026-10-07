@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Elo Financeiro · Sua próxima decisão, com mais clareza</title>
+  <link rel="stylesheet" href="/style.css"><script defer src="/app.js"></script>
+</head>
+<body>
+  <div class="shell">
+    <aside>
+      <a class="brand" href="/" aria-label="Elo Financeiro, início"><span class="mark">e</span><span>elo<span class="brand-sub">financeiro</span></span></a>
+      <p class="side-caption">Sua próxima decisão,<br>com mais clareza.</p>
+      <nav aria-label="Cenários da demonstração"><p class="eyebrow">EXPERIMENTE UMA JORNADA</p><div id="scenarios"></div></nav>
+      <div class="side-bottom"><span class="tag">IBM SkillsBuild</span><p>Proposta acadêmica para o desafio de serviços financeiros do Banco do Brasil.</p><p>Sem vínculo oficial com o banco.</p></div>
+    </aside>
+    <main>
+      <header><div><p class="eyebrow">ASSISTENTE FINANCEIRO PROATIVO</p><h1>Olhe para o que vem a seguir.</h1><p class="subtitle">Entenda seu saldo futuro. Escolha um plano. Acompanhe o resultado.</p></div><span class="demo-badge">DADOS SINTÉTICOS</span></header>
+      <div class="toolbar"><span id="scenario-title"></span><button class="text-button" id="consent-toggle">Autorizar leitura</button></div>
+      <p id="error" role="alert" hidden></p><p id="notice" class="notice" hidden></p>
+      <section id="consent-panel" class="consent-panel"><span class="large-icon">↔</span><h2>Comece com uma escolha sua.</h2><p>Autorize o agente a analisar os dados fictícios deste cenário. Você pode desativar a leitura e limpar os planos desta sessão quando quiser.</p><button class="primary" id="start">Autorizar dados da demonstração</button><small>Esta autorização demonstra a experiência do produto. Não conecta contas bancárias.</small></section>
+      <div id="workspace" hidden>
+        <section class="insight"><p class="eyebrow">O ELO PERCEBEU</p><h2 id="report-title"></h2><p id="report-description"></p><span id="mode" class="mode"></span></section>
+        <section class="metrics" aria-label="Resumo da projeção"><article><p>Menor saldo previsto</p><strong id="minimum"></strong><small id="minimum-date"></small></article><article><p>Margem desejada</p><strong id="buffer"></strong><small>Referência deste cenário</small></article><article><p>Saldo no fim do período</p><strong id="closing"></strong><small id="horizon"></small></article></section>
+        <div class="content-grid"><section class="card"><div class="section-head"><h2>Seu saldo, dia a dia</h2><span class="tag">ESTIMATIVA</span></div><div class="table-wrap"><table><caption class="sr-only">Projeção de fechamento diário</caption><thead><tr><th scope="col">Dia</th><th scope="col">O que está previsto</th><th scope="col">Saldo</th></tr></thead><tbody id="daily"></tbody></table></div><p class="footnote">Projeção por fechamento diário. Não representa a ordem das movimentações no mesmo dia.</p></section><section class="card action-card"><p class="eyebrow">VOCÊ DECIDE</p><h2>Um próximo passo possível</h2><div id="actions"></div><p class="footnote">Aprovar registra um plano demonstrativo. Nenhum dinheiro é movimentado.</p></section></div>
+        <section id="special" class="card special" hidden></section>
+        <section class="monitor-row"><div><h2>O plano continua depois da escolha.</h2><p>Simule uma nova despesa de R$ 150,00 e veja a recomendação ser atualizada.</p></div><button id="monitor" class="secondary">Simular nova despesa</button></section>
+        <details class="card trace"><summary>Como o agente chegou a esta recomendação</summary><p id="trace-description"></p><ol id="trace"></ol><div id="sources"></div></details>
+        <section id="history-panel" class="card" hidden><h2>Suas escolhas nesta sessão</h2><ul id="history"></ul></section>
+      </div>
+      <footer>Protótipo educacional · Valores e cenários fictícios · Projeções não garantem resultados futuros</footer>
+    </main>
+  </div>
+</body>
+</html>
