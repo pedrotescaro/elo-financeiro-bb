@@ -43,7 +43,8 @@ python -m unittest discover -s tests -v
 | Sinais ilustrativos de risco em PIX | Implementados por regras; sem detecção validada |
 | Reavaliação após nova despesa | Implementada; evento simulado pela interface |
 | Planejador IBM watsonx.ai | Adaptador REST implementado; chamada real não validada |
-| RAG | Busca local por tópico; RAG semântico pendente |
+| Recuperação de orientações | Similaridade local por conceitos curados, com busca por tópico como contingência; sem embeddings ou geração de respostas |
+| Explicações e trilha da sessão | Números, hipóteses, exclusões, consultas, autorizações e revogações visíveis |
 | IBM Bob | Uso e evidências precisam ser realizados pela equipe |
 | BB / Open Finance / pagamentos / crédito | Integrações de produção fora deste protótipo |
 | Publicação acessível aos avaliadores | Pendente |

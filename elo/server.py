@@ -1,6 +1,7 @@
 """Servidor local de demonstração. Sem autenticação bancária ou uso em produção."""
 import argparse
 from copy import deepcopy
+from datetime import datetime, timezone
 from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
@@ -27,10 +28,24 @@ class DemoSession:
         self.approved: dict = {}
         self.history: list = []
         self.goals: list = []
+        self.audit: list = []
+        self.audit_sequence = 0
+        self.record("session_started", "Sessão demonstrativa iniciada, sem leitura autorizada.")
+
+    def record(self, event: str, label: str) -> None:
+        """Mantém até 200 eventos observáveis, sem prompts, tokens ou valores privados."""
+        self.audit_sequence += 1
+        self.audit.append({"sequence": self.audit_sequence,
+                           "time": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+                           "event": event, "label": label})
+        del self.audit[:-200]
 
     def refresh(self) -> None:
         """Reconstrói o relatório com base no snapshot e no consentimento atuais."""
         self.report = build_report(self.snapshot, self.consent, self.planner)
+        if self.consent:
+            tools = ", ".join(t["tool"] for t in self.report["trace"])
+            self.record("tools_consulted", "Consultas realizadas com leitura autorizada: " + tools + ".")
         if self.goals:
             self.report["actions"] = [a for a in self.report["actions"] if a["id"] != "purchase-goal"]
 
@@ -39,7 +54,7 @@ class DemoSession:
         return {"scenario": self.name, "scenario_title": self.snapshot["title"],
                 "scenarios": [{"id": k, "title": v["title"]} for k, v in CATALOG.items()],
                 "consent": self.consent, "csrf": self.csrf, "report": deepcopy(self.report),
-                "history": deepcopy(self.history), "goals": deepcopy(self.goals),
+                "history": deepcopy(self.history), "goals": deepcopy(self.goals), "audit": deepcopy(self.audit),
                 "synthetic": True, "monitoring": "Simulado por evento acionado na interface",
                 "monitor_done": any(e["id"] == "new-spend" for e in self.snapshot["events"])}
 
@@ -48,6 +63,9 @@ class DemoSession:
         if type(enabled) is not bool:
             raise ValueError("Consentimento inválido.")
         self.consent = enabled
+        self.record("consent_granted" if enabled else "consent_revoked",
+                    "Leitura dos dados fictícios autorizada." if enabled else
+                    "Leitura revogada; planos e metas desta sessão foram limpos.")
         if not enabled:
             self.history.clear()
             self.goals.clear()
@@ -64,6 +82,7 @@ class DemoSession:
         self.approved.clear()
         self.history.clear()
         self.goals.clear()
+        self.record("scenario_selected", "Cenário selecionado: " + self.snapshot["title"] + ".")
         self.refresh()
 
     def approve(self, report_id: str, action_id: str) -> dict:
@@ -93,6 +112,7 @@ class DemoSession:
                   "status": "accepted", "effect": action["effect"]}
         self.history.append(record)
         self.approved[key] = record
+        self.record("action_approved", "Ação autorizada: " + action["label"] + ".")
         self.refresh()
         return record
 
@@ -106,6 +126,7 @@ class DemoSession:
             "label": "Despesa imprevista simulada", "amount_cents": 15000,
             "direction": "out", "flexible": False})
         self.history.append({"label": "Nova despesa simulada: R$ 150,00", "status": "observed"})
+        self.record("event_observed", "Nova despesa fictícia informada; projeção reavaliada.")
         self.refresh()
 
 

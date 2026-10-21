@@ -10,7 +10,7 @@ function syncControls(){
   document.querySelectorAll("button").forEach(b => b.disabled = busy);
   $("start").disabled = busy || !state;
   $("consent-toggle").disabled = busy || !state;
-  const monitorDone = !!state?.report?.results?.cashflow?.daily?.some(r => r.events.includes("Despesa imprevista simulada"));
+  const monitorDone = state?.monitor_done === true;
   $("monitor").disabled = busy || !state?.consent || monitorDone;
   $("monitor").textContent = monitorDone ? "Despesa já simulada" : "Simular nova despesa";
   $("monitor").setAttribute("aria-disabled", String($("monitor").disabled));
@@ -19,6 +19,7 @@ function syncControls(){
 
 async function request(path, body){
   if(busy) return;
+  const focusId = document.activeElement?.id;
   busy = true;
   $("error").textContent = "";
   $("error").classList.add("sr-only");
@@ -47,13 +48,58 @@ async function request(path, body){
     $("retry").hidden = false;
     $("status").textContent = "";
   }
-  finally {clearTimeout(timeout); busy = false; syncControls();}
+  finally {
+    clearTimeout(timeout); busy = false; syncControls();
+    if(focusId){
+      const previous = $(focusId);
+      if(previous && !previous.disabled && !previous.hidden && previous.offsetParent !== null){
+        previous.focus({preventScroll:true});
+      } else if(state?.consent && !$("workspace").hidden){
+        $("report-title").focus({preventScroll:true});
+      } else if(state){
+        $("start").focus({preventScroll:true});
+      }
+    }
+  }
+}
+
+function renderAudit(){
+  const records = state.audit || [];
+  $("audit-panel").hidden = !records.length;
+  $("audit").replaceChildren();
+  records.forEach(record => {
+    const entry = node("li");
+    const time = node("time", new Intl.DateTimeFormat("pt-BR",{hour:"2-digit",minute:"2-digit",second:"2-digit"}).format(new Date(record.time)));
+    time.dateTime = record.time;
+    entry.append(time, node("span",record.label));
+    $("audit").append(entry);
+  });
+}
+
+function renderExplanations(report){
+  $("explanations").replaceChildren();
+  Object.values(report.explanations || {}).forEach(item => {
+    const section = node("details",undefined,"explanation");
+    section.append(node("summary",item.title),node("p",item.summary));
+    const values = node("dl");
+    item.numbers.forEach(number => values.append(node("dt",number.label),node("dd",money(number.value_cents))));
+    section.append(values);
+    [["Hipóteses usadas",item.assumptions],["O que ficou fora",item.not_considered]].forEach(([title,items]) => {
+      if(!items.length) return;
+      const list = node("ul");
+      items.forEach(text => list.append(node("li",text)));
+      section.append(node("h3",title),list);
+    });
+    $("explanations").append(section);
+  });
 }
 
 function render(){
+  renderAudit();
   $("scenarios").replaceChildren();
   state.scenarios.forEach(s => {
     const b = node("button", s.title, s.id === state.scenario ? "active" : "");
+    b.id = "scenario-" + s.id;
     b.setAttribute("aria-label", "Selecionar cenário: " + s.title);
     if(s.id === state.scenario) b.setAttribute("aria-current","true");
     b.onclick = () => request("/api/scenario",{name:s.id});
@@ -79,14 +125,16 @@ function render(){
   if(report.warning){$("notice").textContent=report.warning;$("notice").hidden=false;}
   $("minimum").textContent = money(flow.minimum_cents);
   $("minimum").className = flow.minimum_cents < 0 ? "negative" : "";
-  $("minimum-date").textContent = `Previsto para ${day(flow.minimum_date)}`;
+  $("minimum-date").textContent = `${flow.minimum_cents < 0 ? "Saldo abaixo de zero · " : ""}Previsto para ${day(flow.minimum_date)}`;
   $("buffer").textContent = money(flow.buffer_cents);
   $("closing").textContent = money(flow.closing_cents);
   $("horizon").textContent = `Em ${day(report.horizon)}`;
   $("daily").replaceChildren();
-  flow.daily.forEach(r => {
+  flow.daily.forEach((r,index) => {
     const tr = node("tr");
-    tr.append(node("td",day(r.date)),node("td",r.events.join(" + ") || "Saldo inicial"),node("td",money(r.balance_cents),r.balance_cents < 0 ? "negative" : ""));
+    const balance = node("td",money(r.balance_cents),r.balance_cents < 0 ? "negative" : "");
+    if(r.balance_cents < 0) balance.append(node("span"," (abaixo de zero)","sr-only"));
+    tr.append(node("td",day(r.date)),node("td",r.events.join(" + ") || (index === 0 ? "Início do período" : "Sem eventos previstos")),balance);
     $("daily").append(tr);
   });
   $("actions").replaceChildren();
@@ -120,8 +168,13 @@ function render(){
   }
   $("trace-description").textContent="Veja as ferramentas consultadas e os dados usados. Estes registros mostram ações observáveis, sem expor raciocínio interno do modelo.";
   $("trace").replaceChildren();report.trace.forEach(t=>$("trace").append(node("li",`${t.role} · ${t.tool} · consulta concluída`)));
+  renderExplanations(report);
   $("sources").replaceChildren();
   (report.results.guidance?.documents || []).forEach(s=>{const p=node("p",s.text);if(s.url){const a=node("a",s.title);a.href=s.url;a.target="_blank";a.rel="noopener noreferrer";p.append(node("br"),a);}$("sources").append(p);});
+  if(report.results.guidance){
+    const guide = report.results.guidance;
+    $("sources").append(node("p",guide.retrieval_mode === "local_concepts" ? "Orientações relacionadas por conceitos locais." : "Orientações selecionadas pelo tópico do cenário."),node("p",guide.limitation,"footnote"));
+  }
   $("history-panel").hidden=!state.history.length;$("history").replaceChildren();
   state.history.forEach(h=>$("history").append(node("li",h.label)));
 }
@@ -130,4 +183,9 @@ $("start").onclick=()=>request("/api/consent",{enabled:true});
 $("consent-toggle").onclick=()=>request("/api/consent",{enabled:!state.consent});
 $("monitor").onclick=()=>request("/api/monitor",{});
 $("retry").onclick=()=>request("/api/state");
+$("text-size").onclick=()=>{
+  const enabled = document.documentElement.classList.toggle("large-text");
+  $("text-size").setAttribute("aria-pressed",String(enabled));
+  $("text-size").textContent = enabled ? "Texto padrão" : "Aumentar texto";
+};
 request("/api/state");
