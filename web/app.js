@@ -2,7 +2,12 @@
 let state;
 let busy = false;
 const $ = id => document.getElementById(id);
-const money = cents => new Intl.NumberFormat("pt-BR", {style:"currency",currency:"BRL"}).format(cents / 100);
+const integerFormat = new Intl.NumberFormat("pt-BR", {maximumFractionDigits:0});
+const money = cents => {
+  if(!Number.isSafeInteger(cents)) return "Valor indisponível";
+  const value = BigInt(cents), absolute = value < 0n ? -value : value;
+  return `${value < 0n ? "−" : ""}R$\u00a0${integerFormat.format(absolute / 100n)},${String(absolute % 100n).padStart(2,"0")}`;
+};
 const day = value => value.slice(8,10) + "/" + value.slice(5,7);
 const node = (tag, text, className) => { const e = document.createElement(tag); if(text !== undefined) e.textContent = text; if(className) e.className = className; return e; };
 
@@ -94,6 +99,47 @@ function renderExplanations(report){
   });
 }
 
+function renderChart(flow){
+  const target = $("balance-chart");
+  target.replaceChildren();
+  if(!flow.daily.length){
+    target.append(node("p","Ainda não há dias suficientes para desenhar a projeção."));
+    return;
+  }
+  const width = Math.max(240,target.clientWidth || 600), height = 240;
+  const left = 18, right = width - 18, top = 24, bottom = height - 38;
+  const values = flow.daily.map(row => row.balance_cents);
+  const low = Math.min(0,...values), high = Math.max(flow.buffer_cents,0,...values);
+  // A divisão é apenas da geometria; os valores monetários permanecem centavos inteiros.
+  const y = value => top + (high - value) / Math.max(1,high - low) * (bottom - top);
+  const x = index => left + index / Math.max(1,values.length - 1) * (right - left);
+  const svgNode = (tag,attributes={},text) => {
+    const element = document.createElementNS("http://www.w3.org/2000/svg",tag);
+    Object.entries(attributes).forEach(([name,value])=>element.setAttribute(name,String(value)));
+    if(text !== undefined) element.textContent = text;
+    return element;
+  };
+  const svg = svgNode("svg",{viewBox:`0 0 ${width} ${height}`,role:"img","aria-labelledby":"chart-title chart-description"});
+  svg.append(svgNode("title",{id:"chart-title"},"Saldo previsto por fechamento diário"),
+    svgNode("desc",{id:"chart-description"},`Menor saldo: ${money(flow.minimum_cents)} em ${day(flow.minimum_date)}. Margem desejada: ${money(flow.buffer_cents)}. Consulte todos os valores na tabela abaixo.`));
+  const line = (value,className) => svgNode("line",{x1:left,x2:right,y1:y(value),y2:y(value),class:className});
+  svg.append(line(0,"chart-zero"),line(flow.buffer_cents,"chart-buffer"));
+  svg.append(svgNode("text",{x:right,y:y(0)-7,"text-anchor":"end",class:"chart-label"},"zero"));
+  const points = values.map((value,index)=>`${x(index)},${y(value)}`).join(" ");
+  svg.append(svgNode("polyline",{points,class:"chart-line"}));
+  flow.daily.forEach((row,index)=>{
+    const isLowest = row.date === flow.minimum_date;
+    const dot = svgNode("circle",{cx:x(index),cy:y(row.balance_cents),r:isLowest ? 6 : 3,
+      class:isLowest ? "chart-low-dot" : "chart-dot"});
+    dot.append(svgNode("title",{},`${day(row.date)}: ${money(row.balance_cents)}${isLowest ? ", menor saldo" : ""}`));
+    svg.append(dot);
+  });
+  svg.append(svgNode("text",{x:left,y:height-10,class:"chart-label"},day(flow.daily[0].date)),
+    svgNode("text",{x:right,y:height-10,"text-anchor":"end",class:"chart-label"},day(flow.daily.at(-1).date)));
+  target.append(svg);
+  $("chart-caption").textContent = `Menor saldo: ${money(flow.minimum_cents)} em ${day(flow.minimum_date)}${flow.minimum_cents < 0 ? " (abaixo de zero)" : ""}. Margem desejada: ${money(flow.buffer_cents)}.`;
+}
+
 function render(){
   renderAudit();
   $("scenarios").replaceChildren();
@@ -129,6 +175,7 @@ function render(){
   $("buffer").textContent = money(flow.buffer_cents);
   $("closing").textContent = money(flow.closing_cents);
   $("horizon").textContent = `Em ${day(report.horizon)}`;
+  renderChart(flow);
   $("daily").replaceChildren();
   flow.daily.forEach((r,index) => {
     const tr = node("tr");
@@ -149,6 +196,7 @@ function render(){
       wrap.append(node("p",`Menor saldo: ${money(a.before_cents)} → ${money(a.after_cents)}.${a.meets_buffer ? " Margem desejada preservada." : " A margem desejada ainda não é atingida."}`,"impact"));
     } else wrap.append(node("p",`Registre a meta de ${money(a.target_cents)} e preserve sua margem antes da compra. Nenhuma aplicação automática será feita.`));
     const button=node("button",a.label,"primary");
+    button.id = "approve-" + a.id;
     button.onclick=()=>request("/api/approve",{report_id:report.report_id,action_id:a.id});
     wrap.append(button);$("actions").append(wrap);
   });
@@ -188,4 +236,10 @@ $("text-size").onclick=()=>{
   $("text-size").setAttribute("aria-pressed",String(enabled));
   $("text-size").textContent = enabled ? "Texto padrão" : "Aumentar texto";
 };
+if(typeof ResizeObserver !== "undefined"){
+  new ResizeObserver(()=>{
+    const flow = state?.consent && state.report?.results?.cashflow;
+    if(flow) renderChart(flow);
+  }).observe($("balance-chart"));
+}
 request("/api/state");
