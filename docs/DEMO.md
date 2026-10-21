@@ -1,27 +1,28 @@
-# Demonstração de até três minutos
+# Roteiro de demonstração: até três minutos
 
-Priorizar uma história completa. Não gastar o vídeo navegando por todas as funcionalidades. O guia da plataforma pede no mínimo 90 segundos de solução funcionando na tela e evidência clara do uso do IBM Bob.
+Uma jornada completa, com 128 segundos de uso do software previstos entre 12 e 140 segundos. O material fornecido pede até 180 segundos no total e pelo menos 90 segundos de demonstração; confirmar as regras vigentes na plataforma antes da gravação.
 
-| Tempo | Na tela | Narração sugerida |
+## Preparar
+
+Executar `python -m elo.server`, abrir `http://127.0.0.1:8000` e selecionar **Chegar ao próximo recebimento**. Começar sem leitura autorizada. Se necessário, usar **Desativar leitura e limpar planos** antes de gravar. Conferir zoom, fonte e enquadramento, ocultar notificações e credenciais e ensaiar com cronômetro.
+
+O modo por regras deve permanecer identificado. Para mostrar IBM real, realizar antes uma validação local na conta autorizada e adaptar a narração ao resultado comprovado. O modo público não chama o planejador IBM.
+
+## Cenas
+
+| Tempo | O que mostrar e clicar | O que dizer |
 | --- | --- | --- |
-| 0–15 s | Tela inicial | "O saldo de hoje não revela se o dinheiro vai durar até o próximo recebimento. O Elo Financeiro ajuda a antecipar esse risco e escolher um plano." |
-| 15–30 s | Autorizar cenário | "Nossa proposta atende à trilha do Banco do Brasil. Nesta demonstração usamos dados sintéticos e a pessoa controla a leitura." |
-| 30–55 s | Projeção e calendário | "Aqui há R$ 1.500 hoje. Com os compromissos previstos, o saldo pode chegar a menos R$ 100 antes de receber. O problema está no calendário, mesmo que o saldo final seja positivo." |
-| 55–80 s | Plano e aprovação | "O agente apresenta uma opção: reduzir R$ 300 de lazer previsto. A menor margem passa a R$ 200. O usuário aprova esse plano específico; não existe movimentação de dinheiro." |
-| 80–105 s | Simular nova despesa | "Uma nova despesa de R$ 150 muda o contexto. O Elo recalcula a margem para R$ 50 e informa que o plano precisa ser revisto." |
-| 105–125 s | Compra ou PIX | "A mesma jornada ajuda a comparar uma compra e a reconhecer sinais que merecem verificação em uma operação. Os sinais deste exemplo não confirmam fraude." |
-| 125–145 s | Registro de ferramentas | "Os papéis de caixa, planejamento e segurança consultam ferramentas verificáveis. A autorização e os cálculos ficam fora do modelo." |
-| 145–165 s | Bob e evidências reais | Demonstrar uma tarefa real no IBM Bob e sua evidência, descrevendo a contribuição efetiva. Este trecho só pode ser gravado depois desse trabalho. |
-| 165–180 s | Resultado e limites | "O objetivo é tornar decisões financeiras mais compreensíveis e acompanháveis. Avaliaremos precisão, compreensão e controle. Uma integração bancária real é uma etapa posterior." |
+| 0–12 s | Tela inicial, com aviso de dados sintéticos visível. | “O saldo de hoje não conta toda a história. O Elo ajuda a enxergar o calendário antes de decidir. Este é um protótipo acadêmico, sem conexão bancária.” |
+| 12–25 s | Clicar em **Autorizar dados da demonstração**. | “A pessoa controla a leitura. Aqui usamos somente dados fictícios e uma margem definida no cenário.” |
+| 25–45 s | Mostrar **Menor saldo previsto**, gráfico e a linha de 13/10 na tabela. | “Há R$ 1.500 no início. As contas levam o saldo a menos R$ 100 antes do recebimento. O saldo final positivo não elimina esse aperto.” |
+| 45–65 s | Ir a **Por que o Elo sugeriu isso** e abrir a explicação do ajuste. | “Os números, as hipóteses e os limites ficam disponíveis. Não projetamos novas despesas desconhecidas nem garantimos a data do recebimento.” |
+| 65–85 s | Mostrar a proposta e clicar em **Ativar plano de gastos**. | “Reduzir R$ 300 do lazer previsto leva o menor saldo a R$ 200. Eu aprovo este plano específico. As despesas essenciais permanecem iguais e nenhum dinheiro é movimentado.” |
+| 85–105 s | Clicar em **Simular nova despesa**, mostrar o novo menor saldo e o botão desativado. | “Uma despesa fictícia de R$ 150 muda a projeção. A margem cai a R$ 50. O Elo reavalia o contexto, mas a aprovação anterior não autoriza outra ação.” |
+| 105–123 s | Abrir **Ferramentas e orientações consultadas**, mostrar o texto recuperado e a trilha. | “As ferramentas calculam os valores. A orientação usa conceitos e termos de uma base local pequena, sem gerar respostas. A trilha registra o que foi consultado e autorizado.” |
+| 123–140 s | Clicar em **Desativar leitura e limpar planos** e mostrar o registro da revogação. | “Ao revogar, a análise fica oculta e os planos e metas são limpos. O registro da revogação permanece nesta sessão temporária.” |
+| 140–160 s | Reservar para abrir uma tarefa real no IBM Bob e mostrar captura ou relatório revisado. | Descrever somente a contribuição efetiva: tarefa, mudança revisada e teste executado. **Esta cena depende de trabalho humano real e ainda não pode ser apresentada como concluída.** |
+| 160–180 s | Voltar à tela inicial e mostrar os limites do protótipo. | “A proposta une antecipação, explicação e controle. Compra e PIX são outras jornadas sintéticas. Pesquisa com usuários e validação IBM precisam de evidência; não demonstramos resultados financeiros nem detecção real de fraude.” |
 
-Os intervalos 30–145 s reservam 115 segundos de uso do produto. Gravar e cronometrar; não exceder 180 segundos.
+O trecho reservado ao Bob não deve ser preenchido com uma imagem fictícia ou com trabalho feito por outra ferramenta. Se o trabalho real e os requisitos da trilha ainda não foram cumpridos, identificar a gravação como demonstração parcial.
 
-## Não confundir demonstração com implementação final
-
-Se o modo ainda for por regras, dizer isso. Se watsonx estiver funcionando, mostrar o modo, o registro de ferramentas e a evidência da chamada real, sem revelar chave ou token. Evitar uma narração que sugira que um recurso planejado já foi implantado.
-
-Se a equipe não comprovar o uso central de Bob e a jornada IBM, o vídeo e o projeto não devem ser apresentados como entrega concluída. Guardar evidências do processo e dos testes, com dados exclusivamente sintéticos.
-
-## Preparação da gravação
-
-Reiniciar o cenário; autorizar leitura; confirmar valores; verificar tamanho de fonte; ocultar credenciais e notificações pessoais; usar narração audível; testar o vídeo sem login. Não incluir extratos, mensagens pessoais ou redes sociais.
+Depois de gravar, cronometrar o vídeo, conferir o áudio, verificar os valores na tela e testar o link sem login. Usar o [checklist de entrega](ENTREGA.md) antes da submissão.

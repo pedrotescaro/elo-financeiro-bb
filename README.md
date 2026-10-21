@@ -12,7 +12,7 @@ O Elo propõe um agente pessoal que antecipa apertos de caixa, explica o impacto
 
 O saldo de hoje pode parecer suficiente, mesmo quando as contas dos próximos dias vão deixá-lo negativo. O Elo considera o calendário: identifica o problema antes do vencimento, consulta ferramentas de cálculo e orientação, apresenta alternativas e acompanha o resultado de uma ação autorizada.
 
-> Status: proposta amadurecida + protótipo inicial executável. A demonstração padrão usa regras e dados sintéticos. Não é uma integração oficial do Banco do Brasil nem uma entrega IBM finalizada.
+> Status: protótipo executável com dados sintéticos, testes automatizados e pacote para hospedagem demonstrativa. O modo padrão usa regras. A publicação, a chamada IBM real e as evidências do Bob continuam pendentes. Não é uma integração oficial do Banco do Brasil nem uma entrega IBM finalizada.
 
 ## Executar localmente
 
@@ -24,7 +24,7 @@ cd elo-financeiro
 python -m elo.server
 ```
 
-Abra **http://127.0.0.1:8000**. A sessão existe apenas na memória; reiniciar o servidor limpa os dados.
+Abra **http://127.0.0.1:8000**. Não é necessário instalar pacotes. A sessão existe apenas na memória, expira após 30 minutos sem uso e é descartada ao reiniciar o servidor.
 
 ```bash
 python -m unittest discover -s tests -v
@@ -35,7 +35,7 @@ python -m unittest discover -s tests -v
 | Capacidade | Situação |
 | --- | --- |
 | Três cenários e interface responsiva em português | Implementados |
-| Projeção de caixa por fechamento diário | Implementada, com centavos inteiros |
+| Projeção de caixa por fechamento diário | Todos os dias do horizonte, gráfico com o menor saldo e tabela; centavos inteiros |
 | Consentimento demonstrativo e revogação | Implementados por sessão |
 | Plano de redução de gastos flexíveis | Implementado; depende de aprovação |
 | Aprovação vinculada à versão dos dados | Implementada; rejeita plano desatualizado |
@@ -43,8 +43,10 @@ python -m unittest discover -s tests -v
 | Sinais ilustrativos de risco em PIX | Implementados por regras; sem detecção validada |
 | Reavaliação após nova despesa | Implementada; evento simulado pela interface |
 | Planejador IBM watsonx.ai | Adaptador REST implementado; chamada real não validada |
-| Recuperação de orientações | Similaridade local por conceitos curados, com busca por tópico como contingência; sem embeddings ou geração de respostas |
+| Recuperação de orientações | Conceitos e sinônimos curados + similaridade TF-IDF local; busca por tópico como contingência; sem embeddings ou geração de respostas |
 | Explicações e trilha da sessão | Números, hipóteses, exclusões, consultas, autorizações e revogações visíveis |
+| Recursos de acesso | Teclado, foco visível, rótulos, mensagens de estado e opção de ampliar texto; avaliação com leitores de tela pendente |
+| Controles da demonstração pública | Expiração, limites de recursos, origem restrita e cabeçalhos; Dockerfile e guia de deploy preparados |
 | IBM Bob | Uso e evidências precisam ser realizados pela equipe |
 | BB / Open Finance / pagamentos / crédito | Integrações de produção fora deste protótipo |
 | Publicação acessível aos avaliadores | Pendente |
@@ -76,7 +78,15 @@ export WATSONX_URL='https://us-south.ml.cloud.ibm.com'
 python -m elo.server
 ```
 
-No PowerShell, configure cada variável com `$env:NOME='valor'`. O endpoint precisa corresponder à região da conta. Sem configuração, o código não faz chamadas externas. Com o adaptador ativado, somente cenários sintéticos são enviados à IBM. Se a resposta falhar ou não estiver no formato permitido, o sistema exibe que voltou à demonstração por regras.
+No PowerShell, configure cada variável com `$env:NOME='valor'`. O endpoint precisa corresponder à região da conta. Sem configuração, o código não faz chamadas externas. Com o adaptador ativado localmente, somente cenários sintéticos são enviados à IBM. Configuração ausente, falha de rede ou resposta fora do contrato ativam a contingência por regras, identificada na interface. Os testes do adaptador usam respostas simuladas; não comprovam uma chamada IBM real.
+
+O modo público, definido por `ELO_PUBLIC_ORIGIN`, recusa o planejador externo para impedir consumo anônimo da conta IBM. Não colocar credenciais IBM na hospedagem demonstrativa.
+
+## Verificar e hospedar
+
+O comando de testes acima usa apenas a biblioteca padrão. O lint é uma ferramenta de desenvolvimento: `python -m pip install ruff==0.16.0`, seguido de `python -m ruff check elo tests`. O GitHub Actions executa lint e testes a cada push e pull request; os resultados efetivos desta revisão ficam em [Verificação](docs/VERIFICACAO.md).
+
+Para hospedar os cenários sintéticos atrás de HTTPS, siga [Deploy](docs/DEPLOY.md). O pacote inclui Dockerfile sem dependências Python externas e usuário sem privilégios. A execução da imagem e o deploy externo ainda precisam ser realizados pela equipe; não existe URL pública validada nesta preparação.
 
 ## Documentação do projeto
 
@@ -87,12 +97,14 @@ No PowerShell, configure cada variável com `$env:NOME='valor'`. O endpoint prec
 - [Texto do problema e da solução, abaixo de 500 palavras](docs/SUBMISSAO.md)
 - [Roteiro de demonstração de até três minutos](docs/DEMO.md)
 - [Como comprovar o uso real do IBM Bob](bob_sessions/README.md)
+- [Checklist final e pendências da equipe](docs/ENTREGA.md)
+- [Publicar a demonstração sintética](docs/DEPLOY.md)
 - [Referências e limites da fundamentação](docs/REFERENCIAS.md)
 
 ## Estrutura
 
 ```text
-elo/          Ferramentas, coordenador, servidor e adaptador IBM
+elo/          Cálculos e coordenação em core.py; recuperação, servidor e adaptador IBM
 web/          Interface da demonstração
 data/         Cenários sintéticos e orientações curadas
 tests/        Verificações de cálculos, consentimento e aprovação
@@ -102,7 +114,9 @@ bob_sessions/ Evidências reais a inserir pela equipe
 
 ## Limites e próximos passos
 
-Este servidor serve para demonstração local. Não possui autenticação de produção, banco persistente, integração Open Finance ou proteção completa para exposição pública. Antes de publicar, siga o item de hospedagem do [roadmap](docs/ROADMAP.md).
+O servidor suporta uma demonstração sintética com controles limitados de exposição: até 100 sessões, expiração por inatividade, limite de requisições e workers, cookie seguro no modo público e validação da origem. Deve ficar atrás de um proxy HTTPS, conforme o [guia de deploy](docs/DEPLOY.md). Esses controles não demonstram resistência a DDoS, disponibilidade ou segurança bancária de produção.
+
+Não há identidade bancária, persistência, conexão Open Finance ou movimentação financeira. A trilha visível registra até 200 eventos da sessão e desaparece ao expirar ou reiniciar; não é uma auditoria de produção. As orientações vêm de uma base pequena, carregada na inicialização, sem atualização automática das fontes.
 
 Os relatórios são estimativas com entradas conhecidas, não previsões treinadas. O ajuste modifica um orçamento futuro, não transações realizadas. Os três exemplos não demonstram eficácia contra fraude, redução de endividamento ou impacto em clientes reais.
 
