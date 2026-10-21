@@ -19,7 +19,7 @@ O saldo de hoje pode parecer suficiente, mesmo quando as contas dos próximos di
 Requisito: Python 3.11 ou superior. Não há dependências externas no modo de demonstração.
 
 ```bash
-cd elo-financeiro-bb
+cd elo-financeiro
 python -m elo.server
 ```
 

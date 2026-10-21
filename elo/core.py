@@ -8,45 +8,56 @@ from datetime import date
 from hashlib import sha256
 import json
 from pathlib import Path
+from urllib.parse import urlsplit
 
 ROOT = Path(__file__).resolve().parent.parent
-CATALOG = json.loads((ROOT / "data/scenarios.json").read_text(encoding="utf-8"))
-TOOLS = ("cashflow", "purchase", "safety", "guidance")
+CATALOG: dict = json.loads((ROOT / "data/scenarios.json").read_text(encoding="utf-8"))
+KNOWLEDGE: list = json.loads((ROOT / "data/knowledge.json").read_text(encoding="utf-8"))
+TOOLS: frozenset = frozenset(("cashflow", "purchase", "safety", "guidance"))
+_TOOL_ORDER = ("cashflow", "purchase", "safety", "guidance")
+
+# URL schemes allowed in curated knowledge documents.
+_SAFE_SCHEMES = frozenset(("http", "https"))
 
 
-def load_scenario(name):
+def load_scenario(name: str) -> dict:
+    """Retorna uma cópia profunda do cenário solicitado ou levanta ValueError."""
     if name not in CATALOG:
         raise ValueError("Cenário desconhecido.")
     return deepcopy(CATALOG[name])
 
 
-def amount(value):
+def amount(value: object) -> int:
+    """Valida e retorna um valor financeiro em centavos inteiros."""
     if type(value) is not int or value < 0 or value > 100_000_000:
         raise ValueError("Valor financeiro inválido.")
     return value
 
 
-def validate(snapshot):
+def validate(snapshot: dict) -> dict:
+    """Valida estrutura e intervalos do snapshot; levanta ValueError em caso de falha."""
     start = date.fromisoformat(snapshot["as_of"])
     horizon = date.fromisoformat(snapshot["horizon"])
     if horizon < start:
         raise ValueError("Horizonte inválido.")
     for field in ("balance_cents", "buffer_cents"):
         amount(snapshot[field])
-    ids = set()
+    ids: set = set()
     for event in snapshot["events"]:
         amount(event["amount_cents"])
         if not start <= date.fromisoformat(event["date"]) <= horizon:
             raise ValueError("Evento fora do horizonte.")
         if event["direction"] not in ("in", "out"):
             raise ValueError("Direção inválida.")
+        if type(event.get("flexible")) is not bool:
+            raise ValueError("Campo 'flexible' deve ser booleano.")
         if event["id"] in ids:
             raise ValueError("Evento duplicado.")
         ids.add(event["id"])
     return snapshot
 
 
-def cashflow(snapshot):
+def cashflow(snapshot: dict) -> dict:
     """Agrupa o fechamento diário. Não estima horários de liquidação."""
     validate(snapshot)
     balance = snapshot["balance_cents"]
@@ -70,7 +81,8 @@ def cashflow(snapshot):
             "uncertainty": "Estimativa por fechamento diário; recebimentos podem atrasar e novas despesas podem surgir."}
 
 
-def purchase(snapshot):
+def purchase(snapshot: dict) -> dict:
+    """Compara impacto à vista e parcelas. Não executa nenhuma compra."""
     item = snapshot.get("purchase")
     if not item:
         return {"available": False}
@@ -90,7 +102,8 @@ def purchase(snapshot):
             "recommendation": "Adiar e criar uma meta" if base["minimum_cents"] - price < snapshot["buffer_cents"] else "Comparar antes de decidir"}
 
 
-def safety(snapshot):
+def safety(snapshot: dict) -> dict:
+    """Exibe sinais sintéticos de atenção para uma intenção de PIX. Nunca executa pagamento."""
     operation = snapshot.get("pix")
     if not operation:
         return {"available": False}
@@ -110,14 +123,26 @@ def safety(snapshot):
             "payment_executed": False}
 
 
-def guidance(snapshot):
-    knowledge = json.loads((ROOT / "data/knowledge.json").read_text(encoding="utf-8"))
+def _safe_url(url: object) -> object:
+    """Retorna a URL somente se o esquema for HTTP(S); caso contrário retorna None."""
+    if not isinstance(url, str):
+        return None
+    scheme = urlsplit(url).scheme.lower()
+    return url if scheme in _SAFE_SCHEMES else None
+
+
+def guidance(snapshot: dict) -> dict:
+    """Retorna orientações curadas filtradas por tópico."""
     topic = "pix" if snapshot.get("pix") else "cashflow"
-    return {"topic": topic, "documents": [d for d in knowledge if topic in d["topics"]],
+    docs = []
+    for d in KNOWLEDGE:
+        if topic in d["topics"]:
+            docs.append({**d, "url": _safe_url(d.get("url"))})
+    return {"topic": topic, "documents": docs,
             "retrieval_mode": "Busca local por tópico em conteúdo curado; RAG semântico ainda não implementado."}
 
 
-def apply_saving(snapshot, reduction):
+def apply_saving(snapshot: dict, reduction: int) -> dict:
     """Ajusta apenas previsões flexíveis, sem alterar transações realizadas."""
     changed = deepcopy(snapshot)
     remaining = amount(reduction)
@@ -131,7 +156,8 @@ def apply_saving(snapshot, reduction):
     return changed
 
 
-def build_report(snapshot, consent, planner=None):
+def build_report(snapshot: dict, consent: object, planner: object = None) -> dict:
+    """Coordena a seleção de ferramentas e constrói o relatório da sessão."""
     if consent is not True:
         return {"status": "consent_required", "title": "Você controla o acesso",
                 "message": "Autorize a leitura dos dados sintéticos para iniciar a demonstração.",
@@ -142,7 +168,13 @@ def build_report(snapshot, consent, planner=None):
     selected = ["cashflow", "purchase" if snapshot.get("purchase") else "safety" if snapshot.get("pix") else "guidance"]
     if planner:
         try:
-            selected = planner.plan(snapshot)
+            raw = planner.plan(snapshot)
+            # Valida o plano antes de aceitar o modo watsonx.
+            if (not isinstance(raw, list)
+                    or not 1 <= len(raw) <= 4
+                    or any(type(x) is not str or x not in TOOLS for x in raw)):
+                raise ValueError("Plano inválido retornado pelo planejador.")
+            selected = raw
             mode = "watsonx"
         except Exception:
             # Não retorna prompts, chaves ou respostas HTTP ao navegador.
@@ -156,6 +188,8 @@ def build_report(snapshot, consent, planner=None):
         selected.append("safety")
     if snapshot.get("purchase") and "purchase" not in selected:
         selected.append("purchase")
+    # Preserva ordem canônica legível para o trace.
+    selected = [t for t in _TOOL_ORDER if t in selected]
     trace, result = [], {}
     for name in selected:
         result[name] = globals()[name](snapshot)

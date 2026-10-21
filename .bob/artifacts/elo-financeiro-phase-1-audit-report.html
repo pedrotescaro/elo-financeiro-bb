@@ -1,0 +1,122 @@
+
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Elo Financeiro — Phase 1 Audit</title>
+<style>
+  body { font-family: -apple-system,"Segoe UI",system-ui,sans-serif; font-size:14px; line-height:1.6; background:#fff; color:#1f2328; max-width:760px; margin:40px auto; padding:0 24px 60px; }
+  h1 { font-size:20px; margin-bottom:4px; }
+  .meta { color:#57606a; font-size:13px; margin-bottom:36px; }
+  h2 { font-size:15px; font-weight:700; border-bottom:1px solid #e5e7eb; padding-bottom:6px; margin:32px 0 12px; text-transform:uppercase; letter-spacing:.5px; color:#57606a; }
+  table { width:100%; border-collapse:collapse; font-size:13px; margin-bottom:8px; }
+  th { text-align:left; padding:7px 10px; background:#f7f8fa; border:1px solid #e5e7eb; font-weight:600; }
+  td { padding:7px 10px; border:1px solid #e5e7eb; vertical-align:top; }
+  tr:nth-child(even) td { background:#fafbfc; }
+  .c { color:#cf222e; font-weight:700; }
+  .i { color:#b45309; font-weight:700; }
+  .n { color:#347d39; font-weight:600; }
+  .tag { display:inline-block; font-size:11px; font-weight:600; padding:2px 7px; border-radius:4px; white-space:nowrap; }
+  .tag-c { background:#ffebe9; color:#cf222e; border:1px solid #f7a3a0; }
+  .tag-i { background:#fff8c5; color:#7d4e00; border:1px solid #e5c000; }
+  .tag-n { background:#dafbe1; color:#1a7f37; border:1px solid #82c991; }
+  .summary-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin:20px 0 32px; }
+  .summary-box { padding:16px; border-radius:8px; text-align:center; }
+  .box-c { background:#ffebe9; border:1px solid #f7a3a0; }
+  .box-i { background:#fff8c5; border:1px solid #e5c000; }
+  .box-n { background:#dafbe1; border:1px solid #82c991; }
+  .summary-box .num { font-size:28px; font-weight:800; line-height:1; }
+  .summary-box .label { font-size:11px; font-weight:600; text-transform:uppercase; letter-spacing:.8px; margin-top:4px; }
+  .box-c .num { color:#cf222e; } .box-c .label { color:#cf222e; }
+  .box-i .num { color:#7d4e00; } .box-i .label { color:#7d4e00; }
+  .box-n .num { color:#1a7f37; } .box-n .label { color:#1a7f37; }
+  code { font-size:12px; background:#f6f8fa; padding:1px 5px; border-radius:3px; border:1px solid #e5e7eb; }
+  footer { margin-top:48px; border-top:1px solid #e5e7eb; padding-top:12px; text-align:center; font-size:12px; color:#57606a; }
+</style>
+</head>
+<body>
+<h1>Elo Financeiro — Phase 1 Audit</h1>
+<p class="meta">Read-only analysis of the full repository on 2025-07-12 · No changes made</p>
+
+<div class="summary-grid">
+  <div class="summary-box box-c"><div class="num">4</div><div class="label">Critical</div></div>
+  <div class="summary-box box-i"><div class="num">11</div><div class="label">Important</div></div>
+  <div class="summary-box box-n"><div class="num">9</div><div class="label">Nice-to-have</div></div>
+</div>
+
+<h2>Security</h2>
+<table>
+<tr><th style="width:40px">#</th><th style="width:80px">Severity</th><th>Finding</th><th>Location</th></tr>
+<tr><td>S1</td><td><span class="tag tag-c">CRITICAL</span></td><td><strong>No input length or type guard on scenario name.</strong> <code>set_scenario(payload.get("name"))</code> passes the raw browser-supplied string directly to <code>load_scenario()</code>. A non-string (e.g. <code>null</code>, a dict) will produce an unhandled <code>TypeError</code>; the 400 handler catches it but the error message is generic and the intent is never checked. The name should be validated as a non-empty string ≤ 40 chars before lookup.</td><td><code>server.py:179</code></td></tr>
+<tr><td>S2</td><td><span class="tag tag-c">CRITICAL</span></td><td><strong>Missing <code>Secure</code> flag on session cookie.</strong> The <code>Set-Cookie</code> header uses <code>HttpOnly; SameSite=Strict</code> but omits <code>Secure</code>. When deployed behind HTTPS (required for Phase 5), the cookie will still be transmitted in plain HTTP if any redirect is involved. Add <code>; Secure</code> unconditionally — it is harmless on localhost and required for production.</td><td><code>server.py:135</code></td></tr>
+<tr><td>S3</td><td><span class="tag tag-c">CRITICAL</span></td><td><strong>No HTTPS enforcement on the <code>watsonx.py</code> URL-open calls.</strong> <code>urlopen</code> does not verify hostname against the trusted CA store by default in older LibreSSL builds. For the IAM token endpoint and the watsonx endpoint, an explicit <code>ssl.create_default_context()</code> should be passed so certificate validation is guaranteed regardless of the Python/OpenSSL build.</td><td><code>watsonx.py:24-27</code></td></tr>
+<tr><td>S4</td><td><span class="tag tag-c">CRITICAL</span></td><td><strong>Session count limit uses a dictionary check that is not atomic under concurrency.</strong> The check <code>if len(sessions) &gt;= 100</code> followed by the insert happens inside <code>sessions_lock</code>, so it is actually safe today. However, <code>get_session()</code> instantiates <code>DemoSession</code> <em>inside</em> the lock, which runs <code>build_report</code> (including file I/O) while holding the global sessions lock — this serializes all request threads and can cause a timeout-based DoS. Session construction should happen outside the lock.</td><td><code>server.py:118-125</code></td></tr>
+<tr><td>S5</td><td><span class="tag tag-i">IMPORTANT</span></td><td><strong>Prompt-injection risk in the watsonx prompt.</strong> The scenario snapshot is appended with string concatenation after a "CONTEXTO:" marker. An adversarial synthetic scenario with embedded instructions could attempt to override the task. Use a structured message format (e.g. JSON with separate system and user fields) if the model API supports it, or at minimum add a separator and re-state the constraint after the context block.</td><td><code>watsonx.py:28-33</code></td></tr>
+<tr><td>S6</td><td><span class="tag tag-i">IMPORTANT</span></td><td><strong>XSS vector: no <code>rel="noopener"</code> fallback in CSP.</strong> The CSP header is solid but <code>app.js</code> sets <code>a.target="_blank"</code> and <code>a.rel="noopener noreferrer"</code> dynamically for guidance links. If knowledge.json ever contains a <code>javascript:</code> URL it would be rendered in an anchor. The server should strip non-HTTP(S) URLs from <code>knowledge.json</code> documents before serving them, or validate URLs server-side.</td><td><code>core.py:116</code>, <code>app.js:90</code></td></tr>
+<tr><td>S7</td><td><span class="tag tag-i">IMPORTANT</span></td><td><strong>No CORS response headers at all.</strong> The Origin check rejects cross-origin POSTs (good), but there are no <code>Access-Control-Allow-*</code> headers on any response. This is fine for a same-origin demo but must be documented; adding explicit <code>Access-Control-Allow-Origin: &lt;origin&gt;</code> rejection (or a <code>vary: Origin</code> header) is needed before public deployment.</td><td><code>server.py:127-137</code></td></tr>
+<tr><td>S8</td><td><span class="tag tag-i">IMPORTANT</span></td><td><strong>Content-Length is trusted without capping at parse time.</strong> The code reads <code>Content-Length</code>, rejects values outside 0–8192, then calls <code>self.rfile.read(size)</code>. If the header is absent (default 0) the condition <code>not 0 &lt; size</code> raises a 400, but if a client sends a legitimate header value of 8193 or a non-integer value, the <code>int()</code> call will raise <code>ValueError</code>, which is silently caught and returns "requisição inválida". This is correct but the intent should be explicit — validate that Content-Length is a valid positive integer before parsing.</td><td><code>server.py:169-172</code></td></tr>
+</table>
+
+<h2>Bugs</h2>
+<table>
+<tr><th style="width:40px">#</th><th style="width:80px">Severity</th><th>Finding</th><th>Location</th></tr>
+<tr><td>B1</td><td><span class="tag tag-c">CRITICAL</span> (logic)</td><td><strong>Consent check uses <code>is not True</code>, which accepts any truthy non-boolean.</strong> <code>build_report</code> guards on <code>consent is not True</code>. But <code>set_consent</code> validates <code>type(enabled) is not bool</code> before storing, so only <code>True</code>/<code>False</code> can reach the report. Consistent, but the HTTP layer passes <code>payload.get("enabled")</code> without a type guard before calling <code>set_consent</code> — if <code>enabled</code> is missing the dict key, it passes <code>None</code>, which correctly raises <code>ValueError</code> (wrong type). Edge case is safe, but the guard should be documented.</td><td><code>server.py:178</code></td></tr>
+<tr><td>B2</td><td><span class="tag tag-i">IMPORTANT</span></td><td><strong><code>new_cookie</code> attribute leaks between requests on the same thread.</strong> <code>self.new_cookie</code> is set on the handler instance; <code>BaseHTTPRequestHandler</code> creates one instance per request, so this is safe today. But it is a fragile pattern — if the server is refactored to reuse handler instances, the cookie would be re-sent on every subsequent request from that handler. Prefer passing the cookie value explicitly through <code>send_bytes</code>.</td><td><code>server.py:124, 134</code></td></tr>
+<tr><td>B3</td><td><span class="tag tag-i">IMPORTANT</span></td><td><strong><code>flexible</code> field on events is not validated in <code>validate()</code>.</strong> The <code>validate()</code> function checks direction, date, and amount but not whether the <code>flexible</code> field is a boolean. A scenario with <code>"flexible": 1</code> passes validation, and <code>apply_saving</code> checks <code>event.get("flexible", False)</code> — <code>1</code> is truthy, so it would pass. The scenarios.json is controlled, but the field should be typed.</td><td><code>core.py:29-46</code></td></tr>
+<tr><td>B4</td><td><span class="tag tag-i">IMPORTANT</span></td><td><strong><code>guidance()</code> reads <code>knowledge.json</code> on every call — no caching.</strong> The file is read and JSON-decoded on every single request. For a demo this is fine, but it is a correctness hazard too: if the file is being written while the server is running, a partial read would crash. Should be loaded once at startup, like <code>CATALOG</code>.</td><td><code>core.py:114</code></td></tr>
+<tr><td>B5</td><td><span class="tag tag-i">IMPORTANT</span></td><td><strong>README says <code>cd elo-financeiro-bb</code> but the repo directory is <code>elo-financeiro</code>.</strong> The <code>pyproject.toml</code> name is <code>elo-financeiro-bb</code>, but the workspace root is <code>elo-financeiro</code>. The quick-start command in the README will fail for any evaluator who clones the repo and follows it literally.</td><td><code>README.md:21</code></td></tr>
+<tr><td>B6</td><td><span class="tag tag-i">IMPORTANT</span></td><td><strong><code>app.js</code> crashes on non-<code>cashflow</code> reports (consent not yet given).</strong> The <code>render()</code> function returns early when <code>!state.consent</code> — correct. But the initial <code>request("/api/state")</code> returns a report with <code>status: "consent_required"</code> and no <code>results</code> key, so if <code>render()</code> ever falls through to <code>const flow = report.results.cashflow</code> without the guard, it throws. The guard is present but fragile; the workspace-hidden block should also null-check <code>report.results</code>.</td><td><code>app.js:39</code></td></tr>
+</table>
+
+<h2>Dead / Unreachable Code</h2>
+<table>
+<tr><th style="width:40px">#</th><th style="width:80px">Severity</th><th>Finding</th><th>Location</th></tr>
+<tr><td>D1</td><td><span class="tag tag-n">NICE</span></td><td><strong><code>elo/__init__.py</code> is empty except a docstring.</strong> It exports nothing. Any import of package-level symbols goes directly to <code>core</code> or <code>server</code>. Not a bug but misleading if evaluators look at it expecting an API surface.</td><td><code>elo/__init__.py</code></td></tr>
+<tr><td>D2</td><td><span class="tag tag-n">NICE</span></td><td><strong><code>TOOLS</code> tuple is defined in <code>core.py</code> and re-imported in <code>watsonx.py</code>, but never used for anything other than membership checks.</strong> A <code>frozenset</code> would be more semantically correct and slightly faster for <code>in</code> tests.</td><td><code>core.py:14</code>, <code>watsonx.py:6</code></td></tr>
+<tr><td>D3</td><td><span class="tag tag-i">IMPORTANT</span></td><td><strong>GitHub Actions workflow runs <code>python -m compileall</code> but does not run any linter (ruff/flake8).</strong> Phase 2 will add one, but noting the gap: lint is in the task spec but entirely absent from the workflow right now.</td><td><code>.github/workflows/checks.yml</code></td></tr>
+</table>
+
+<h2>Test Gaps</h2>
+<table>
+<tr><th style="width:40px">#</th><th style="width:80px">Severity</th><th>Finding</th></tr>
+<tr><td>T1</td><td><span class="tag tag-i">IMPORTANT</span></td><td><strong>No test for zero balance.</strong> <code>balance_cents: 0</code> with upcoming bills — the minimum would be immediately negative; not explicitly covered.</td></tr>
+<tr><td>T2</td><td><span class="tag tag-i">IMPORTANT</span></td><td><strong>No test for multiple bills on the same day.</strong> The same-day test exists but uses one in/one out. A scenario with 3 outflows on the same day (all flexible) and <code>apply_saving</code> is not tested.</td></tr>
+<tr><td>T3</td><td><span class="tag tag-i">IMPORTANT</span></td><td><strong>No test for delayed income (income date moved past horizon).</strong> The system should gracefully handle a scenario where no <code>direction:"in"</code> event falls within the horizon.</td></tr>
+<tr><td>T4</td><td><span class="tag tag-i">IMPORTANT</span></td><td><strong>No test for approving a plan against stale data (via HTTP).</strong> <code>test_changed_snapshot_requires_fresh_approval</code> exists at the unit level but there is no HTTP-level test for the 400 response when <code>report_id</code> is stale.</td></tr>
+<tr><td>T5</td><td><span class="tag tag-i">IMPORTANT</span></td><td><strong>No test for revoking consent mid-flow via HTTP.</strong> The unit test covers it, but no HTTP roundtrip test verifies the 403/400 cascade after a revoke POST.</td></tr>
+<tr><td>T6</td><td><span class="tag tag-i">IMPORTANT</span></td><td><strong>No test for malformed watsonx output</strong> (non-JSON, JSON without <code>tools</code> key, tools list with unknown names, empty list, list of length 5). Only a RuntimeError fallback is tested.</td></tr>
+<tr><td>T7</td><td><span class="tag tag-n">NICE</span></td><td><strong>HTTP tests do not cover path-traversal for <code>/api/*</code> routes</strong> (e.g. <code>/api/../../etc/passwd</code>). The URL is split with <code>urlsplit</code> so this is safe, but coverage is absent.</td></tr>
+<tr><td>T8</td><td><span class="tag tag-n">NICE</span></td><td><strong>No test for the <code>purchase</code> scenario approval (<code>purchase-goal</code> action) via HTTP.</strong> The unit test for purchase impacted metrics exists, but the full HTTP flow is missing.</td></tr>
+</table>
+
+<h2>README vs. Code Mismatches</h2>
+<table>
+<tr><th style="width:40px">#</th><th style="width:80px">Severity</th><th>Finding</th></tr>
+<tr><td>R1</td><td><span class="tag tag-c">CRITICAL</span></td><td><strong><code>cd elo-financeiro-bb</code> in README is wrong.</strong> The actual directory name is <code>elo-financeiro</code>. Any evaluator following the Quick Start will hit a "directory not found" immediately.</td></tr>
+<tr><td>R2</td><td><span class="tag tag-i">IMPORTANT</span></td><td><strong>README says "20 testes automatizados" (in VALIDACAO.md).</strong> There are currently 16 test methods across the two test files. Either new tests need to be added or the count needs correction.</td></tr>
+<tr><td>R3</td><td><span class="tag tag-n">NICE</span></td><td><strong>README and ARQUITETURA describe an <code>elo/</code> directory with "Ferramentas, coordenador, servidor e adaptador IBM" but there is no coordinator module</strong> — coordination logic lives inside <code>core.py:build_report</code>. The description is accurate in intent but misleading about module structure.</td></tr>
+</table>
+
+<h2>Accessibility (UI)</h2>
+<table>
+<tr><th style="width:40px">#</th><th style="width:80px">Severity</th><th>Finding</th></tr>
+<tr><td>A1</td><td><span class="tag tag-i">IMPORTANT</span></td><td><strong>All scenario buttons in the sidebar lack <code>aria-label</code> or unique accessible names.</strong> The buttons are generated dynamically with text content only; no <code>aria-label</code> and no grouping role tells a screen reader this is a navigation control. The containing <code>&lt;nav&gt;</code> has a label — good — but each button still needs a role hint such as "Selecionar cenário: [título]".</td></tr>
+<tr><td>A2</td><td><span class="tag tag-i">IMPORTANT</span></td><td><strong>The "Simular nova despesa" button is not disabled after the event is simulated.</strong> The server returns a 400 if triggered twice, but the button stays enabled and clickable, confusing keyboard/AT users. The button should be disabled after the monitor event fires.</td></tr>
+<tr><td>A3</td><td><span class="tag tag-i">IMPORTANT</span></td><td><strong>Error message (<code>#error</code>) uses <code>role="alert"</code> but is initially <code>hidden</code>.</strong> Setting <code>hidden</code> on a live region prevents AT from announcing updates when it becomes visible in some browsers. Better practice: keep the element visible but empty, and populate it with text to trigger the announcement.</td></tr>
+<tr><td>A4</td><td><span class="tag tag-n">NICE</span></td><td><strong>No <code>lang</code> attribute on dynamically injected content.</strong> The <code>&lt;html lang="pt-BR"&gt;</code> is correct but inline SVG or future embedded charts won't inherit it. Minor — just keep it in mind for Phase 4.</td></tr>
+<tr><td>A5</td><td><span class="tag tag-n">NICE</span></td><td><strong>The <code>&lt;details&gt;/&lt;summary&gt;</code> trace block has no <code>aria-label</code>.</strong> Its summary text is "Como o agente chegou…" which is descriptive enough, but adding an explicit <code>id</code> and linking the panel to its heading with <code>aria-labelledby</code> improves navigation for AT users.</td></tr>
+<tr><td>A6</td><td><span class="tag tag-n">NICE</span></td><td><strong>Color alone encodes negative balance</strong> (red class <code>.negative</code>). No icon or text annotation differentiates negative from positive values for color-blind users. An "(−)" prefix or a "⚠" symbol with an <code>aria-label</code> would address WCAG 1.4.1.</td></tr>
+<tr><td>A7</td><td><span class="tag tag-n">NICE</span></td><td><strong>Sidebar is not reachable via keyboard skip link.</strong> There is no "Skip to main content" link, so keyboard-only users must tab through all scenario buttons before reaching the main panel.</td></tr>
+</table>
+
+<h2>Summary Priorities for Phase 2</h2>
+<table>
+<tr><th>Priority</th><th>Items to fix</th></tr>
+<tr><td><span class="tag tag-c">CRITICAL (fix first)</span></td><td>R1 (README dir name), S1 (scenario name not validated), S2 (Secure cookie flag), S3 (TLS verification in watsonx), S4 (session lock holds during I/O), B1 (document consent guard intent)</td></tr>
+<tr><td><span class="tag tag-i">IMPORTANT (Phase 2)</span></td><td>B3–B6, D3, S5–S8, T1–T6, A1–A3, R2</td></tr>
+<tr><td><span class="tag tag-n">NICE-TO-HAVE (Phase 3–4)</span></td><td>D1–D2, T7–T8, A4–A7, R3</td></tr>
+</table>
+
+<footer>Made with IBM Bob</footer>
+</body>
+</html>

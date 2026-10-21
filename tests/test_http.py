@@ -52,5 +52,46 @@ class HTTPTests(unittest.TestCase):
         with self.assertRaises(HTTPError) as error: self.client.open(self.base + "/../data/scenarios.json")
         self.assertEqual(error.exception.code, 404)
 
+    # ── T4: stale approval via HTTP ──────────────────────────────────────────
+    def test_stale_report_id_returns_400(self):
+        self.post("/api/consent", {"enabled": True})
+        stale_id = "000000000000000000000"  # fabricated, won't match current report
+        with self.assertRaises(HTTPError) as error:
+            self.post("/api/approve", {"report_id": stale_id, "action_id": "budget-plan"})
+        self.assertEqual(error.exception.code, 400)
+
+    # ── T5: consent revoke mid-flow via HTTP ──────────────────────────────────
+    def test_revoke_consent_then_approve_is_rejected(self):
+        state = self.post("/api/consent", {"enabled": True})
+        rid = state["report"]["report_id"]
+        # Revoke consent
+        self.post("/api/consent", {"enabled": False})
+        # Attempt approval after revoke — must be rejected with 403
+        with self.assertRaises(HTTPError) as error:
+            self.post("/api/approve", {"report_id": rid, "action_id": "budget-plan"})
+        self.assertEqual(error.exception.code, 403)
+
+    def test_invalid_scenario_name_returns_400(self):
+        with self.assertRaises(HTTPError) as error:
+            self.post("/api/scenario", {"name": None})
+        self.assertEqual(error.exception.code, 400)
+
+    def test_unknown_scenario_name_returns_400(self):
+        with self.assertRaises(HTTPError) as error:
+            self.post("/api/scenario", {"name": "nonexistent"})
+        self.assertEqual(error.exception.code, 400)
+
+    def test_purchase_goal_approval_flow(self):
+        """Purchase scenario: approve purchase-goal action via HTTP."""
+        self.post("/api/scenario", {"name": "purchase"})
+        state = self.post("/api/consent", {"enabled": True})
+        rid = state["report"]["report_id"]
+        actions = state["report"]["actions"]
+        goal_action = next((a for a in actions if a["id"] == "purchase-goal"), None)
+        self.assertIsNotNone(goal_action)
+        result = self.post("/api/approve", {"report_id": rid, "action_id": "purchase-goal"})
+        self.assertEqual(len(result["goals"]), 1)
+        self.assertEqual(result["goals"][0]["label"], "Celular")
+
 
 if __name__ == "__main__": unittest.main()

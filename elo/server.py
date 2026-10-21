@@ -11,9 +11,13 @@ from threading import RLock
 from urllib.parse import urlsplit
 from .core import CATALOG, ROOT, apply_saving, build_report, load_scenario
 
+_MAX_SESSION_NAME_LEN = 40
+
 
 class DemoSession:
-    def __init__(self, planner=None):
+    """Estado isolado de uma sessão de demonstração. Thread-safe via lock próprio."""
+
+    def __init__(self, planner: object = None) -> None:
         self.lock = RLock()
         self.csrf = secrets.token_urlsafe(24)
         self.consent = False
@@ -21,21 +25,24 @@ class DemoSession:
         self.snapshot = load_scenario(self.name)
         self.planner = planner
         self.report = build_report(self.snapshot, False)
-        self.approved = {}
-        self.history = []
-        self.goals = []
+        self.approved: dict = {}
+        self.history: list = []
+        self.goals: list = []
 
-    def refresh(self):
+    def refresh(self) -> None:
+        """Reconstrói o relatório com base no snapshot e no consentimento atuais."""
         self.report = build_report(self.snapshot, self.consent, self.planner)
 
-    def public_state(self):
+    def public_state(self) -> dict:
+        """Retorna o estado serializável para o navegador."""
         return {"scenario": self.name, "scenario_title": self.snapshot["title"],
                 "scenarios": [{"id": k, "title": v["title"]} for k, v in CATALOG.items()],
                 "consent": self.consent, "csrf": self.csrf, "report": deepcopy(self.report),
                 "history": deepcopy(self.history), "goals": deepcopy(self.goals),
                 "synthetic": True, "monitoring": "Simulado por evento acionado na interface"}
 
-    def set_consent(self, enabled):
+    def set_consent(self, enabled: bool) -> None:
+        """Ativa ou revoga o consentimento demonstrativo."""
         if type(enabled) is not bool:
             raise ValueError("Consentimento inválido.")
         self.consent = enabled
@@ -46,15 +53,19 @@ class DemoSession:
             self.snapshot = load_scenario(self.name)
         self.refresh()
 
-    def set_scenario(self, name):
-        self.snapshot = load_scenario(name)
+    def set_scenario(self, name: str) -> None:
+        """Troca o cenário ativo e reinicia o estado da sessão."""
+        if not isinstance(name, str) or not name or len(name) > _MAX_SESSION_NAME_LEN:
+            raise ValueError("Nome de cenário inválido.")
+        self.snapshot = load_scenario(name)  # levanta ValueError se desconhecido
         self.name = name
         self.approved.clear()
         self.history.clear()
         self.goals.clear()
         self.refresh()
 
-    def approve(self, report_id, action_id):
+    def approve(self, report_id: str, action_id: str) -> dict:
+        """Executa a ação aprovada vinculada ao relatório vigente."""
         if not self.consent:
             raise PermissionError("Autorize a leitura antes de aprovar um plano.")
         key = (report_id, action_id)
@@ -82,7 +93,8 @@ class DemoSession:
             self.report["actions"] = [a for a in self.report["actions"] if a["id"] != "purchase-goal"]
         return record
 
-    def monitor(self):
+    def monitor(self) -> None:
+        """Simula uma nova despesa e reavalia a projeção."""
         if not self.consent:
             raise PermissionError("A leitura está desativada.")
         if any(e["id"] == "new-spend" for e in self.snapshot["events"]):
@@ -95,19 +107,24 @@ class DemoSession:
 
 
 class DemoServer(ThreadingHTTPServer):
-    def __init__(self, address, planner=None):
-        self.sessions = {}
+    """Servidor ThreadingHTTP com mapa de sessões protegido por lock."""
+
+    def __init__(self, address: tuple, planner: object = None) -> None:
+        self.sessions: dict = {}
         self.sessions_lock = RLock()
         self.planner = planner
         super().__init__(address, Handler)
 
 
 class Handler(BaseHTTPRequestHandler):
-    def log_message(self, fmt, *args):
+    """Lida com requisições individuais da demonstração."""
+
+    def log_message(self, fmt: str, *args: object) -> None:
         # Não grava dados financeiros, tokens ou conteúdo de requisições.
         pass
 
-    def get_session(self):
+    def get_session(self) -> "DemoSession":
+        """Retorna a sessão existente ou cria uma nova sob o lock global."""
         cookies = SimpleCookie()
         try:
             cookies.load(self.headers.get("Cookie", ""))
@@ -115,37 +132,65 @@ class Handler(BaseHTTPRequestHandler):
             cookies = SimpleCookie()
         item = cookies.get("elo_demo")
         key = item.value if item else None
-        with self.server.sessions_lock:
-            if key not in self.server.sessions:
-                if len(self.server.sessions) >= 100:
-                    raise RuntimeError("Limite de sessões da demonstração atingido.")
-                key = secrets.token_urlsafe(24)
-                self.server.sessions[key] = DemoSession(self.server.planner)
-                self.new_cookie = key
-            return self.server.sessions[key]
 
-    def send_bytes(self, status, content, content_type):
+        with self.server.sessions_lock:
+            session = self.server.sessions.get(key)
+            if session is not None:
+                return session
+            if len(self.server.sessions) >= 100:
+                raise RuntimeError("Limite de sessões da demonstração atingido.")
+            new_key = secrets.token_urlsafe(24)
+            new_session = DemoSession(self.server.planner)
+            self.server.sessions[new_key] = new_session
+
+        self._new_cookie = new_key
+        return new_session
+
+    def send_bytes(self, status: int, content: bytes, content_type: str,
+                   new_cookie: "str | None" = None) -> None:
+        """Envia uma resposta com cabeçalhos de segurança padrão."""
         self.send_response(status)
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(content)))
         self.send_header("Cache-Control", "no-store")
         self.send_header("X-Content-Type-Options", "nosniff")
-        self.send_header("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'")
-        if getattr(self, "new_cookie", None):
-            self.send_header("Set-Cookie", f"elo_demo={self.new_cookie}; HttpOnly; SameSite=Strict; Path=/")
+        self.send_header(
+            "Content-Security-Policy",
+            "default-src 'self'; script-src 'self'; style-src 'self'; "
+            "img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'",
+        )
+        if new_cookie:
+            # Adiciona Secure apenas quando servido via HTTPS (produção).
+            # Em HTTP local o flag Secure impede que o cookie seja enviado de volta.
+            host = self.headers.get("Host", "")
+            secure_flag = "" if host.startswith("127.0.0.1") or host.startswith("localhost") else "; Secure"
+            self.send_header(
+                "Set-Cookie",
+                f"elo_demo={new_cookie}; HttpOnly; SameSite=Strict{secure_flag}; Path=/",
+            )
         self.end_headers()
         self.wfile.write(content)
 
-    def send_json(self, status, payload):
-        self.send_bytes(status, json.dumps(payload, ensure_ascii=False).encode(), "application/json; charset=utf-8")
+    def send_json(self, status: int, payload: object,
+                  new_cookie: "str | None" = None) -> None:
+        """Serializa payload como JSON e envia via send_bytes."""
+        self.send_bytes(
+            status,
+            json.dumps(payload, ensure_ascii=False).encode(),
+            "application/json; charset=utf-8",
+            new_cookie=new_cookie,
+        )
 
-    def do_GET(self):
+    def do_GET(self) -> None:
+        new_cookie = None
         path = urlsplit(self.path).path
         if path == "/api/state":
             try:
+                self._new_cookie = None
                 session = self.get_session()
+                new_cookie = getattr(self, "_new_cookie", None)
                 with session.lock:
-                    self.send_json(200, session.public_state())
+                    self.send_json(200, session.public_state(), new_cookie=new_cookie)
             except RuntimeError:
                 self.send_json(503, {"error": "A demonstração está ocupada."})
             return
@@ -157,16 +202,23 @@ class Handler(BaseHTTPRequestHandler):
         name, mime = routes[path]
         self.send_bytes(200, (ROOT / "web" / name).read_bytes(), mime + "; charset=utf-8")
 
-    def do_POST(self):
+    def do_POST(self) -> None:
+        new_cookie = None
         try:
+            self._new_cookie = None
             session = self.get_session()
+            new_cookie = getattr(self, "_new_cookie", None)
             token = self.headers.get("X-Demo-CSRF", "")
             if not secrets.compare_digest(token, session.csrf):
                 raise PermissionError("Sessão inválida. Atualize a página.")
             origin = self.headers.get("Origin")
             if origin and urlsplit(origin).netloc != self.headers.get("Host"):
                 raise PermissionError("Origem não permitida.")
-            size = int(self.headers.get("Content-Length", "0"))
+            raw_len = self.headers.get("Content-Length", "")
+            try:
+                size = int(raw_len)
+            except (ValueError, TypeError):
+                raise ValueError("Cabeçalho Content-Length inválido.")
             if not 0 < size <= 8192:
                 raise ValueError("Tamanho inválido.")
             payload = json.loads(self.rfile.read(size))
@@ -188,7 +240,7 @@ class Handler(BaseHTTPRequestHandler):
                 else:
                     self.send_json(404, {"error": "Ação não encontrada."})
                     return
-                self.send_json(200, session.public_state())
+                self.send_json(200, session.public_state(), new_cookie=new_cookie)
         except PermissionError as exc:
             self.send_json(403, {"error": str(exc)})
         except (ValueError, KeyError, TypeError):
@@ -197,7 +249,8 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(503, {"error": "A demonstração está ocupada."})
 
 
-def main():
+def main() -> None:
+    """Ponto de entrada para `python -m elo.server`."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8000)

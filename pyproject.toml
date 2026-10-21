@@ -4,3 +4,10 @@ version = "0.1.0"
 description = "Protótipo acadêmico para serviços financeiros inteligentes, seguros e inclusivos"
 requires-python = ">=3.11"
 dependencies = []
+
+[tool.ruff]
+line-length = 120
+
+[tool.ruff.lint]
+select = ["E", "F", "W"]
+ignore = ["E501"]

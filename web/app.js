@@ -9,7 +9,8 @@ const node = (tag, text, className) => { const e = document.createElement(tag); 
 async function request(path, body){
   if(busy) return;
   busy = true;
-  $("error").hidden = true;
+  $("error").textContent = "";
+  $("error").classList.add("sr-only");
   document.querySelectorAll("button").forEach(b => b.disabled = true);
   try {
     const options = body === undefined ? {} : {method:"POST",headers:{"Content-Type":"application/json","X-Demo-CSRF":state.csrf},body:JSON.stringify(body)};
@@ -18,7 +19,7 @@ async function request(path, body){
     if(!response.ok) throw new Error(result.error || "Não foi possível atualizar o cenário.");
     state = result;
     render();
-  } catch(error){ $("error").textContent = error.message; $("error").hidden = false; }
+  } catch(error){ $("error").textContent = error.message; $("error").classList.remove("sr-only"); }
   finally {busy = false; document.querySelectorAll("button").forEach(b => b.disabled = false);}
 }
 
@@ -26,6 +27,7 @@ function render(){
   $("scenarios").replaceChildren();
   state.scenarios.forEach(s => {
     const b = node("button", s.title, s.id === state.scenario ? "active" : "");
+    b.setAttribute("aria-label", "Selecionar cenário: " + s.title);
     if(s.id === state.scenario) b.setAttribute("aria-current","true");
     b.onclick = () => request("/api/scenario",{name:s.id});
     $("scenarios").append(b);
@@ -34,6 +36,7 @@ function render(){
   $("consent-toggle").textContent = state.consent ? "Desativar leitura e limpar planos" : "Autorizar leitura";
   $("consent-panel").hidden = state.consent;
   $("workspace").hidden = !state.consent;
+  $("notice").textContent = "";
   $("notice").hidden = true;
   if(!state.consent) return;
   const report = state.report, flow = report.results.cashflow;
@@ -84,6 +87,10 @@ function render(){
     const list=node("ul");safety.reasons.forEach(r=>list.append(node("li",r)));
     $("special").append(list,node("p",safety.recommendation),node("p",safety.limitation,"footnote"));
   }
+  // Desabilita o botão de monitoramento depois que o evento foi simulado.
+  const monitorDone = state.report.results?.cashflow?.daily?.some(r => r.events.includes("Despesa imprevista simulada"));
+  $("monitor").disabled = !!monitorDone;
+  $("monitor").setAttribute("aria-disabled", monitorDone ? "true" : "false");
   $("trace-description").textContent="Veja as ferramentas consultadas e os dados usados. Estes registros mostram ações observáveis, sem expor raciocínio interno do modelo.";
   $("trace").replaceChildren();report.trace.forEach(t=>$("trace").append(node("li",`${t.role} · ${t.tool} · consulta concluída`)));
   $("sources").replaceChildren();

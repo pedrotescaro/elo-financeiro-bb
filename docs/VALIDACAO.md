@@ -37,7 +37,7 @@ Privacidade de produção, autenticação, retenção, disponibilidade, capacida
 | Tempo | Tempo até identificar o aperto | Comparar com uma tela de saldo/calendário convencional |
 | Segurança | Falsos alertas e riscos omitidos nos casos anotados | Medir separadamente; sem meta de fraude real nesta POC |
 
-Os 20 testes automatizados existentes verificam comportamentos específicos. Não demonstram a acurácia de um LLM, classificação de fraude, aceitação por clientes ou retorno financeiro para o banco.
+Os testes automatizados existentes (28 métodos entre testes de domínio e HTTP) verificam comportamentos específicos. Não demonstram a acurácia de um LLM, classificação de fraude, aceitação por clientes ou retorno financeiro para o banco.
 
 ## Pesquisa exploratória
 
