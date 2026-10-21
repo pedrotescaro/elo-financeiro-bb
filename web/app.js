@@ -6,21 +6,48 @@ const money = cents => new Intl.NumberFormat("pt-BR", {style:"currency",currency
 const day = value => value.slice(8,10) + "/" + value.slice(5,7);
 const node = (tag, text, className) => { const e = document.createElement(tag); if(text !== undefined) e.textContent = text; if(className) e.className = className; return e; };
 
+function syncControls(){
+  document.querySelectorAll("button").forEach(b => b.disabled = busy);
+  $("start").disabled = busy || !state;
+  $("consent-toggle").disabled = busy || !state;
+  const monitorDone = !!state?.report?.results?.cashflow?.daily?.some(r => r.events.includes("Despesa imprevista simulada"));
+  $("monitor").disabled = busy || !state?.consent || monitorDone;
+  $("monitor").textContent = monitorDone ? "Despesa já simulada" : "Simular nova despesa";
+  $("monitor").setAttribute("aria-disabled", String($("monitor").disabled));
+  $("main").setAttribute("aria-busy", String(busy));
+}
+
 async function request(path, body){
   if(busy) return;
   busy = true;
   $("error").textContent = "";
   $("error").classList.add("sr-only");
-  document.querySelectorAll("button").forEach(b => b.disabled = true);
+  $("retry").hidden = true;
+  $("status").textContent = state ? "Atualizando cenário…" : "Carregando demonstração…";
+  syncControls();
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 30000);
   try {
     const options = body === undefined ? {} : {method:"POST",headers:{"Content-Type":"application/json","X-Demo-CSRF":state.csrf},body:JSON.stringify(body)};
+    options.signal = controller.signal;
     const response = await fetch(path, options);
     const result = await response.json();
     if(!response.ok) throw new Error(result.error || "Não foi possível atualizar o cenário.");
+    if(!Array.isArray(result.scenarios) || typeof result.csrf !== "string" || !result.report){
+      throw new Error("A resposta está incompleta. Tente carregar o cenário novamente.");
+    }
     state = result;
     render();
-  } catch(error){ $("error").textContent = error.message; $("error").classList.remove("sr-only"); }
-  finally {busy = false; document.querySelectorAll("button").forEach(b => b.disabled = false);}
+    $("status").textContent = "Cenário atualizado.";
+  } catch(error){
+    $("error").textContent = error.name === "AbortError"
+      ? "O servidor demorou para responder. Tente carregar o cenário novamente."
+      : error instanceof TypeError ? "Não foi possível conectar ao servidor. Confira a conexão e tente novamente." : error.message;
+    $("error").classList.remove("sr-only");
+    $("retry").hidden = false;
+    $("status").textContent = "";
+  }
+  finally {clearTimeout(timeout); busy = false; syncControls();}
 }
 
 function render(){
@@ -39,7 +66,11 @@ function render(){
   $("notice").textContent = "";
   $("notice").hidden = true;
   if(!state.consent) return;
-  const report = state.report, flow = report.results.cashflow;
+  const report = state.report, flow = report.results?.cashflow;
+  if(!flow){
+    $("workspace").hidden = true;
+    throw new Error("A análise ainda não está disponível. Tente carregar o cenário novamente.");
+  }
   $("report-title").textContent = report.title;
   $("report-description").textContent = flow.first_negative_date
     ? `Mesmo com um recebimento esperado, o saldo pode chegar a ${money(flow.minimum_cents)} em ${day(flow.minimum_date)}. O calendário dos compromissos faz diferença.`
@@ -87,10 +118,6 @@ function render(){
     const list=node("ul");safety.reasons.forEach(r=>list.append(node("li",r)));
     $("special").append(list,node("p",safety.recommendation),node("p",safety.limitation,"footnote"));
   }
-  // Desabilita o botão de monitoramento depois que o evento foi simulado.
-  const monitorDone = state.report.results?.cashflow?.daily?.some(r => r.events.includes("Despesa imprevista simulada"));
-  $("monitor").disabled = !!monitorDone;
-  $("monitor").setAttribute("aria-disabled", monitorDone ? "true" : "false");
   $("trace-description").textContent="Veja as ferramentas consultadas e os dados usados. Estes registros mostram ações observáveis, sem expor raciocínio interno do modelo.";
   $("trace").replaceChildren();report.trace.forEach(t=>$("trace").append(node("li",`${t.role} · ${t.tool} · consulta concluída`)));
   $("sources").replaceChildren();
@@ -102,4 +129,5 @@ function render(){
 $("start").onclick=()=>request("/api/consent",{enabled:true});
 $("consent-toggle").onclick=()=>request("/api/consent",{enabled:!state.consent});
 $("monitor").onclick=()=>request("/api/monitor",{});
+$("retry").onclick=()=>request("/api/state");
 request("/api/state");

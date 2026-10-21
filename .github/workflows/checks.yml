@@ -5,16 +5,21 @@ permissions:
 jobs:
   tests:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ['3.11', '3.14']
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
-          python-version: '3.12'
+          python-version: ${{ matrix.python }}
       - name: Instalar ferramentas de desenvolvimento
-        run: pip install ruff
+        run: pip install ruff==0.16.0
       - name: Lint (ruff)
         run: ruff check elo tests
       - name: Compilação
         run: python -m compileall -q elo tests
       - name: Testes
         run: python -m unittest discover -s tests -v
+      - name: Sintaxe JavaScript
+        run: node --check web/app.js

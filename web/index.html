@@ -13,10 +13,13 @@
       <nav aria-label="Cenários da demonstração"><p class="eyebrow">EXPERIMENTE UMA JORNADA</p><div id="scenarios"></div></nav>
       <div class="side-bottom"><span class="tag">IBM SkillsBuild</span><p>Proposta acadêmica para o desafio de serviços financeiros do Banco do Brasil.</p><p>Sem vínculo oficial com o banco.</p></div>
     </aside>
-    <main>
+    <main id="main">
       <header><div><p class="eyebrow">ASSISTENTE FINANCEIRO PROATIVO</p><h1>Olhe para o que vem a seguir.</h1><p class="subtitle">Entenda seu saldo futuro. Escolha um plano. Acompanhe o resultado.</p></div><span class="demo-badge">DADOS SINTÉTICOS</span></header>
       <div class="toolbar"><span id="scenario-title"></span><button class="text-button" id="consent-toggle">Autorizar leitura</button></div>
-      <p id="error" role="alert" aria-live="assertive" class="sr-only"></p><p id="notice" class="notice" hidden></p>
+      <p id="status" role="status" aria-live="polite" class="sr-only"></p>
+      <p id="error" role="alert" aria-live="assertive" class="sr-only"></p>
+      <button id="retry" class="secondary" hidden>Carregar cenário novamente</button>
+      <p id="notice" class="notice" hidden></p>
       <section id="consent-panel" class="consent-panel"><span class="large-icon">↔</span><h2>Comece com uma escolha sua.</h2><p>Autorize o agente a analisar os dados fictícios deste cenário. Você pode desativar a leitura e limpar os planos desta sessão quando quiser.</p><button class="primary" id="start">Autorizar dados da demonstração</button><small>Esta autorização demonstra a experiência do produto. Não conecta contas bancárias.</small></section>
       <div id="workspace" hidden>
         <section class="insight"><p class="eyebrow">O ELO PERCEBEU</p><h2 id="report-title"></h2><p id="report-description"></p><span id="mode" class="mode"></span></section>

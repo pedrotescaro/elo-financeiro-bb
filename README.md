@@ -14,11 +14,12 @@ O saldo de hoje pode parecer suficiente, mesmo quando as contas dos próximos di
 
 > Status: proposta amadurecida + protótipo inicial executável. A demonstração padrão usa regras e dados sintéticos. Não é uma integração oficial do Banco do Brasil nem uma entrega IBM finalizada.
 
-## Executar em dois comandos
+## Executar localmente
 
 Requisito: Python 3.11 ou superior. Não há dependências externas no modo de demonstração.
 
 ```bash
+git clone https://github.com/pedrotescaro/elo-financeiro-bb.git elo-financeiro
 cd elo-financeiro
 python -m elo.server
 ```

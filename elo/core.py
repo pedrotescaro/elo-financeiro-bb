@@ -22,6 +22,8 @@ _SAFE_SCHEMES = frozenset(("http", "https"))
 
 def load_scenario(name: str) -> dict:
     """Retorna uma cópia profunda do cenário solicitado ou levanta ValueError."""
+    if not isinstance(name, str) or not 1 <= len(name) <= 40:
+        raise ValueError("Nome de cenário inválido.")
     if name not in CATALOG:
         raise ValueError("Cenário desconhecido.")
     return deepcopy(CATALOG[name])
@@ -38,15 +40,15 @@ def validate(snapshot: dict) -> dict:
     """Valida estrutura e intervalos do snapshot; levanta ValueError em caso de falha."""
     start = date.fromisoformat(snapshot["as_of"])
     horizon = date.fromisoformat(snapshot["horizon"])
-    if horizon < start:
+    if horizon < start or (horizon - start).days > 366:
         raise ValueError("Horizonte inválido.")
     for field in ("balance_cents", "buffer_cents"):
         amount(snapshot[field])
     ids: set = set()
     for event in snapshot["events"]:
         amount(event["amount_cents"])
-        if not start <= date.fromisoformat(event["date"]) <= horizon:
-            raise ValueError("Evento fora do horizonte.")
+        if date.fromisoformat(event["date"]) < start:
+            raise ValueError("Evento anterior ao início da projeção.")
         if event["direction"] not in ("in", "out"):
             raise ValueError("Direção inválida.")
         if type(event.get("flexible")) is not bool:
@@ -62,7 +64,8 @@ def cashflow(snapshot: dict) -> dict:
     validate(snapshot)
     balance = snapshot["balance_cents"]
     rows = [{"date": snapshot["as_of"], "balance_cents": balance, "events": []}]
-    days = sorted({e["date"] for e in snapshot["events"]})
+    # Eventos posteriores ficam registrados, mas não entram neste horizonte.
+    days = sorted({e["date"] for e in snapshot["events"] if e["date"] <= snapshot["horizon"]})
     for day in days:
         events = [e for e in snapshot["events"] if e["date"] == day]
         for event in events:
@@ -72,7 +75,7 @@ def cashflow(snapshot: dict) -> dict:
     low = min(rows, key=lambda r: r["balance_cents"])
     negative = next((r["date"] for r in rows if r["balance_cents"] < 0), None)
     flexible = sum(e["amount_cents"] for e in snapshot["events"]
-                   if e["direction"] == "out" and e.get("flexible", False))
+                   if e["direction"] == "out" and e["flexible"] and e["date"] <= snapshot["horizon"])
     needed = max(0, snapshot["buffer_cents"] - low["balance_cents"])
     return {"daily": rows, "minimum_cents": low["balance_cents"],
             "minimum_date": low["date"], "first_negative_date": negative,
@@ -123,12 +126,16 @@ def safety(snapshot: dict) -> dict:
             "payment_executed": False}
 
 
-def _safe_url(url: object) -> object:
+def _safe_url(url: object) -> str | None:
     """Retorna a URL somente se o esquema for HTTP(S); caso contrário retorna None."""
     if not isinstance(url, str):
         return None
-    scheme = urlsplit(url).scheme.lower()
-    return url if scheme in _SAFE_SCHEMES else None
+    try:
+        parsed = urlsplit(url)
+        return url if (parsed.scheme.lower() in _SAFE_SCHEMES and parsed.hostname
+                       and not parsed.username and not parsed.password) else None
+    except ValueError:
+        return None
 
 
 def guidance(snapshot: dict) -> dict:
@@ -144,10 +151,11 @@ def guidance(snapshot: dict) -> dict:
 
 def apply_saving(snapshot: dict, reduction: int) -> dict:
     """Ajusta apenas previsões flexíveis, sem alterar transações realizadas."""
+    validate(snapshot)
     changed = deepcopy(snapshot)
     remaining = amount(reduction)
     for event in sorted(changed["events"], key=lambda e: e["date"]):
-        if event["direction"] == "out" and event.get("flexible", False):
+        if event["direction"] == "out" and event["flexible"] and event["date"] <= snapshot["horizon"]:
             part = min(event["amount_cents"], remaining)
             event["amount_cents"] -= part
             remaining -= part
@@ -168,7 +176,7 @@ def build_report(snapshot: dict, consent: object, planner: object = None) -> dic
     selected = ["cashflow", "purchase" if snapshot.get("purchase") else "safety" if snapshot.get("pix") else "guidance"]
     if planner:
         try:
-            raw = planner.plan(snapshot)
+            raw = planner.plan(deepcopy(snapshot))
             # Valida o plano antes de aceitar o modo watsonx.
             if (not isinstance(raw, list)
                     or not 1 <= len(raw) <= 4

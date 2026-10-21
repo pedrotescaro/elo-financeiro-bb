@@ -5,7 +5,6 @@ from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
-from pathlib import Path
 import secrets
 from threading import RLock
 from urllib.parse import urlsplit
@@ -32,6 +31,8 @@ class DemoSession:
     def refresh(self) -> None:
         """Reconstrói o relatório com base no snapshot e no consentimento atuais."""
         self.report = build_report(self.snapshot, self.consent, self.planner)
+        if self.goals:
+            self.report["actions"] = [a for a in self.report["actions"] if a["id"] != "purchase-goal"]
 
     def public_state(self) -> dict:
         """Retorna o estado serializável para o navegador."""
@@ -39,7 +40,8 @@ class DemoSession:
                 "scenarios": [{"id": k, "title": v["title"]} for k, v in CATALOG.items()],
                 "consent": self.consent, "csrf": self.csrf, "report": deepcopy(self.report),
                 "history": deepcopy(self.history), "goals": deepcopy(self.goals),
-                "synthetic": True, "monitoring": "Simulado por evento acionado na interface"}
+                "synthetic": True, "monitoring": "Simulado por evento acionado na interface",
+                "monitor_done": any(e["id"] == "new-spend" for e in self.snapshot["events"])}
 
     def set_consent(self, enabled: bool) -> None:
         """Ativa ou revoga o consentimento demonstrativo."""
@@ -68,6 +70,10 @@ class DemoSession:
         """Executa a ação aprovada vinculada ao relatório vigente."""
         if not self.consent:
             raise PermissionError("Autorize a leitura antes de aprovar um plano.")
+        if not isinstance(report_id, str) or not 1 <= len(report_id) <= 64:
+            raise ValueError("Identificador do relatório inválido.")
+        if not isinstance(action_id, str) or not 1 <= len(action_id) <= 40:
+            raise ValueError("Identificador da ação inválido.")
         key = (report_id, action_id)
         if key in self.approved:
             return self.approved[key]
@@ -88,9 +94,6 @@ class DemoSession:
         self.history.append(record)
         self.approved[key] = record
         self.refresh()
-        # Uma meta é suficiente para a demonstração da mesma compra.
-        if self.goals:
-            self.report["actions"] = [a for a in self.report["actions"] if a["id"] != "purchase-goal"]
         return record
 
     def monitor(self) -> None:
@@ -123,8 +126,8 @@ class Handler(BaseHTTPRequestHandler):
         # Não grava dados financeiros, tokens ou conteúdo de requisições.
         pass
 
-    def get_session(self) -> "DemoSession":
-        """Retorna a sessão existente ou cria uma nova sob o lock global."""
+    def get_session(self) -> tuple[DemoSession, str | None]:
+        """Consulta sob lock; constrói fora dele e reinsere com limite atômico."""
         cookies = SimpleCookie()
         try:
             cookies.load(self.headers.get("Cookie", ""))
@@ -136,15 +139,16 @@ class Handler(BaseHTTPRequestHandler):
         with self.server.sessions_lock:
             session = self.server.sessions.get(key)
             if session is not None:
-                return session
+                return session, None
             if len(self.server.sessions) >= 100:
                 raise RuntimeError("Limite de sessões da demonstração atingido.")
-            new_key = secrets.token_urlsafe(24)
-            new_session = DemoSession(self.server.planner)
+        new_session = DemoSession(self.server.planner)
+        new_key = secrets.token_urlsafe(24)
+        with self.server.sessions_lock:
+            if len(self.server.sessions) >= 100:
+                raise RuntimeError("Limite de sessões da demonstração atingido.")
             self.server.sessions[new_key] = new_session
-
-        self._new_cookie = new_key
-        return new_session
+        return new_session, new_key
 
     def send_bytes(self, status: int, content: bytes, content_type: str,
                    new_cookie: "str | None" = None) -> None:
@@ -163,7 +167,8 @@ class Handler(BaseHTTPRequestHandler):
             # Adiciona Secure apenas quando servido via HTTPS (produção).
             # Em HTTP local o flag Secure impede que o cookie seja enviado de volta.
             host = self.headers.get("Host", "")
-            secure_flag = "" if host.startswith("127.0.0.1") or host.startswith("localhost") else "; Secure"
+            hostname = urlsplit("//" + host).hostname
+            secure_flag = "" if hostname in ("127.0.0.1", "localhost", "::1") else "; Secure"
             self.send_header(
                 "Set-Cookie",
                 f"elo_demo={new_cookie}; HttpOnly; SameSite=Strict{secure_flag}; Path=/",
@@ -186,9 +191,7 @@ class Handler(BaseHTTPRequestHandler):
         path = urlsplit(self.path).path
         if path == "/api/state":
             try:
-                self._new_cookie = None
-                session = self.get_session()
-                new_cookie = getattr(self, "_new_cookie", None)
+                session, new_cookie = self.get_session()
                 with session.lock:
                     self.send_json(200, session.public_state(), new_cookie=new_cookie)
             except RuntimeError:
@@ -205,15 +208,21 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         new_cookie = None
         try:
-            self._new_cookie = None
-            session = self.get_session()
-            new_cookie = getattr(self, "_new_cookie", None)
+            session, new_cookie = self.get_session()
             token = self.headers.get("X-Demo-CSRF", "")
             if not secrets.compare_digest(token, session.csrf):
                 raise PermissionError("Sessão inválida. Atualize a página.")
             origin = self.headers.get("Origin")
-            if origin and urlsplit(origin).netloc != self.headers.get("Host"):
-                raise PermissionError("Origem não permitida.")
+            if origin:
+                parsed_origin = urlsplit(origin)
+                if (parsed_origin.scheme not in ("http", "https") or parsed_origin.path
+                        or parsed_origin.query or parsed_origin.fragment
+                        or parsed_origin.netloc != self.headers.get("Host")):
+                    raise PermissionError("Origem não permitida.")
+            if self.headers.get_content_type() != "application/json":
+                raise ValueError("Envie conteúdo application/json.")
+            if self.headers.get("Transfer-Encoding"):
+                raise ValueError("Transfer-Encoding não é aceito.")
             raw_len = self.headers.get("Content-Length", "")
             try:
                 size = int(raw_len)
@@ -243,8 +252,12 @@ class Handler(BaseHTTPRequestHandler):
                 self.send_json(200, session.public_state(), new_cookie=new_cookie)
         except PermissionError as exc:
             self.send_json(403, {"error": str(exc)})
-        except (ValueError, KeyError, TypeError):
-            self.send_json(400, {"error": "Requisição inválida ou recomendação desatualizada. Revise a página."})
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            self.send_json(400, {"error": "Envie um objeto JSON válido em UTF-8."})
+        except ValueError as exc:
+            self.send_json(400, {"error": str(exc)})
+        except (KeyError, TypeError):
+            self.send_json(400, {"error": "Requisição inválida. Confira os campos enviados."})
         except RuntimeError:
             self.send_json(503, {"error": "A demonstração está ocupada."})
 
