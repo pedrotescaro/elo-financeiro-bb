@@ -1,29 +1,23 @@
-# Texto de problema e solução
+# Problema e solução
 
-Rascunho abaixo de 500 palavras. Descreve a proposta; atualizar o estado da tecnologia após a implementação real. Não representa uma submissão realizada.
+Texto preparado para revisão da equipe; não representa uma submissão realizada.
 
-## Declaração
+O Elo Financeiro é uma proposta acadêmica para a trilha de serviços financeiros digitais do Banco do Brasil. Seu objetivo é ajudar a pessoa a entender se o dinheiro disponível será suficiente até o próximo recebimento e a avaliar decisões com mais clareza.
 
-O Elo Financeiro propõe responder à trilha de Serviços Financeiros Digitais Inteligentes, Seguros e Inclusivos do Banco do Brasil com um agente pessoal voltado à previsibilidade financeira e à proteção das decisões do usuário.
+O problema é que o saldo atual, sozinho, não mostra o efeito das contas e das entradas em datas diferentes. Uma pessoa pode ter dinheiro hoje e ficar sem margem antes de receber. A relevância dessa hipótese para pessoas em início de autonomia financeira ou com renda variável ainda precisa ser avaliada com usuários.
 
-Nosso problema central é que conhecer o saldo atual não basta para entender se haverá dinheiro para cumprir os compromissos antes do próximo recebimento. Contas, cartão, gastos previstos e entradas em datas diferentes tornam essa análise difícil, especialmente para pessoas em início de autonomia financeira ou com renda variável. Essa hipótese será avaliada com usuários por meio de cenários fictícios.
+O protótipo apresenta três jornadas com dados sintéticos: antecipar falta de saldo, comparar uma compra e conferir sinais ilustrativos de risco em um PIX. Após autorizar a leitura, a pessoa vê o calendário, um gráfico diário e o menor saldo previsto. Pode consultar os números usados, as hipóteses e o que ficou fora da análise.
 
-A proposta permite definir uma margem desejada e acompanhar o calendário financeiro. Com acesso autorizado, o agente consulta ferramentas, identifica apertos futuros e apresenta o menor saldo previsto, a data do risco e os compromissos envolvidos. Em seguida, oferece alternativas compreensíveis, como ajustar gastos flexíveis ou adiar uma compra. Se o usuário aceitar, registra o plano permitido e reavalia a situação quando novos eventos alteram a projeção.
+Quando há gastos flexíveis, o Elo apresenta um ajuste de orçamento e seu efeito. O plano depende de aprovação vinculada à versão dos dados. Uma nova despesa simulada atualiza a projeção. Também é possível registrar uma meta de compra e revogar a leitura, limpando os planos da sessão. A trilha temporária mostra consultas, autorizações e revogações.
 
-O protótipo inicial demonstra três jornadas com dados sintéticos: antecipar falta de saldo, comparar uma compra e explicar sinais ilustrativos de risco em uma intenção de PIX. Os cálculos financeiros e as permissões são validados pelo código. A aprovação se vincula à versão dos dados apresentados, e a leitura pode ser revogada. Nenhuma transferência, contratação de crédito ou aplicação é executada.
+As orientações vêm de uma pequena base curada, com recuperação local por conceitos, sinônimos e similaridade de termos. A interface usa português simples e inclui navegação por teclado e ampliação de texto. Esses recursos ainda precisam de avaliação com participantes e leitores de tela.
 
-O diferencial a validar é conectar antecipação, educação contextual e acompanhamento em um mesmo ciclo de decisão. A experiência usa português simples, explicita as hipóteses das projeções e preserva o controle do usuário.
+## Tecnologia e limites
 
-A arquitetura prevê IBM watsonx.ai com modelo Granite para selecionar ferramentas, funções especializadas de caixa, planejamento e segurança, conteúdo curado e autorização específica. O adaptador IBM está preparado; a demonstração padrão ainda funciona por regras. A equipe deverá comprovar o uso central do IBM Bob e avaliar a integração real antes da submissão.
+Python com biblioteca padrão executa os cálculos em centavos e valida as permissões. HTML, CSS e JavaScript compõem a interface. O modo padrão é determinístico. O adaptador opcional IBM watsonx.ai permite selecionar ferramentas de uma lista limitada, com contingência por regras; a chamada real na conta da equipe ainda não foi validada.
 
-Em uma evolução autorizada pelo banco, o serviço poderia ser integrado ao ecossistema do BB e utilizar dados de outras instituições via Open Finance mediante consentimento. A prova de conceito avalia compreensão do risco, correção dos cálculos, controle de ações e utilidade das recomendações; não promete resultados financeiros ou eficácia antifraude ainda não medidos.
+O pacote inclui controles e instruções para uma demonstração pública sintética, mas o deploy não foi realizado. O uso central do IBM Bob e suas evidências também permanecem pendentes.
 
-## Declaração tecnológica: estado atual
+Não há conexão bancária, transferência, contratação de crédito ou confirmação de fraude. A compra parcelada considera apenas a primeira parcela no horizonte. Não foram medidos resultados financeiros ou eficácia antifraude. O projeto não é um produto oficial do Banco do Brasil nem uma entrega IBM concluída.
 
-O protótipo usa Python com biblioteca padrão, interface HTML/CSS/JavaScript, cenários sintéticos e ferramentas determinísticas para projeção de caixa, comparação de compra e sinais ilustrativos de risco. Há um adaptador REST opcional para IBM watsonx.ai, que solicita a seleção de ferramentas e valida a saída contra uma lista permitida. A chamada real ao serviço IBM ainda precisa ser testada na conta provisionada da equipe. Não há implantação watsonx Orchestrate, RAG semântico nem conexão bancária real.
-
-**O uso do IBM Bob não foi comprovado nesta preparação.** Antes da entrega, substituir este parágrafo por uma descrição do trabalho efetivamente realizado com Bob, indicando tarefas, arquivos, testes, contribuições revisadas e links para as evidências em `bob_sessions/`. Não afirmar que Bob gerou esta base.
-
-## Campos que só a equipe pode finalizar
-
-Link do vídeo; link do protótipo publicado; membros já registrados; identificação da equipe na plataforma; modelo e região realmente utilizados; resultados da avaliação; capturas reais do Bob. Nenhum desses dados foi inventado.
+Antes de enviar, a equipe deve comprovar o trabalho real no Bob, validar a tecnologia IBM, avaliar a jornada, publicar a demonstração e informar os links do protótipo e do vídeo.

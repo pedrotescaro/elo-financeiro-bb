@@ -1,7 +1,7 @@
 [
   {
     "id":"of-consent","title":"Open Finance: acesso autorizado e revogável",
-    "topics":["cashflow"],"type":"paráfrase educativa","reviewed_at":"2026-10-07",
+    "topics":["cashflow", "purchase", "pix"],"type":"paráfrase educativa","reviewed_at":"2026-10-07",
     "text":"O compartilhamento depende do consentimento do cliente. Uma integração real precisa seguir a jornada das instituições participantes. Nesta demonstração não existe conexão bancária.",
     "url":"https://www.bcb.gov.br/meubc/faqs/s/open-finance"
   },
@@ -9,6 +9,18 @@
     "id":"pix-demo","title":"Verificar antes de decidir",
     "topics":["pix"],"type":"orientação do protótipo","reviewed_at":"2026-10-07",
     "text":"Confirme a identidade do destinatário por um canal independente. Os sinais apresentados aqui são regras sintéticas: não constituem confirmação de fraude nem certificação de segurança.",
+    "url":null
+  },
+  {
+    "id":"calendar-demo","title":"O calendário importa tanto quanto o saldo",
+    "topics":["cashflow"],"type":"orientação do protótipo","reviewed_at":"2026-10-21",
+    "text":"O saldo inicial, as contas e os recebimentos esperados formam o calendário da projeção. Quando a renda chega depois do vencimento, pode faltar dinheiro antes de receber. Compare o menor saldo previsto com a margem escolhida. As datas e os valores deste exemplo são sintéticos; recebimentos podem atrasar.",
+    "url":null
+  },
+  {
+    "id":"purchase-demo","title":"Uma parcela menor não mostra o compromisso inteiro",
+    "topics":["purchase"],"type":"orientação do protótipo","reviewed_at":"2026-10-21",
+    "text":"Compare o preço da compra com o saldo e com as contas antes do próximo recebimento. No exemplo de parcelamento, somente a primeira parcela entra na projeção. As parcelas seguintes e possíveis juros precisam de uma análise mais longa. Criar uma meta demonstrativa não reserva dinheiro nem contrata a compra.",
     "url":null
   }
 ]

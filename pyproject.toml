@@ -5,6 +5,9 @@ description = "Protótipo acadêmico para serviços financeiros inteligentes, se
 requires-python = ">=3.11"
 dependencies = []
 
+[project.optional-dependencies]
+dev = ["ruff==0.16.0"]
+
 [tool.ruff]
 line-length = 120
 

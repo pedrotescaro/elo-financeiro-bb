@@ -6,7 +6,7 @@
 | --- | --- | --- | --- |
 | RF01 | Ler apenas após consentimento demonstrativo | Sem autorização, não retorna análise financeira | Implementado/testado |
 | RF02 | Antecipar falta de caixa | Detecta saldo negativo antes da entrada, mesmo com saldo final positivo | Implementado/testado |
-| RF03 | Explicar o calendário | Exibe datas, eventos e saldos calculados | Implementado |
+| RF03 | Explicar o calendário | Exibe todos os fechamentos diários e destaca o menor saldo no gráfico e na tabela | Implementado; cálculos testados |
 | RF04 | Oferecer plano viável | Reduz somente previsões flexíveis e informa quando a margem não é atingida | Implementado/testado |
 | RF05 | Solicitar aprovação específica | Vincula ação ao relatório vigente | Implementado/testado |
 | RF06 | Acompanhar mudança | Nova despesa atualiza projeção e recomendação | Simulação implementada/testada |
@@ -16,12 +16,19 @@
 | RF10 | Usar IA na seleção de ferramentas | Chamada IBM real e plano validado em casos inéditos | Adaptador pronto; validação pendente |
 | RF11 | Permitir ajuste ou recusa explícita | Usuário consegue alterar proposta e registrar recusa | Backlog |
 | RF12 | Mostrar uso real do Bob | Capturas/relatórios da equipe no repositório | Pendente |
+| RF13 | Recuperar orientações relacionadas | Conceitos/sinônimos e similaridade local, com fallback por tópico e limites visíveis | Implementado/testado em paráfrases sintéticas |
+| RF14 | Explicar cada decisão | Números em centavos, hipóteses e itens não considerados | Implementado/testado |
+| RF15 | Mostrar a trilha da sessão | Consultas, autorizações e revogações, sem apagar o registro ao revogar | Implementado/testado; retenção temporária |
+| RF16 | Facilitar leitura e operação | Teclado, rótulos, foco, ampliação de texto e estados de carregamento/erro | Implementado; avaliação assistiva pendente |
+| RF17 | Preparar demo pública sintética | Origem exata, expiração, limites de recursos, cabeçalhos e Dockerfile | Controles implementados; deploy externo pendente |
 
 ## Requisitos de qualidade
 
-Valores em centavos, estados explícitos, isolamento de sessões e contingência identificada já estão implementados. A interface oferece controles semânticos, foco visível, tabela com cabeçalhos e mensagens de erro. Esses recursos não constituem certificação de acessibilidade; falta avaliar contraste e uso com leitor de tela e participantes.
+Valores em centavos, estados explícitos, isolamento de sessões e contingência identificada estão implementados. A interface oferece navegação por teclado, atalho para o conteúdo, foco visível, rótulos, ampliação de texto, tabela com cabeçalhos, gráfico com descrição e mensagens de carregamento/erro. O menor saldo tem indicação textual, além da cor. O botão de simulação fica desativado após o uso.
 
-Privacidade de produção, autenticação, retenção, disponibilidade, capacidade de carga e integração transacional ainda não estão implementadas. O servidor atual é para demonstração local.
+Esses recursos não constituem certificação de acessibilidade. Evidências de navegador e testes efetivamente executados ficam em [Verificação](VERIFICACAO.md); avaliação com leitores de tela e participantes continua pendente.
+
+O servidor tem expiração por inatividade, limites de sessões/requisições/workers, verificação de origem e cabeçalhos de segurança. O modo público recusa chamadas IBM e exige proxy HTTPS. Esses controles se destinam a dados sintéticos; autenticação bancária, persistência, conformidade, disponibilidade e capacidade de carga de produção não foram demonstradas. A imagem Docker e o deploy externo ainda precisam ser executados.
 
 ## Métricas: metas propostas, não resultados
 
@@ -37,7 +44,9 @@ Privacidade de produção, autenticação, retenção, disponibilidade, capacida
 | Tempo | Tempo até identificar o aperto | Comparar com uma tela de saldo/calendário convencional |
 | Segurança | Falsos alertas e riscos omitidos nos casos anotados | Medir separadamente; sem meta de fraude real nesta POC |
 
-Os testes automatizados existentes (28 métodos entre testes de domínio e HTTP) verificam comportamentos específicos. Não demonstram a acurácia de um LLM, classificação de fraude, aceitação por clientes ou retorno financeiro para o banco.
+Os testes automatizados de domínio, HTTP, recuperação e adaptador verificam comportamentos específicos. A contagem atual aparece na execução de `python -m unittest discover -s tests -v`; o CI também executa Ruff, instalado somente como ferramenta de desenvolvimento. Consulte [Verificação](VERIFICACAO.md) para resultados e ambiente. Os testes não demonstram a acurácia de um LLM, classificação de fraude, aceitação por clientes ou retorno financeiro para o banco.
+
+Já há regressões para saldo zero, múltiplas contas flexíveis no mesmo dia, renda além do horizonte, aprovação de relatório realmente desatualizado por HTTP, revogação no fluxo, respostas IBM malformadas e falhas de rede simuladas. As explicações são comparadas aos cálculos e a recuperação cobre paráfrases simples, ausência de correspondência e URLs inseguras. Esses casos não substituem avaliação independente.
 
 ## Pesquisa exploratória
 
@@ -51,6 +60,6 @@ Comparar o tempo e os erros com o mesmo cenário apresentado em uma tela simples
 
 ## Casos que ainda devem entrar na avaliação
 
-Recebimento atrasado; ausência de renda confirmada; pouca flexibilidade no orçamento; cartão com vencimento depois do horizonte; parcelas com juros; múltiplas contas e transferências internas; dados desatualizados; falta de contexto; sinais de PIX insuficientes; preferência por não receber alertas; ferramentas indisponíveis; tentativa de instrução maliciosa dentro de um texto recuperado.
+Além das regressões automatizadas, avaliar em casos inéditos: renda variável e ausência de renda confirmada; pouca flexibilidade no orçamento; compromissos depois do horizonte; parcelas com juros; múltiplas contas; dados desatualizados; falta de contexto; sinais de PIX insuficientes; preferência por não receber alertas; ferramentas indisponíveis; tentativas de instrução maliciosa no contexto do planejador. Parcelas com juros e múltiplas contas não são capacidades implementadas nesta versão.
 
 Usar um conjunto separado do que foi usado para escrever prompts e regras. Medir seleção de ferramentas e adequação das recomendações, não só se o JSON é válido.

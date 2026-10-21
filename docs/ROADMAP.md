@@ -1,21 +1,27 @@
 # Plano até a entrega
 
-Referência de prazo: **8 de novembro de 2026**, conforme a página de conclusão anexada. Confirmar o horário e qualquer atualização na plataforma. Plano organizado a partir de 7 de outubro, sem pressupor etapas anteriores concluídas.
+Revisão de 21 de outubro de 2026. A referência fornecida nos materiais é **8 de novembro de 2026**; o prazo não foi verificado na plataforma nesta revisão. Confirmar data, horário, requisitos e eventuais atualizações antes de organizar a entrega.
+
+## Estado implementado
+
+O repositório tem cálculos em centavos, consentimento e aprovação vinculada aos dados, contingência do planejador, recuperação local por conceitos/TF-IDF, explicações, trilha temporária, gráfico diário e recursos de teclado/leitura. Há testes e lint no CI, controles de exposição demonstrativa, Dockerfile e guia de deploy.
+
+Isso não comprova uso do Bob, chamada IBM real, pesquisa com usuários, execução da imagem Docker, hospedagem pública ou submissão. A evidência técnica efetiva fica em [Verificação](VERIFICACAO.md).
+
+## Próximas etapas propostas
 
 | Período | Objetivo | Evidência de conclusão |
 | --- | --- | --- |
-| 7–11/out | Validar recorte do problema e revisar a base no Bob | Proposta revisada, feedback do mentor e primeiras sessões reais |
-| 12–18/out | Integrar e avaliar watsonx/Granite | Chamadas reais, casos inéditos, contingência e registro de ferramentas |
-| 19–25/out | Melhorar planos, fontes e experiência | Ajuste/recusa, orientação versionada e testes exploratórios |
-| 26/out–1/nov | Preparar hospedagem e corrigir falhas | URL acessível, validação externa e evidências organizadas |
+| 21–25/out | Realizar trabalho no Bob, validar IBM localmente e avaliar a jornada | Sessões reais, chamadas/casos inéditos e observações anônimas |
+| 26/out–1/nov | Executar Docker, hospedar a demo e corrigir falhas observadas | URL HTTPS testada externamente, commit e evidências organizadas |
 | 2–6/nov | Gravar vídeo e revisar declarações | Vídeo ≤180 s, ≥90 s de demonstração, evidência Bob visível |
 | 7–8/nov | Conferir acesso e submeter na plataforma | Última revisão dos links e todos os campos obrigatórios |
 
 ## Prioridade de implementação
 
-**P0, antes da submissão:** uso central do Bob com evidências reais; integração IBM validada; completar e avaliar uma jornada agêntica; publicação segura do protótipo; pesquisa exploratória; vídeo; declarações finais honestas.
+**P0, antes da submissão:** uso central do Bob com evidências reais; integração IBM validada localmente; avaliação em casos inéditos; execução e verificação da hospedagem sintética; pesquisa exploratória; vídeo e declarações finais honestas. Confirmar com o mentor a expectativa sobre demonstração da tecnologia IBM, já que a hospedagem pública permanece por regras.
 
-**P1, se houver capacidade:** edição e recusa de planos; testes de atraso de renda; horizonte de parcelas completo; RAG sobre conteúdo permitido; preferências de alertas; melhoria de acessibilidade.
+**P1, se houver capacidade:** edição e recusa explícita de planos; horizonte de parcelas completo; avaliação e ampliação da base de recuperação; preferências de alertas; correções apontadas por leitores de tela e participantes. Não ampliar o escopo antes de concluir as evidências P0.
 
 **P2, expansão posterior:** conectores reais BB/Open Finance, operação financeira, crédito, FGTS, investimentos, múltiplos canais e arquitetura distribuída. Não dependem deles para demonstrar o problema central.
 
@@ -32,22 +38,10 @@ Adaptar às pessoas já cadastradas na equipe. Nenhum nome ou papel foi atribuí
 
 ## Antes de expor o protótipo à internet
 
-O servidor embutido atual não deve ser tratado como serviço pronto para produção. A hospedagem precisa de HTTPS, servidor de aplicação apropriado, limitação de requisições, expiração de sessões, limites de chamadas IBM e armazenamento protegido de variáveis. Manter apenas dados sintéticos e deixar explícito o modo de execução.
+O servidor embutido contém controles para uma demonstração limitada, sem identidade ou persistência de produção. Usar proxy HTTPS e a origem exata em `ELO_PUBLIC_ORIGIN`, conforme [Deploy](DEPLOY.md). Os limites de sessões, requisições e workers não são uma defesa medida contra abuso na internet; verificar também os limites e custos da plataforma.
 
-Impedir que uma demonstração pública gere chamadas ilimitadas cobradas na conta IBM. Validar as permissões do ambiente do programa, testar o endereço em janela anônima e manter o vídeo acessível mesmo se o serviço do lab for encerrado.
+O modo público recusa o planejador externo; não configurar credenciais IBM na hospedagem. Validar permissões do programa, executar a imagem, testar a URL em janela anônima e em duas sessões independentes e manter o vídeo acessível mesmo se o serviço do lab for encerrado.
 
 ## Checklist de entrega do programa
 
-- [ ] Equipe e aprendizagem obrigatória conferidas na plataforma.
-- [ ] Checkpoint intermediário e feedback revisados, quando aplicável.
-- [ ] IBM Bob utilizado de forma central no trabalho real da equipe.
-- [ ] Capturas/relatórios exigidos em `bob_sessions/`.
-- [ ] Tecnologia IBM executada e descrita conforme o que foi comprovado.
-- [ ] Link público do protótipo funcional.
-- [ ] Vídeo público de até três minutos, narrado, com pelo menos 90 segundos de uso na tela.
-- [ ] Declaração de problema e solução com até 500 palavras.
-- [ ] Declaração tecnológica com usos e limites reais.
-- [ ] Apenas dados sintéticos e conteúdo permitido.
-- [ ] Todos os links testados sem estar autenticado.
-
-Não marcar itens como concluídos porque existe uma pasta ou um adaptador de código.
+Usar [Entrega: pendências da equipe](ENTREGA.md) para registrar os itens manuais. Não marcar como concluídos porque existe uma pasta, um adaptador, um Dockerfile ou um comando de teste. Os documentos do programa fornecidos fundamentam o roteiro; a equipe deve confirmar as regras vigentes na plataforma.

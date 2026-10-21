@@ -4,15 +4,17 @@ Valores são centavos inteiros. O modelo seleciona ferramentas; não calcula
 saldos, aprova ações nem estabelece a validade de uma movimentação bancária.
 """
 from copy import deepcopy
-from datetime import date
+from datetime import date, timedelta
 from hashlib import sha256
 import json
 from pathlib import Path
 from urllib.parse import urlsplit
+from .retrieval import LocalRetriever
 
 ROOT = Path(__file__).resolve().parent.parent
 CATALOG: dict = json.loads((ROOT / "data/scenarios.json").read_text(encoding="utf-8"))
 KNOWLEDGE: list = json.loads((ROOT / "data/knowledge.json").read_text(encoding="utf-8"))
+_RETRIEVER = LocalRetriever(KNOWLEDGE)
 TOOLS: frozenset = frozenset(("cashflow", "purchase", "safety", "guidance"))
 _TOOL_ORDER = ("cashflow", "purchase", "safety", "guidance")
 
@@ -22,6 +24,8 @@ _SAFE_SCHEMES = frozenset(("http", "https"))
 
 def load_scenario(name: str) -> dict:
     """Retorna uma cópia profunda do cenário solicitado ou levanta ValueError."""
+    if not isinstance(name, str) or not 1 <= len(name) <= 40:
+        raise ValueError("Nome de cenário inválido.")
     if name not in CATALOG:
         raise ValueError("Cenário desconhecido.")
     return deepcopy(CATALOG[name])
@@ -38,15 +42,15 @@ def validate(snapshot: dict) -> dict:
     """Valida estrutura e intervalos do snapshot; levanta ValueError em caso de falha."""
     start = date.fromisoformat(snapshot["as_of"])
     horizon = date.fromisoformat(snapshot["horizon"])
-    if horizon < start:
+    if horizon < start or (horizon - start).days > 366:
         raise ValueError("Horizonte inválido.")
     for field in ("balance_cents", "buffer_cents"):
         amount(snapshot[field])
     ids: set = set()
     for event in snapshot["events"]:
         amount(event["amount_cents"])
-        if not start <= date.fromisoformat(event["date"]) <= horizon:
-            raise ValueError("Evento fora do horizonte.")
+        if date.fromisoformat(event["date"]) < start:
+            raise ValueError("Evento anterior ao início da projeção.")
         if event["direction"] not in ("in", "out"):
             raise ValueError("Direção inválida.")
         if type(event.get("flexible")) is not bool:
@@ -61,9 +65,12 @@ def cashflow(snapshot: dict) -> dict:
     """Agrupa o fechamento diário. Não estima horários de liquidação."""
     validate(snapshot)
     balance = snapshot["balance_cents"]
-    rows = [{"date": snapshot["as_of"], "balance_cents": balance, "events": []}]
-    days = sorted({e["date"] for e in snapshot["events"]})
-    for day in days:
+    rows = []
+    start = date.fromisoformat(snapshot["as_of"])
+    horizon = date.fromisoformat(snapshot["horizon"])
+    # Um fechamento por dia, inclusive dias sem eventos e a data inicial.
+    for offset in range((horizon - start).days + 1):
+        day = (start + timedelta(days=offset)).isoformat()
         events = [e for e in snapshot["events"] if e["date"] == day]
         for event in events:
             balance += event["amount_cents"] * (1 if event["direction"] == "in" else -1)
@@ -72,9 +79,9 @@ def cashflow(snapshot: dict) -> dict:
     low = min(rows, key=lambda r: r["balance_cents"])
     negative = next((r["date"] for r in rows if r["balance_cents"] < 0), None)
     flexible = sum(e["amount_cents"] for e in snapshot["events"]
-                   if e["direction"] == "out" and e.get("flexible", False))
+                   if e["direction"] == "out" and e["flexible"] and e["date"] <= snapshot["horizon"])
     needed = max(0, snapshot["buffer_cents"] - low["balance_cents"])
-    return {"daily": rows, "minimum_cents": low["balance_cents"],
+    return {"daily": rows, "initial_cents": snapshot["balance_cents"], "minimum_cents": low["balance_cents"],
             "minimum_date": low["date"], "first_negative_date": negative,
             "closing_cents": balance, "buffer_cents": snapshot["buffer_cents"],
             "gap_to_buffer_cents": needed, "flexible_cents": flexible,
@@ -123,37 +130,143 @@ def safety(snapshot: dict) -> dict:
             "payment_executed": False}
 
 
-def _safe_url(url: object) -> object:
+def _safe_url(url: object) -> str | None:
     """Retorna a URL somente se o esquema for HTTP(S); caso contrário retorna None."""
     if not isinstance(url, str):
         return None
-    scheme = urlsplit(url).scheme.lower()
-    return url if scheme in _SAFE_SCHEMES else None
+    try:
+        parsed = urlsplit(url)
+        return url if (parsed.scheme.lower() in _SAFE_SCHEMES and parsed.hostname
+                       and not parsed.username and not parsed.password) else None
+    except ValueError:
+        return None
 
 
 def guidance(snapshot: dict) -> dict:
-    """Retorna orientações curadas filtradas por tópico."""
-    topic = "pix" if snapshot.get("pix") else "cashflow"
-    docs = []
-    for d in KNOWLEDGE:
-        if topic in d["topics"]:
-            docs.append({**d, "url": _safe_url(d.get("url"))})
-    return {"topic": topic, "documents": docs,
-            "retrieval_mode": "Busca local por tópico em conteúdo curado; RAG semântico ainda não implementado."}
+    """Recupera trechos curados por conceitos locais, com fallback por tópico."""
+    topic = "pix" if snapshot.get("pix") else "purchase" if snapshot.get("purchase") else "cashflow"
+    context = [snapshot["title"], *(event["label"] for event in snapshot["events"])]
+    if snapshot.get("purchase"):
+        context.extend([snapshot["purchase"]["label"], "compra parcelamento"])
+    if snapshot.get("pix"):
+        context.append("PIX destinatário verificação")
+    result = _RETRIEVER.retrieve(" ".join(context), topic)
+    result["documents"] = [{**doc, "url": _safe_url(doc.get("url"))} for doc in result["documents"]]
+    return result
 
 
 def apply_saving(snapshot: dict, reduction: int) -> dict:
     """Ajusta apenas previsões flexíveis, sem alterar transações realizadas."""
+    validate(snapshot)
     changed = deepcopy(snapshot)
     remaining = amount(reduction)
     for event in sorted(changed["events"], key=lambda e: e["date"]):
-        if event["direction"] == "out" and event.get("flexible", False):
+        if event["direction"] == "out" and event["flexible"] and event["date"] <= snapshot["horizon"]:
             part = min(event["amount_cents"], remaining)
             event["amount_cents"] -= part
             remaining -= part
     if remaining:
         raise ValueError("Redução superior às despesas flexíveis.")
     return changed
+
+
+def _explanations(snapshot: dict, results: dict, actions: list[dict]) -> dict:
+    """Expõe dados e limites verificáveis de cada decisão, sem raciocínio de LLM."""
+    flow = results["cashflow"]
+    events = [event for event in snapshot["events"] if event["date"] <= snapshot["horizon"]]
+    income = sum(event["amount_cents"] for event in events if event["direction"] == "in")
+    expenses = sum(event["amount_cents"] for event in events if event["direction"] == "out")
+    if flow["first_negative_date"]:
+        summary = "As saídas conhecidas deixam o menor saldo abaixo de zero no horizonte analisado."
+    elif flow["gap_to_buffer_cents"]:
+        summary = "O menor saldo previsto fica abaixo da margem escolhida para este cenário."
+    else:
+        summary = "O calendário conhecido preserva a margem escolhida; novas despesas podem mudar o resultado."
+    explanations = {
+        "cashflow": {
+            "title": "Por que acompanhar esta margem",
+            "summary": summary,
+            "numbers": [{"label": label, "value_cents": value} for label, value in (
+                ("Saldo inicial", snapshot["balance_cents"]), ("Recebimentos no horizonte", income),
+                ("Despesas no horizonte", expenses), ("Menor saldo previsto", flow["minimum_cents"]),
+                ("Margem escolhida", flow["buffer_cents"]), ("Falta para a margem", flow["gap_to_buffer_cents"]),
+            )],
+            "assumptions": [
+                f"Fechamentos diários de {snapshot['as_of']} a {snapshot['horizon']}; eventos do mesmo dia são somados.",
+                f"O menor fechamento ocorre em {flow['minimum_date']}.",
+                "Recebimentos e compromissos usam as datas e os valores sintéticos informados; não são garantidos.",
+            ],
+            "not_considered": [
+                "Horários de liquidação dentro de um mesmo dia.",
+                "Novas despesas, juros, tarifas e alterações de renda não registrados no cenário.",
+                "Eventos depois do horizonte, inclusive recebimentos atrasados para além dele.",
+            ],
+        },
+    }
+    for action in actions:
+        if action["id"] == "budget-plan":
+            explanations["budget-plan"] = {
+                "title": "Por que sugerir este ajuste",
+                "summary": "A redução flexível preserva a margem desejada." if action["meets_buffer"] else
+                    "A redução flexível melhora a projeção, mas ainda não recompõe toda a margem desejada.",
+                "numbers": [{"label": label, "value_cents": value} for label, value in (
+                    ("Gastos flexíveis disponíveis", flow["flexible_cents"]),
+                    ("Redução proposta", action["reduction_cents"]), ("Menor saldo antes", action["before_cents"]),
+                    ("Menor saldo após o ajuste", action["after_cents"]), ("Margem escolhida", flow["buffer_cents"]),
+                )],
+                "assumptions": ["Reduz somente previsões flexíveis deste horizonte, em ordem de data.",
+                                "O ajuste depende da sua aprovação; despesas essenciais permanecem iguais."],
+                "not_considered": ["Compras já realizadas, bloqueio de gastos e movimentação de dinheiro.",
+                                   "Mudanças futuras no orçamento que não foram informadas."],
+            }
+        elif action["id"] == "purchase-goal":
+            explanations["purchase-goal"] = {
+                "title": "Por que oferecer uma meta",
+                "summary": "A meta registra o preço para planejar a compra antes de assumir um compromisso.",
+                "numbers": [{"label": "Valor da meta", "value_cents": action["target_cents"]},
+                            {"label": "Margem escolhida", "value_cents": flow["buffer_cents"]}],
+                "assumptions": ["A meta é demonstrativa e só é registrada após sua aprovação."],
+                "not_considered": ["Reserva automática, rendimento, transferência e prazo para alcançar a meta."],
+            }
+    comparison = results.get("purchase", {})
+    if comparison.get("available"):
+        explanations["purchase"] = {
+            "title": "Por que comparar antes de comprar",
+            "summary": comparison["recommendation"] + ": o preço é comparado ao calendário e à margem desejada.",
+            "numbers": [{"label": label, "value_cents": comparison[key]} for label, key in (
+                ("Preço à vista", "price_cents"), ("Menor saldo à vista", "cash_minimum_cents"),
+                ("Primeira parcela", "first_installment_cents"),
+                ("Menor saldo com a primeira parcela", "installment_minimum_cents"),
+            )] + [{"label": "Margem escolhida", "value_cents": flow["buffer_cents"]}],
+            "assumptions": [comparison["assumption"]],
+            "not_considered": ["Parcelas futuras depois da primeira, juros, tarifas e outras ofertas de crédito.",
+                               "Contratação de compra, crédito ou recomendação financeira personalizada."],
+        }
+    signals = results.get("safety", {})
+    if signals.get("available"):
+        explanations["safety"] = {
+            "title": "Por que conferir este PIX",
+            "summary": f"Há {len(signals['reasons'])} sinais ilustrativos neste cenário. " + signals["recommendation"],
+            "numbers": [{"label": label, "value_cents": value} for label, value in (
+                ("Valor do PIX", signals["amount_cents"]), ("Padrão sintético", snapshot["typical_pix_cents"]),
+                ("Referência de três vezes o padrão", snapshot["typical_pix_cents"] * 3),
+            )],
+            "assumptions": signals["reasons"] + ["São regras sobre sinais fornecidos pelo cenário, não um detector validado."],
+            "not_considered": ["Identidade real do destinatário, histórico bancário e bases externas de fraude.",
+                               signals["limitation"]],
+        }
+    retrieved = results.get("guidance")
+    if retrieved:
+        explanations["guidance"] = {
+            "title": "Por que estas orientações aparecem",
+            "summary": "Trechos curados relacionados ao cenário, recuperados por conceitos locais." if
+                retrieved["retrieval_mode"] == "local_concepts" else
+                "Sem correspondência de termos suficiente; são exibidas as orientações do tópico do cenário.",
+            "numbers": [],
+            "assumptions": ["Consulta à base local carregada na inicialização; o texto não é gerado por um modelo."],
+            "not_considered": [retrieved["limitation"], "Condições bancárias atuais e aconselhamento individual."],
+        }
+    return explanations
 
 
 def build_report(snapshot: dict, consent: object, planner: object = None) -> dict:
@@ -168,7 +281,7 @@ def build_report(snapshot: dict, consent: object, planner: object = None) -> dic
     selected = ["cashflow", "purchase" if snapshot.get("purchase") else "safety" if snapshot.get("pix") else "guidance"]
     if planner:
         try:
-            raw = planner.plan(snapshot)
+            raw = planner.plan(deepcopy(snapshot))
             # Valida o plano antes de aceitar o modo watsonx.
             if (not isinstance(raw, list)
                     or not 1 <= len(raw) <= 4
@@ -184,6 +297,8 @@ def build_report(snapshot: dict, consent: object, planner: object = None) -> dic
     # Política exige análise de caixa e segurança quando há uma operação.
     if "cashflow" not in selected:
         selected.insert(0, "cashflow")
+    if "guidance" not in selected:
+        selected.append("guidance")
     if snapshot.get("pix") and "safety" not in selected:
         selected.append("safety")
     if snapshot.get("purchase") and "purchase" not in selected:
@@ -221,4 +336,5 @@ def build_report(snapshot: dict, consent: object, planner: object = None) -> dic
     return {"status": "ready", "report_id": digest, "mode": mode, "warning": warning,
             "title": title, "as_of": snapshot["as_of"], "horizon": snapshot["horizon"],
             "results": result, "actions": actions, "trace": trace,
+            "explanations": _explanations(snapshot, result, actions),
             "estimated": True, "policy_version": "demo-1"}
