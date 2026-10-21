@@ -1,0 +1,12 @@
+# Apenas os arquivos de execução entram no contexto; nunca credenciais ou anexos.
+*
+!Dockerfile
+!elo/
+!elo/**
+!web/
+!web/**
+!data/
+!data/**
+**/__pycache__/
+**/*.pyc
+**/.env*

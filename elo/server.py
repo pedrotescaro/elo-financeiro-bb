@@ -1,13 +1,16 @@
-"""Servidor local de demonstração. Sem autenticação bancária ou uso em produção."""
+"""Demonstração sintética limitada; modo público requer proxy HTTPS configurado."""
 import argparse
 from copy import deepcopy
 from datetime import datetime, timezone
 from http.cookies import SimpleCookie
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
+from math import ceil
 import os
 import secrets
-from threading import RLock
+from threading import BoundedSemaphore, RLock
+from time import monotonic
+from typing import Callable
 from urllib.parse import urlsplit
 from .core import CATALOG, ROOT, apply_saving, build_report, load_scenario
 
@@ -30,6 +33,7 @@ class DemoSession:
         self.goals: list = []
         self.audit: list = []
         self.audit_sequence = 0
+        self.last_seen = monotonic()
         self.record("session_started", "Sessão demonstrativa iniciada, sem leitura autorizada.")
 
     def record(self, event: str, label: str) -> None:
@@ -133,11 +137,87 @@ class DemoSession:
 class DemoServer(ThreadingHTTPServer):
     """Servidor ThreadingHTTP com mapa de sessões protegido por lock."""
 
-    def __init__(self, address: tuple, planner: object = None) -> None:
+    def __init__(self, address: tuple, planner: object = None, *, public_origin: str | None = None,
+                 session_ttl: int = 1800, rate_limit: int = 120, rate_window: int = 60,
+                 max_workers: int = 16, clock: Callable[[], float] = monotonic) -> None:
+        if public_origin:
+            origin = urlsplit(public_origin)
+            if (origin.scheme != "https" or not origin.hostname or origin.username or origin.password
+                    or origin.path or origin.query or origin.fragment or origin.port not in (None, 443)
+                    or public_origin != "https://" + origin.netloc):
+                raise ValueError("ELO_PUBLIC_ORIGIN deve ser uma origem HTTPS sem caminho ou barra final.")
+            if planner is not None:
+                raise ValueError("A demonstração pública permite somente o modo por regras, sem chamadas IBM.")
+        if any(type(n) is not int or n <= 0 for n in (session_ttl, rate_limit, rate_window, max_workers)):
+            raise ValueError("Os limites da demonstração devem ser inteiros positivos.")
         self.sessions: dict = {}
         self.sessions_lock = RLock()
         self.planner = planner
+        self.public_origin = public_origin
+        self.session_ttl = session_ttl
+        self.rate_limit, self.rate_window = rate_limit, rate_window
+        self.clock = clock
+        self.ip_windows: dict = {}
+        self.rate_lock = RLock()
+        self.workers = BoundedSemaphore(max_workers)
         super().__init__(address, Handler)
+
+    def expire_sessions(self, now: float) -> None:
+        """Remove sessões inativas sob o lock do mapa, liberando sua memória."""
+        expired = [key for key, session in self.sessions.items() if now - session.last_seen >= self.session_ttl]
+        for key in expired:
+            del self.sessions[key]
+
+    def check_rate(self, ip: str) -> bool:
+        """Aplica janela fixa por IP da conexão, com memória limitada a 1024 IPs."""
+        now = self.clock()
+        with self.rate_lock:
+            expired = [key for key, (start, _) in self.ip_windows.items() if now - start >= self.rate_window]
+            for key in expired:
+                del self.ip_windows[key]
+            if ip not in self.ip_windows:
+                if len(self.ip_windows) >= 1024:
+                    return False
+                self.ip_windows[ip] = (now, 0)
+            start, count = self.ip_windows[ip]
+            if count >= self.rate_limit:
+                return False
+            self.ip_windows[ip] = (start, count + 1)
+            return True
+
+    def get_request(self) -> tuple:
+        """Limita a espera de cabeçalhos e corpo em cada conexão."""
+        connection, address = super().get_request()
+        connection.settimeout(10)
+        return connection, address
+
+    def process_request(self, request: object, client_address: tuple) -> None:
+        """Rejeita excesso de conexões antes de criar uma thread."""
+        if not self.workers.acquire(blocking=False):
+            try:
+                request.settimeout(1)
+                request.sendall(b"HTTP/1.0 503 Service Unavailable\r\nContent-Length: 0\r\n"
+                                b"Connection: close\r\nRetry-After: 1\r\nCache-Control: no-store\r\n"
+                                b"X-Content-Type-Options: nosniff\r\nX-Frame-Options: DENY\r\n"
+                                b"Referrer-Policy: no-referrer\r\nPermissions-Policy: camera=(), microphone=(), geolocation=(), payment=()\r\n"
+                                b"Content-Security-Policy: default-src 'none'; frame-ancestors 'none'\r\n\r\n")
+            except OSError:
+                pass
+            finally:
+                self.shutdown_request(request)
+            return
+        try:
+            super().process_request(request, client_address)
+        except Exception:
+            self.workers.release()
+            raise
+
+    def process_request_thread(self, request: object, client_address: tuple) -> None:
+        """Libera o slot inclusive quando a conexão falha."""
+        try:
+            super().process_request_thread(request, client_address)
+        finally:
+            self.workers.release()
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -146,6 +226,34 @@ class Handler(BaseHTTPRequestHandler):
     def log_message(self, fmt: str, *args: object) -> None:
         # Não grava dados financeiros, tokens ou conteúdo de requisições.
         pass
+
+    def parse_request(self) -> bool:
+        """Verifica Host e limite antes do roteamento, sem confiar em proxies do cliente."""
+        if not super().parse_request():
+            return False
+        try:
+            path = urlsplit(self.path).path
+        except ValueError:
+            self.send_json(400, {"error": "Caminho inválido."})
+            return False
+        if self.command == "GET" and path == "/healthz":
+            return True
+        hosts = self.headers.get_all("Host", [])
+        port = self.server.server_port
+        expected = (urlsplit(self.server.public_origin).netloc,) if self.server.public_origin else (
+            f"127.0.0.1:{port}", f"localhost:{port}")
+        if len(hosts) != 1 or hosts[0] not in expected:
+            self.send_json(403, {"error": "Host não permitido para esta demonstração."})
+            return False
+        if not self.server.check_rate(self.client_address[0]):
+            self.send_json(429, {"error": "Muitas requisições. Aguarde um minuto e tente novamente."})
+            return False
+        return True
+
+    def send_error(self, code: int, message: str | None = None, explain: str | None = None) -> None:
+        """Mantém erros de protocolo sem conteúdo refletido da requisição."""
+        self.close_connection = True
+        self.send_json(code, {"error": "Requisição HTTP não permitida ou inválida."})
 
     def get_session(self) -> tuple[DemoSession, str | None]:
         """Consulta sob lock; constrói fora dele e reinsere com limite atômico."""
@@ -158,16 +266,22 @@ class Handler(BaseHTTPRequestHandler):
         key = item.value if item else None
 
         with self.server.sessions_lock:
+            now = self.server.clock()
+            self.server.expire_sessions(now)
             session = self.server.sessions.get(key)
             if session is not None:
+                session.last_seen = now
                 return session, None
             if len(self.server.sessions) >= 100:
                 raise RuntimeError("Limite de sessões da demonstração atingido.")
         new_session = DemoSession(self.server.planner)
         new_key = secrets.token_urlsafe(24)
         with self.server.sessions_lock:
+            now = self.server.clock()
+            self.server.expire_sessions(now)
             if len(self.server.sessions) >= 100:
                 raise RuntimeError("Limite de sessões da demonstração atingido.")
+            new_session.last_seen = now
             self.server.sessions[new_key] = new_session
         return new_session, new_key
 
@@ -178,18 +292,24 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Type", content_type)
         self.send_header("Content-Length", str(len(content)))
         self.send_header("Cache-Control", "no-store")
+        self.send_header("Vary", "Origin")
         self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("Referrer-Policy", "no-referrer")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=()")
+        if self.server.public_origin:
+            self.send_header("Strict-Transport-Security", "max-age=31536000")
+        if status == 429:
+            self.send_header("Retry-After", str(ceil(self.server.rate_window)))
         self.send_header(
             "Content-Security-Policy",
             "default-src 'self'; script-src 'self'; style-src 'self'; "
-            "img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'",
+            "img-src 'self' data:; connect-src 'self'; object-src 'none'; "
+            "frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
         )
         if new_cookie:
-            # Adiciona Secure apenas quando servido via HTTPS (produção).
-            # Em HTTP local o flag Secure impede que o cookie seja enviado de volta.
-            host = self.headers.get("Host", "")
-            hostname = urlsplit("//" + host).hostname
-            secure_flag = "" if hostname in ("127.0.0.1", "localhost", "::1") else "; Secure"
+            # A origem configurada determina Secure; cabeçalhos do visitante não alteram a política.
+            secure_flag = "; Secure" if self.server.public_origin else ""
             self.send_header(
                 "Set-Cookie",
                 f"elo_demo={new_cookie}; HttpOnly; SameSite=Strict{secure_flag}; Path=/",
@@ -210,6 +330,9 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         new_cookie = None
         path = urlsplit(self.path).path
+        if path == "/healthz":
+            self.send_json(200, {"status": "ok", "synthetic": True})
+            return
         if path == "/api/state":
             try:
                 session, new_cookie = self.get_session()
@@ -229,29 +352,33 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self) -> None:
         new_cookie = None
         try:
+            origin = self.headers.get("Origin")
+            expected_origin = self.server.public_origin or "http://" + self.headers.get("Host", "")
+            origins = self.headers.get_all("Origin", [])
+            if len(origins) > 1 or (origin and origin != expected_origin) or (self.server.public_origin and not origin):
+                raise PermissionError("Origem não permitida.")
             session, new_cookie = self.get_session()
             token = self.headers.get("X-Demo-CSRF", "")
             if not secrets.compare_digest(token, session.csrf):
                 raise PermissionError("Sessão inválida. Atualize a página.")
-            origin = self.headers.get("Origin")
-            if origin:
-                parsed_origin = urlsplit(origin)
-                if (parsed_origin.scheme not in ("http", "https") or parsed_origin.path
-                        or parsed_origin.query or parsed_origin.fragment
-                        or parsed_origin.netloc != self.headers.get("Host")):
-                    raise PermissionError("Origem não permitida.")
             if self.headers.get_content_type() != "application/json":
                 raise ValueError("Envie conteúdo application/json.")
             if self.headers.get("Transfer-Encoding"):
                 raise ValueError("Transfer-Encoding não é aceito.")
-            raw_len = self.headers.get("Content-Length", "")
+            lengths = self.headers.get_all("Content-Length", [])
+            if len(lengths) != 1 or not lengths[0].isascii() or not lengths[0].isdecimal():
+                raise ValueError("Cabeçalho Content-Length inválido.")
+            raw_len = lengths[0]
             try:
                 size = int(raw_len)
             except (ValueError, TypeError):
                 raise ValueError("Cabeçalho Content-Length inválido.")
             if not 0 < size <= 8192:
                 raise ValueError("Tamanho inválido.")
-            payload = json.loads(self.rfile.read(size))
+            body = self.rfile.read(size)
+            if len(body) != size:
+                raise ValueError("Corpo da requisição incompleto.")
+            payload = json.loads(body)
             if not isinstance(payload, dict):
                 raise ValueError("Envie um objeto JSON.")
             path = urlsplit(self.path).path
@@ -279,22 +406,30 @@ class Handler(BaseHTTPRequestHandler):
             self.send_json(400, {"error": str(exc)})
         except (KeyError, TypeError):
             self.send_json(400, {"error": "Requisição inválida. Confira os campos enviados."})
+        except TimeoutError:
+            self.send_json(408, {"error": "Tempo de leitura esgotado. Tente novamente."})
         except RuntimeError:
             self.send_json(503, {"error": "A demonstração está ocupada."})
+
+    def do_OPTIONS(self) -> None:
+        """A API é da própria origem; não há autorização CORS para terceiros."""
+        self.send_json(403, {"error": "A API aceita apenas requisições da própria origem."})
 
 
 def main() -> None:
     """Ponto de entrada para `python -m elo.server`."""
     parser = argparse.ArgumentParser()
     parser.add_argument("--host", default="127.0.0.1")
-    parser.add_argument("--port", type=int, default=8000)
+    parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", "8000")))
     args = parser.parse_args()
     planner = None
     if os.environ.get("ELO_PLANNER") == "watsonx":
+        if args.host not in ("127.0.0.1", "localhost"):
+            parser.error("O planejador IBM só pode ser ativado na demonstração local.")
         from .watsonx import WatsonxPlanner
         planner = WatsonxPlanner()
     print(f"Elo Financeiro: http://{args.host}:{args.port} | dados sintéticos")
-    DemoServer((args.host, args.port), planner).serve_forever()
+    DemoServer((args.host, args.port), planner, public_origin=os.environ.get("ELO_PUBLIC_ORIGIN") or None).serve_forever()
 
 
 if __name__ == "__main__":

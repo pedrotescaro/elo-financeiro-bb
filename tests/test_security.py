@@ -4,6 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 from http.client import HTTPConnection
 import json
 from threading import Event, RLock, Thread
+from time import monotonic
 from types import SimpleNamespace
 import unittest
 from unittest.mock import patch
@@ -15,7 +16,8 @@ from elo.server import DemoServer, DemoSession, Handler
 class SessionLockTests(unittest.TestCase):
     def test_slow_new_session_does_not_block_existing_session(self):
         existing = DemoSession()
-        server = SimpleNamespace(sessions={"existing": existing}, sessions_lock=RLock(), planner=None)
+        server = SimpleNamespace(sessions={"existing": existing}, sessions_lock=RLock(), planner=None,
+                                 clock=monotonic, expire_sessions=lambda now: None)
         started, release = Event(), Event()
 
         def handler(cookie=""):
