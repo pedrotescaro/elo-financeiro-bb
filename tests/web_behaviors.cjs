@@ -176,12 +176,30 @@ test("goals panel persists on reload and clears after consent revoked", async ()
   const withGoal = {...ready, goals: [{label: "Celular", target_cents: 120000}]};
   const app = await harness(withGoal);
   assert.equal(app.elements["goals-panel"].hidden, false);
-  // Simulates page reload while session is valid: state still has goal
+  // Reload while session valid: goal remains visible
   await app.load(withGoal);
   assert.equal(app.elements["goals-panel"].hidden, false);
   assert.equal(app.elements["goals"].children.length, 1);
-  // Revoke consent: goals must disappear
+  // Revoke consent: server clears goals; panel must hide
   await app.load({...initial, goals: []});
+  assert.equal(app.elements["goals-panel"].hidden, true);
+  assert.equal(app.elements["goals"].children.length, 0);
+});
+
+test("goals panel is hidden without consent even if stale goals are present", async () => {
+  // Server should never send goals without consent, but the UI must be defensive
+  const stale = {...initial, goals: [{label: "Celular", target_cents: 120000}]};
+  const app = await harness(stale);
+  assert.equal(app.elements["goals-panel"].hidden, true);
+  assert.equal(app.elements["goals"].children.length, 0);
+});
+
+test("goals panel clears when scenario changes", async () => {
+  const withGoal = {...ready, goals: [{label: "Celular", target_cents: 120000}]};
+  const app = await harness(withGoal);
+  assert.equal(app.elements["goals-panel"].hidden, false);
+  // Scenario switch resets goals to empty (server behaviour)
+  await app.load({...ready, goals: []});
   assert.equal(app.elements["goals-panel"].hidden, true);
   assert.equal(app.elements["goals"].children.length, 0);
 });

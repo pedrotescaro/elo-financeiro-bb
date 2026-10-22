@@ -1,20 +1,22 @@
 # BOB_STATUS — Checkpoint
 
 ## Alteração
-Implementado painel **"Metas desta sessão"** na interface do Elo Financeiro.
+Painel **"Metas desta sessão"** — renderização condicional ao consentimento.
+
+**Regra aplicada:** o painel é exibido somente quando `state.consent === true` e `state.goals.length > 0`. Sem consentimento, a lista é sempre limpa e o painel ocultado, mesmo que `state.goals` contenha dados residuais.
 
 ## Arquivos modificados
-- `web/index.html` — seção `#goals-panel` com `#goals` (lista, footnote de segurança)
-- `web/app.js` — renderização das metas antes do `early return` de consentimento, reutilizando `node()` e `money()`
-- `tests/web_behaviors.cjs` — 3 novos testes de regressão (oculto sem metas, exibição com label+valor, persistência e limpeza)
+- `web/app.js` — condição `showGoals` combina `state.consent` e `state.goals.length`; `replaceChildren()` sempre executado antes do retorno antecipado
+- `tests/web_behaviors.cjs` — 2 novos testes: metas ocultas sem consentimento (defensivo), limpeza ao trocar de cenário; testes anteriores mantidos e comentários revisados
 
 ## Testes executados
-- JS: `node --test tests/web_behaviors.cjs` → **9/9 pass** (6 anteriores + 3 novos)
-- Python: `pytest tests/` → **91 passed, 85 subtests**
+- `node --check web/app.js` → sem erros de sintaxe
+- `node --test tests/web_behaviors.cjs` → **11/11 pass**
+- `python -m unittest discover -s tests -v` → **91 tests, OK**
 
 ## Limitações
-- Não há barra de progresso nem prazo — a meta é apenas um registro de intenção, sem reserva de dinheiro.
-- O painel não aparece na tela de consentimento (workspace oculto), apenas no estado pós-autorização e como memória ao revogar.
+- Nenhuma barra de progresso, prazo ou rendimento — meta é registro de intenção.
+- Backend já garante `goals: []` ao revogar/trocar cenário; UI é defensiva para divergências futuras.
 
 ## Próximas etapas
 1. Economia de chamadas IBM (cache local, redução de tokens)
