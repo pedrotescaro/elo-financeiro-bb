@@ -75,6 +75,8 @@ class DemoSession:
             self.goals.clear()
             self.approved.clear()
             self.snapshot = load_scenario(self.name)
+            if hasattr(self.planner, "invalidate_cache"):
+                self.planner.invalidate_cache()
         self.refresh()
 
     def set_scenario(self, name: str) -> None:
@@ -86,6 +88,8 @@ class DemoSession:
         self.approved.clear()
         self.history.clear()
         self.goals.clear()
+        if hasattr(self.planner, "invalidate_cache"):
+            self.planner.invalidate_cache()
         self.record("scenario_selected", "Cenário selecionado: " + self.snapshot["title"] + ".")
         self.refresh()
 

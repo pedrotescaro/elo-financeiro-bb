@@ -1,28 +1,39 @@
 # BOB_STATUS — Checkpoint
 
-## Alteração
-Painel **"Metas desta sessão"** — renderização condicional ao consentimento.
+## Alteração — Etapa 2: Redução de chamadas IBM
 
-**Regra aplicada:** `showGoals = state.consent && state.goals?.length > 0`. Sem consentimento, `replaceChildren()` sempre roda e o painel é ocultado, mesmo com dados residuais em `state.goals`. Com consentimento e metas válidas, renderiza nome e valor alvo em reais.
+### IAM token reuse (`elo/watsonx.py`)
+`_TokenCache` em memória com expiração (`expires_in` do IAM) e margem de 60 s. Lock garante
+renovação única quando threads concorrentes encontram token expirado. Token nunca exposto em logs.
+
+### Cache de inferência por sessão
+`_InferenceCache` por instância de `WatsonxPlanner`. Plano reutilizado quando digest do snapshot
+e da configuração coincidem. Falhas não são cacheadas. `invalidate_cache()` chamado automaticamente
+em `set_consent(False)` e `set_scenario()`.
+
+### Orçamento de 25 s compartilhado
+Tempo de autenticação descontado do orçamento antes da chamada de geração.
+`TimeoutError` levantado se restante ≤ 0.
 
 ## Arquivos modificados
-- `web/app.js` — `showGoals` avaliado antes de `if(!state.consent) return`; `replaceChildren()` incondicional
-- `web/index.html` — `#goals-panel` com `#goals` e footnote de segurança
-- `tests/web_behaviors.cjs` — 5 testes de metas: oculto sem metas, exibição, persistência no reload, metas residuais sem consentimento, limpeza por troca de cenário
+- `elo/watsonx.py` — `_TokenCache`, `_InferenceCache`, `WatsonxPlanner` (clock injetável)
+- `elo/server.py` — `invalidate_cache()` em `set_consent` e `set_scenario`
+- `tests/test_ibm_cache.py` — 14 novos testes (reuso, expiração, invalidação, concorrência, isolamento, falha, orçamento)
+- `tests/test_watsonx.py` — isolamento de cache entre subtestes
 
 ## Testes executados
-- `node --check web/app.js` → sem erros de sintaxe
+- `python -m unittest discover -s tests` → **105 tests, OK**
 - `node --test tests/web_behaviors.cjs` → **11/11 pass**
-- `python -m unittest discover -s tests -v` → **91 tests, OK**
+- `node --check web/app.js` → sem erros
+- Ruff: não instalado no ambiente
 
 ## Limitações
-- Nenhuma barra de progresso, prazo ou rendimento — meta é registro de intenção.
-- Backend já garante `goals: []` ao revogar/trocar cenário; UI é defensiva para divergências futuras.
+- `_GLOBAL_TOKEN_CACHE` é compartilhado entre instâncias do mesmo processo (intencionalmente).
+- Cache de inferência limitado a 1 entrada por sessão; múltiplos cenários simultâneos não têm benefício.
 
 ## Próximas etapas
-1. Economia de chamadas IBM (cache local, redução de tokens)
-2. Cenários fictícios editáveis pelo usuário
-3. Planos ajustáveis e fluxo de recusa
-4. Parcelas completas no comparativo de compra
-5. Contribuição contextual da IA nas metas
-6. Verificação de entrega (smoke test end-to-end)
+1. Cenários fictícios editáveis pelo usuário
+2. Planos ajustáveis e fluxo de recusa
+3. Parcelas completas no comparativo de compra
+4. Contribuição contextual da IA nas metas
+5. Verificação de entrega (smoke test end-to-end)

@@ -28,6 +28,11 @@ class WatsonxTests(unittest.TestCase):
         self.environment = patch.dict("os.environ", ENV, clear=True)
         self.environment.start()
         self.addCleanup(self.environment.stop)
+        # Cada teste recebe cache isolado para evitar reutilização de tokens entre testes.
+        from elo.watsonx import _TokenCache
+        self._token_cache_patch = patch("elo.watsonx._GLOBAL_TOKEN_CACHE", _TokenCache())
+        self._token_cache_patch.start()
+        self.addCleanup(self._token_cache_patch.stop)
         self.planner = WatsonxPlanner()
 
     def report_with_generation(self, generated):
@@ -129,7 +134,8 @@ class WatsonxTests(unittest.TestCase):
                     response({"access_token": "synthetic-token"}),
                     response({"results": [{"generated_text": '{"tools":["cashflow"]}'}]}),
                 ]):
-                    planner = WatsonxPlanner()
+                    from elo.watsonx import _TokenCache
+                    planner = WatsonxPlanner(token_cache=_TokenCache())
                     self.assertEqual(planner.plan(load_scenario("month")), ["cashflow"])
                     self.assertEqual(planner.endpoint, endpoint.rstrip("/"))
 
