@@ -3,11 +3,12 @@
 ## Alteração
 Painel **"Metas desta sessão"** — renderização condicional ao consentimento.
 
-**Regra aplicada:** o painel é exibido somente quando `state.consent === true` e `state.goals.length > 0`. Sem consentimento, a lista é sempre limpa e o painel ocultado, mesmo que `state.goals` contenha dados residuais.
+**Regra aplicada:** `showGoals = state.consent && state.goals?.length > 0`. Sem consentimento, `replaceChildren()` sempre roda e o painel é ocultado, mesmo com dados residuais em `state.goals`. Com consentimento e metas válidas, renderiza nome e valor alvo em reais.
 
 ## Arquivos modificados
-- `web/app.js` — condição `showGoals` combina `state.consent` e `state.goals.length`; `replaceChildren()` sempre executado antes do retorno antecipado
-- `tests/web_behaviors.cjs` — 2 novos testes: metas ocultas sem consentimento (defensivo), limpeza ao trocar de cenário; testes anteriores mantidos e comentários revisados
+- `web/app.js` — `showGoals` avaliado antes de `if(!state.consent) return`; `replaceChildren()` incondicional
+- `web/index.html` — `#goals-panel` com `#goals` e footnote de segurança
+- `tests/web_behaviors.cjs` — 5 testes de metas: oculto sem metas, exibição, persistência no reload, metas residuais sem consentimento, limpeza por troca de cenário
 
 ## Testes executados
 - `node --check web/app.js` → sem erros de sintaxe
