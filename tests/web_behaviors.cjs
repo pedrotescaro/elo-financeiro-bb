@@ -155,3 +155,33 @@ test("currency formatting is exact for integer cents and rejects unsafe values",
   app.elements["text-size"].onclick();
   assert.equal(app.elements["text-size"].attrs["aria-pressed"], "true");
 });
+
+test("goals panel is hidden when state has no goals", async () => {
+  const app = await harness(ready);
+  assert.equal(app.elements["goals-panel"].hidden, true);
+  assert.equal(app.elements["goals"].children.length, 0);
+});
+
+test("goals panel shows label and formatted amount after approval", async () => {
+  const withGoal = {...ready, goals: [{label: "Celular", target_cents: 120000}]};
+  const app = await harness(withGoal);
+  assert.equal(app.elements["goals-panel"].hidden, false);
+  assert.equal(app.elements["goals"].children.length, 1);
+  const li = app.elements["goals"].children[0];
+  assert.equal(li.children[0].textContent, "Celular");
+  assert.match(li.children[1].textContent, /1\.200,00/);
+});
+
+test("goals panel persists on reload and clears after consent revoked", async () => {
+  const withGoal = {...ready, goals: [{label: "Celular", target_cents: 120000}]};
+  const app = await harness(withGoal);
+  assert.equal(app.elements["goals-panel"].hidden, false);
+  // Simulates page reload while session is valid: state still has goal
+  await app.load(withGoal);
+  assert.equal(app.elements["goals-panel"].hidden, false);
+  assert.equal(app.elements["goals"].children.length, 1);
+  // Revoke consent: goals must disappear
+  await app.load({...initial, goals: []});
+  assert.equal(app.elements["goals-panel"].hidden, true);
+  assert.equal(app.elements["goals"].children.length, 0);
+});

@@ -157,6 +157,8 @@ function render(){
   $("workspace").hidden = !state.consent;
   $("notice").textContent = "";
   $("notice").hidden = true;
+  $("goals-panel").hidden=!(state.goals && state.goals.length);$("goals").replaceChildren();
+  (state.goals||[]).forEach(g=>{const li=node("li");li.append(node("strong",g.label),node("span"," · "+money(g.target_cents)));$("goals").append(li);});
   if(!state.consent) return;
   const report = state.report, flow = report.results?.cashflow;
   if(!flow){
