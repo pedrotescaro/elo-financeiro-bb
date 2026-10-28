@@ -3,11 +3,11 @@ from io import BytesIO
 import json
 import threading
 import unittest
-from unittest.mock import call, patch
+from unittest.mock import patch
 
 from elo.core import load_scenario
 from elo.watsonx import (
-    _InferenceCache, _TokenCache, _TOKEN_RENEW_MARGIN, _PLAN_BUDGET,
+    _TokenCache, _PLAN_BUDGET,
     WatsonxPlanner,
 )
 
@@ -41,7 +41,8 @@ class TokenCacheTests(unittest.TestCase):
     def test_token_reused_within_validity_window(self):
         """Segundo plano usa token cacheado sem nova chamada IAM."""
         t = [0.0]
-        clock = lambda: t[0]
+        def clock():
+            return t[0]
         cache = self._cache(clock)
         with patch.dict("os.environ", ENV), \
              patch("elo.watsonx.urlopen", side_effect=[
@@ -67,7 +68,8 @@ class TokenCacheTests(unittest.TestCase):
     def test_token_renewed_after_expiry_margin(self):
         """Token é renovado quando o relógio ultrapassa expires_at - margem."""
         t = [0.0]
-        clock = lambda: t[0]
+        def clock():
+            return t[0]
         cache = self._cache(clock)
         with patch.dict("os.environ", ENV), \
              patch("elo.watsonx.urlopen", side_effect=[
@@ -90,7 +92,8 @@ class TokenCacheTests(unittest.TestCase):
     def test_token_not_renewed_just_before_margin(self):
         """Token ainda válido a 61 s do vencimento (margem=60) não é renovado."""
         t = [0.0]
-        clock = lambda: t[0]
+        def clock():
+            return t[0]
         cache = self._cache(clock)
         with patch.dict("os.environ", ENV), \
              patch("elo.watsonx.urlopen", side_effect=[
@@ -159,7 +162,8 @@ class InferenceCacheTests(unittest.TestCase):
     def test_cache_hit_skips_network_calls(self):
         """Segundo plan() com snapshot idêntico não faz nenhuma chamada HTTP."""
         t = [0.0]
-        clock = lambda: t[0]
+        def clock():
+            return t[0]
         cache = _TokenCache(clock=clock)
         with patch.dict("os.environ", ENV), \
              patch("elo.watsonx.urlopen", side_effect=[
@@ -176,7 +180,8 @@ class InferenceCacheTests(unittest.TestCase):
     def test_cache_invalidated_on_snapshot_change(self):
         """Snapshot diferente invalida o cache e dispara nova inferência."""
         t = [0.0]
-        clock = lambda: t[0]
+        def clock():
+            return t[0]
         cache = _TokenCache(clock=clock)
         with patch.dict("os.environ", ENV), \
              patch("elo.watsonx.urlopen", side_effect=[
@@ -196,7 +201,8 @@ class InferenceCacheTests(unittest.TestCase):
     def test_failure_not_cached(self):
         """Falha de inferência não polui o cache; próxima chamada tenta novamente."""
         t = [0.0]
-        clock = lambda: t[0]
+        def clock():
+            return t[0]
         cache = _TokenCache(clock=clock)
         with patch.dict("os.environ", ENV), \
              patch("elo.watsonx.urlopen", side_effect=[
@@ -219,7 +225,8 @@ class InferenceCacheTests(unittest.TestCase):
     def test_cache_invalidated_by_explicit_call(self):
         """invalidate_cache() força nova inferência na próxima chamada."""
         t = [0.0]
-        clock = lambda: t[0]
+        def clock():
+            return t[0]
         cache = _TokenCache(clock=clock)
         with patch.dict("os.environ", ENV), \
              patch("elo.watsonx.urlopen", side_effect=[
@@ -240,7 +247,8 @@ class InferenceCacheTests(unittest.TestCase):
     def test_session_isolation(self):
         """Dois planners com caches separados não compartilham plano."""
         t = [0.0]
-        clock = lambda: t[0]
+        def clock():
+            return t[0]
         cache_a = _TokenCache(clock=clock)
         cache_b = _TokenCache(clock=clock)
         snap = load_scenario("month")
@@ -282,7 +290,8 @@ class BudgetTests(unittest.TestCase):
     def test_generation_timeout_uses_remaining_budget(self):
         """O timeout da geração é calculado como orçamento menos tempo de auth."""
         t = [0.0]
-        clock = lambda: t[0]
+        def clock():
+            return t[0]
         cache = _TokenCache(clock=clock)
         captured = {}
 
