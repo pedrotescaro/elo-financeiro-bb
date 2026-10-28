@@ -1,6 +1,10 @@
 from copy import deepcopy
+from datetime import date
 import unittest
-from elo.core import build_report, cashflow, load_scenario, apply_saving, safety, purchase, validate
+from elo.core import (
+    build_report, cashflow, load_scenario, apply_saving, safety, purchase, validate,
+    _installment_dates, _split_installments,
+)
 from elo.server import DemoSession
 
 
@@ -254,6 +258,205 @@ class ApprovalTests(unittest.TestCase):
         session = DemoSession()
         with self.assertRaises(ValueError):
             session.set_scenario("nonexistent")
+
+
+class InstallmentTests(unittest.TestCase):
+    """Testes para a projeção de compras parceladas."""
+
+    # ── helpers ──────────────────────────────────────────────────────────────
+
+    def _purchase_snapshot(self, as_of, horizon, balance, price, installments, extra_events=None):
+        """Monta um snapshot mínimo de compra para uso nos testes."""
+        snap = {
+            "title": "Teste de compra parcelada", "synthetic": True,
+            "as_of": as_of, "horizon": horizon, "balance_cents": balance,
+            "buffer_cents": 0, "typical_pix_cents": 10000,
+            "events": extra_events or [],
+            "purchase": {"label": "Item de teste", "price_cents": price, "installments": installments},
+        }
+        return snap
+
+    # ── I1: distribuição de parcelas em datas mensais ─────────────────────────
+
+    def test_installment_dates_monthly_preserves_reference_day(self):
+        dates = _installment_dates(date(2026, 1, 15), 3)
+        self.assertEqual(dates, [date(2026, 1, 15), date(2026, 2, 15), date(2026, 3, 15)])
+
+    def test_installment_dates_clamps_to_last_day_of_short_month(self):
+        # Dia 31 em Janeiro → Fevereiro não tem dia 31, usa o último
+        dates = _installment_dates(date(2026, 1, 31), 3)
+        self.assertEqual(dates[0], date(2026, 1, 31))
+        self.assertEqual(dates[1], date(2026, 2, 28))
+        self.assertEqual(dates[2], date(2026, 3, 31))
+
+    def test_installment_dates_leap_year_february(self):
+        # 2024 é ano bissexto: fev tem 29 dias
+        dates = _installment_dates(date(2024, 1, 31), 2)
+        self.assertEqual(dates[1], date(2024, 2, 29))
+        # 2025 não é bissexto: fev tem 28 dias
+        dates2 = _installment_dates(date(2025, 1, 31), 2)
+        self.assertEqual(dates2[1], date(2025, 2, 28))
+
+    def test_installment_dates_year_rollover(self):
+        dates = _installment_dates(date(2026, 11, 10), 3)
+        self.assertEqual(dates, [date(2026, 11, 10), date(2026, 12, 10), date(2027, 1, 10)])
+
+    # ── I2: divisão exata das parcelas ────────────────────────────────────────
+
+    def test_split_installments_exact_division(self):
+        values = _split_installments(30000, 3)
+        self.assertEqual(values, [10000, 10000, 10000])
+        self.assertEqual(sum(values), 30000)
+
+    def test_split_installments_remainder_distributed_to_first(self):
+        values = _split_installments(10, 3)
+        # 10 // 3 = 3, remainder 1 → [4, 3, 3]
+        self.assertEqual(values, [4, 3, 3])
+        self.assertEqual(sum(values), 10)
+
+    def test_split_installments_sum_equals_price_various(self):
+        for price, n in [(35001, 10), (100, 3), (1, 2), (99, 7)]:
+            values = _split_installments(price, n)
+            self.assertEqual(sum(values), price, f"Falha para price={price}, n={n}")
+            self.assertEqual(len(values), n)
+
+    # ── I3: compra com parcela única ──────────────────────────────────────────
+
+    def test_single_installment_purchase(self):
+        snap = self._purchase_snapshot("2026-10-07", "2026-10-15", 500000, 100000, 1)
+        result = purchase(snap)
+        self.assertTrue(result["available"])
+        self.assertEqual(result["installments"], 1)
+        self.assertEqual(result["first_installment_cents"], 100000)
+        self.assertEqual(len(result["schedule"]), 1)
+        self.assertEqual(result["out_of_horizon"], 0)
+        self.assertEqual(result["schedule"][0]["amount_cents"], 100000)
+        self.assertEqual(result["schedule"][0]["date"], "2026-10-07")
+        # Com 1 parcela, projeção == base - primeira parcela
+        self.assertEqual(result["installment_projected_minimum_cents"], result["installment_minimum_cents"])
+
+    # ── I4: várias parcelas distribuídas mensalmente ──────────────────────────
+
+    def test_multi_installment_schedule_within_horizon(self):
+        # Horizonte de 3 meses para garantir 3 parcelas dentro
+        snap = self._purchase_snapshot("2026-10-07", "2026-12-31", 600000, 30000, 3)
+        result = purchase(snap)
+        self.assertEqual(len(result["schedule"]), 3)
+        self.assertEqual(result["out_of_horizon"], 0)
+        dates = [e["date"] for e in result["schedule"]]
+        self.assertEqual(dates, ["2026-10-07", "2026-11-07", "2026-12-07"])
+        # Soma deve ser igual ao preço
+        total = sum(e["amount_cents"] for e in result["schedule"])
+        self.assertEqual(total, 30000)
+
+    def test_multi_installment_sum_equals_price_with_remainder(self):
+        # 7 parcelas, preço 100: 100 // 7 = 14 rem 2 → [15,15,14,14,14,14,14]
+        snap = self._purchase_snapshot("2026-10-07", "2027-04-30", 500000, 100, 7)
+        result = purchase(snap)
+        self.assertEqual(len(result["schedule"]), 7)
+        total = sum(e["amount_cents"] for e in result["schedule"])
+        self.assertEqual(total, 100)
+        self.assertEqual(result["schedule"][0]["amount_cents"], 15)
+        self.assertEqual(result["schedule"][1]["amount_cents"], 15)
+        self.assertEqual(result["schedule"][2]["amount_cents"], 14)
+
+    # ── I5: recálculo do menor saldo com parcelas projetadas ──────────────────
+
+    def test_projected_minimum_accounts_for_all_scheduled_installments(self):
+        # 3 parcelas de 10000, horizonte que inclui todas as 3
+        snap = self._purchase_snapshot("2026-10-01", "2026-12-31", 100000, 30000, 3)
+        result = purchase(snap)
+        self.assertEqual(result["out_of_horizon"], 0)
+        # Saldo inicial 100000; parcelas 10000 cada em out, nov, dez
+        # Menor saldo: após a 3ª parcela = 100000 - 10000 - 10000 - 10000 = 70000
+        self.assertEqual(result["installment_projected_minimum_cents"], 70000)
+        self.assertEqual(result["installment_projected_closing_cents"], 70000)
+
+    def test_projected_closing_balance(self):
+        snap = self._purchase_snapshot("2026-10-01", "2026-12-31", 200000, 30000, 3)
+        result = purchase(snap)
+        # 200000 - 3×10000 = 170000
+        self.assertEqual(result["installment_projected_closing_cents"], 170000)
+
+    # ── I6: parcelas fora do horizonte ────────────────────────────────────────
+
+    def test_out_of_horizon_installments_are_not_included(self):
+        # Horizonte curto: apenas 1ª parcela cabe (5 parcelas de 20000 cada)
+        snap = self._purchase_snapshot("2026-10-07", "2026-10-15", 500000, 100000, 5)
+        result = purchase(snap)
+        self.assertEqual(len(result["schedule"]), 1)
+        self.assertEqual(result["out_of_horizon"], 4)
+        # Projeção usa apenas 1 parcela de 20000; 500000 - 20000 = 480000
+        self.assertEqual(result["installment_projected_minimum_cents"], 480000)
+
+    def test_out_of_horizon_count_in_assumption(self):
+        snap = self._purchase_snapshot("2026-10-07", "2026-10-15", 500000, 100000, 5)
+        result = purchase(snap)
+        self.assertIn("4 parcela(s) fora do horizonte", result["assumption"])
+
+    def test_all_installments_within_horizon_no_out_of_horizon(self):
+        snap = self._purchase_snapshot("2026-10-07", "2026-12-31", 500000, 30000, 3)
+        result = purchase(snap)
+        self.assertEqual(result["out_of_horizon"], 0)
+        self.assertIn("Todas as parcelas estão dentro do horizonte", result["assumption"])
+
+    # ── I7: cenário original não é alterado ───────────────────────────────────
+
+    def test_original_scenario_preserved_after_purchase(self):
+        original = load_scenario("purchase")
+        original_events = deepcopy(original["events"])
+        purchase(original)
+        # Eventos originais não devem ter sido modificados
+        self.assertEqual(original["events"], original_events)
+
+    def test_original_scenario_preserved_deep_copy(self):
+        snap = self._purchase_snapshot("2026-10-07", "2026-12-31", 500000, 30000, 3)
+        snap_copy = deepcopy(snap)
+        purchase(snap)
+        self.assertEqual(snap["events"], snap_copy["events"])
+
+    # ── I8: compra à vista preservada ────────────────────────────────────────
+
+    def test_cash_purchase_fields_unchanged(self):
+        result = purchase(load_scenario("purchase"))
+        self.assertEqual(result["cash_minimum_cents"], -30000)
+        # Saldo de encerramento: 500000 - 180000 + 280000 = 600000; à vista: 600000 - 350000 = 250000
+        self.assertEqual(result["cash_closing_cents"], 250000)
+        # preço à vista correto
+        self.assertEqual(result["price_cents"], 350000)
+
+    # ── I9: fim de mês e datas limite ────────────────────────────────────────
+
+    def test_end_of_month_day_clamp_in_schedule(self):
+        # Dia 31 de outubro → novembro só tem 30 dias
+        snap = self._purchase_snapshot("2026-10-31", "2026-12-31", 500000, 20000, 2)
+        result = purchase(snap)
+        self.assertEqual(len(result["schedule"]), 2)
+        self.assertEqual(result["schedule"][0]["date"], "2026-10-31")
+        self.assertEqual(result["schedule"][1]["date"], "2026-11-30")
+
+    # ── I10: rejeição de valores inválidos (mantém validações existentes) ─────
+
+    def test_invalid_price_is_rejected(self):
+        for bad_price in [-1, 1.5, True, "100"]:
+            snap = self._purchase_snapshot("2026-10-07", "2026-10-15", 500000, 0, 1)
+            snap["purchase"]["price_cents"] = bad_price
+            with self.assertRaises((ValueError, TypeError)):
+                purchase(snap)
+
+    def test_invalid_installment_count_is_rejected(self):
+        for bad_n in [0, 61, -1, 1.5, "2"]:
+            snap = self._purchase_snapshot("2026-10-07", "2026-10-15", 500000, 100000, 1)
+            snap["purchase"]["installments"] = bad_n
+            with self.assertRaises((ValueError, TypeError)):
+                purchase(snap)
+
+    def test_zero_price_single_installment(self):
+        snap = self._purchase_snapshot("2026-10-07", "2026-10-15", 500000, 0, 1)
+        result = purchase(snap)
+        self.assertTrue(result["available"])
+        self.assertEqual(result["schedule"][0]["amount_cents"], 0)
+        self.assertEqual(sum(e["amount_cents"] for e in result["schedule"]), 0)
 
 
 if __name__ == "__main__":

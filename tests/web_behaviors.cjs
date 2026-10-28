@@ -203,3 +203,93 @@ test("goals panel clears when scenario changes", async () => {
   assert.equal(app.elements["goals-panel"].hidden, true);
   assert.equal(app.elements["goals"].children.length, 0);
 });
+
+test("purchase section renders installment schedule table and out-of-horizon warning", async () => {
+  const withPurchase = {
+    ...ready,
+    report: {
+      ...ready.report,
+      horizon: "2026-12-15",
+      results: {
+        ...ready.report.results,
+        purchase: {
+          available: true,
+          label: "Celular",
+          price_cents: 350000,
+          installments: 3,
+          first_installment_cents: 116667,
+          cash_minimum_cents: -200000,
+          cash_closing_cents: -200000,
+          installment_minimum_cents: 33333,
+          installment_projected_minimum_cents: -83334,
+          installment_projected_closing_cents: -83334,
+          out_of_horizon: 0,
+          schedule: [
+            {number: 1, date: "2026-10-07", amount_cents: 116667},
+            {number: 2, date: "2026-11-07", amount_cents: 116667},
+            {number: 3, date: "2026-12-07", amount_cents: 116666},
+          ],
+          assumption: "Primeira parcela em 2026-10-07; sem juros no exemplo. Todas as parcelas estão dentro do horizonte analisado.",
+          recommendation: "Adiar e criar uma meta",
+        },
+      },
+    },
+  };
+  const app = await harness(withPurchase);
+  assert.equal(app.elements.special.hidden, false);
+  // schedule table wrapper is appended
+  const schedWrap = app.elements.special.children.find(c => c.attrs["role"] === "region" && c.attrs["aria-label"] === "Cronograma de parcelas projetadas");
+  assert.ok(schedWrap, "Deve haver um wrapper de tabela com role=region para o cronograma");
+  // table has 3 data rows
+  const table = schedWrap.children[0];
+  const tbody = table.children.find(c => c.tag === "tbody" || c.children);
+  // Each of the 3 schedule entries becomes a <tr> inside tbody
+  const allRows = (function collectRows(el) {
+    const rows = [];
+    if (el.tag === "tr") rows.push(el);
+    (el.children || []).forEach(c => rows.push(...collectRows(c)));
+    return rows;
+  })(schedWrap);
+  // 1 header row + 3 data rows = 4
+  assert.equal(allRows.length, 4);
+  // No out-of-horizon warning paragraph when out_of_horizon === 0
+  const warnNode = app.elements.special.children.find(c => c.tag === "p" && c.textContent.includes("fora do horizonte"));
+  assert.equal(warnNode, undefined);
+});
+
+test("purchase section shows out-of-horizon warning when installments exceed horizon", async () => {
+  const withPartialPurchase = {
+    ...ready,
+    report: {
+      ...ready.report,
+      horizon: "2026-10-15",
+      results: {
+        ...ready.report.results,
+        purchase: {
+          available: true,
+          label: "Celular",
+          price_cents: 350000,
+          installments: 5,
+          first_installment_cents: 70000,
+          cash_minimum_cents: -200000,
+          cash_closing_cents: -200000,
+          installment_minimum_cents: 80000,
+          installment_projected_minimum_cents: 80000,
+          installment_projected_closing_cents: 80000,
+          out_of_horizon: 4,
+          schedule: [
+            {number: 1, date: "2026-10-07", amount_cents: 70000},
+          ],
+          assumption: "Primeira parcela em 2026-10-07; sem juros no exemplo. 4 parcela(s) fora do horizonte não foram incluídas no cálculo do menor saldo.",
+          recommendation: "Comparar antes de decidir",
+        },
+      },
+    },
+  };
+  const app = await harness(withPartialPurchase);
+  assert.equal(app.elements.special.hidden, false);
+  // Out-of-horizon warning paragraph exists
+  const warnNode = app.elements.special.children.find(c => c.tag === "p" && c.textContent.includes("fora do horizonte"));
+  assert.ok(warnNode, "Deve haver aviso sobre parcelas fora do horizonte");
+  assert.match(warnNode.textContent, /4 parcela\(s\)/);
+});
