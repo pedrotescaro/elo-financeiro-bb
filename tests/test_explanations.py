@@ -40,7 +40,8 @@ class ExplanationTests(unittest.TestCase):
     def test_purchase_explanation_discloses_omitted_installments(self):
         report = build_report(load_scenario("purchase"), True)
         explanation = report["explanations"]["purchase"]
-        self.assertIn("Parcelas futuras depois da primeira", " ".join(explanation["not_considered"]))
+        # 10 parcelas, horizonte curto → 9 fora do horizonte → texto no not_considered
+        self.assertIn("fora do horizonte", " ".join(explanation["not_considered"]))
         self.assertIn("sem juros", " ".join(explanation["assumptions"]))
         self.assertIn(35000, [number["value_cents"] for number in explanation["numbers"]])
 

@@ -3,6 +3,7 @@
 Valores são centavos inteiros. O modelo seleciona ferramentas; não calcula
 saldos, aprova ações nem estabelece a validade de uma movimentação bancária.
 """
+import calendar
 from copy import deepcopy
 from datetime import date, timedelta
 from hashlib import sha256
@@ -88,8 +89,29 @@ def cashflow(snapshot: dict) -> dict:
             "uncertainty": "Estimativa por fechamento diário; recebimentos podem atrasar e novas despesas podem surgir."}
 
 
+def _installment_dates(start: date, n: int) -> list[date]:
+    """Retorna n datas mensais a partir de start, preservando o dia sempre que possível.
+
+    Quando o dia não existir no mês destino, usa o último dia daquele mês.
+    """
+    ref_day = start.day
+    dates = [start]
+    for i in range(1, n):
+        year = start.year + (start.month - 1 + i) // 12
+        month = (start.month - 1 + i) % 12 + 1
+        last = calendar.monthrange(year, month)[1]
+        dates.append(date(year, month, min(ref_day, last)))
+    return dates
+
+
+def _split_installments(price: int, n: int) -> list[int]:
+    """Distribui price em n parcelas inteiras; os centavos restantes vão para as primeiras."""
+    base, remainder = divmod(price, n)
+    return [base + (1 if i < remainder else 0) for i in range(n)]
+
+
 def purchase(snapshot: dict) -> dict:
-    """Compara impacto à vista e parcelas. Não executa nenhuma compra."""
+    """Compara impacto à vista e parcelas projetadas. Não executa nenhuma compra."""
     item = snapshot.get("purchase")
     if not item:
         return {"available": False}
@@ -98,15 +120,60 @@ def purchase(snapshot: dict) -> dict:
     if type(installments) is not int or not 1 <= installments <= 60:
         raise ValueError("Número de parcelas inválido.")
     base = cashflow(snapshot)
-    # Cenário informado sem juros, inclui valores exatos das parcelas.
-    first = price // installments + (1 if price % installments else 0)
-    return {"available": True, "label": item["label"], "price_cents": price,
-            "cash_minimum_cents": base["minimum_cents"] - price,
-            "cash_closing_cents": base["closing_cents"] - price,
-            "installments": installments, "first_installment_cents": first,
-            "installment_minimum_cents": base["minimum_cents"] - first,
-            "assumption": "Primeira parcela hoje; sem juros no exemplo. As demais parcelas não foram projetadas neste horizonte.",
-            "recommendation": "Adiar e criar uma meta" if base["minimum_cents"] - price < snapshot["buffer_cents"] else "Comparar antes de decidir"}
+    as_of = date.fromisoformat(snapshot["as_of"])
+    horizon = date.fromisoformat(snapshot["horizon"])
+
+    # Calcula datas e valores de todas as parcelas.
+    dates = _installment_dates(as_of, installments)
+    values = _split_installments(price, installments)
+
+    # Separa parcelas dentro e fora do horizonte.
+    schedule = [
+        {"date": d.isoformat(), "amount_cents": v, "number": i + 1}
+        for i, (d, v) in enumerate(zip(dates, values))
+        if d <= horizon
+    ]
+    out_of_horizon = installments - len(schedule)
+
+    # Projeta o menor saldo com todas as parcelas incluídas no horizonte.
+    projected_snapshot = deepcopy(snapshot)
+    for entry in schedule:
+        projected_snapshot["events"].append({
+            "id": f"__installment_{entry['number']}",
+            "date": entry["date"],
+            "label": f"Parcela {entry['number']}/{installments} – {item['label']}",
+            "amount_cents": entry["amount_cents"],
+            "direction": "out",
+            "flexible": False,
+        })
+    projected = cashflow(projected_snapshot)
+
+    first_value = values[0]
+    return {
+        "available": True,
+        "label": item["label"],
+        "price_cents": price,
+        "cash_minimum_cents": base["minimum_cents"] - price,
+        "cash_closing_cents": base["closing_cents"] - price,
+        "installments": installments,
+        "first_installment_cents": first_value,
+        "installment_minimum_cents": base["minimum_cents"] - first_value,
+        "installment_projected_minimum_cents": projected["minimum_cents"],
+        "installment_projected_closing_cents": projected["closing_cents"],
+        "schedule": schedule,
+        "out_of_horizon": out_of_horizon,
+        "assumption": (
+            "Primeira parcela em " + as_of.isoformat() + "; sem juros no exemplo. "
+            + ("Todas as parcelas estão dentro do horizonte analisado."
+               if out_of_horizon == 0
+               else f"{out_of_horizon} parcela(s) fora do horizonte não foram incluídas no cálculo do menor saldo.")
+        ),
+        "recommendation": (
+            "Adiar e criar uma meta"
+            if projected["minimum_cents"] < snapshot["buffer_cents"]
+            else "Comparar antes de decidir"
+        ),
+    }
 
 
 def safety(snapshot: dict) -> dict:
@@ -230,17 +297,26 @@ def _explanations(snapshot: dict, results: dict, actions: list[dict]) -> dict:
             }
     comparison = results.get("purchase", {})
     if comparison.get("available"):
+        scheduled_count = len(comparison.get("schedule", []))
+        out = comparison.get("out_of_horizon", 0)
+        not_considered = ["Juros, tarifas e outras ofertas de crédito.",
+                          "Contratação de compra, crédito ou recomendação financeira personalizada."]
+        if out:
+            not_considered.insert(0, f"{out} parcela(s) fora do horizonte não foram incluídas no cálculo do menor saldo.")
+        numbers = [{"label": label, "value_cents": comparison[key]} for label, key in (
+            ("Preço à vista", "price_cents"), ("Menor saldo à vista", "cash_minimum_cents"),
+            ("Primeira parcela", "first_installment_cents"),
+            ("Menor saldo com a primeira parcela (só 1ª parcela)", "installment_minimum_cents"),
+        )]
+        if scheduled_count > 1:
+            numbers.append({"label": f"Menor saldo com {scheduled_count} parcela(s) projetada(s)", "value_cents": comparison["installment_projected_minimum_cents"]})
+        numbers.append({"label": "Margem escolhida", "value_cents": flow["buffer_cents"]})
         explanations["purchase"] = {
             "title": "Por que comparar antes de comprar",
             "summary": comparison["recommendation"] + ": o preço é comparado ao calendário e à margem desejada.",
-            "numbers": [{"label": label, "value_cents": comparison[key]} for label, key in (
-                ("Preço à vista", "price_cents"), ("Menor saldo à vista", "cash_minimum_cents"),
-                ("Primeira parcela", "first_installment_cents"),
-                ("Menor saldo com a primeira parcela", "installment_minimum_cents"),
-            )] + [{"label": "Margem escolhida", "value_cents": flow["buffer_cents"]}],
+            "numbers": numbers,
             "assumptions": [comparison["assumption"]],
-            "not_considered": ["Parcelas futuras depois da primeira, juros, tarifas e outras ofertas de crédito.",
-                               "Contratação de compra, crédito ou recomendação financeira personalizada."],
+            "not_considered": not_considered,
         }
     signals = results.get("safety", {})
     if signals.get("available"):

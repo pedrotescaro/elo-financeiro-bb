@@ -209,8 +209,59 @@ function render(){
   if(purchase?.available){
     $("special").append(node("h2",`${purchase.label}: o preço não conta toda a história.`));
     const compare=node("div",undefined,"compare");
-    [["À vista",money(purchase.price_cents),`Menor saldo previsto: ${money(purchase.cash_minimum_cents)}`],[`${purchase.installments} parcelas`,money(purchase.first_installment_cents),`Menor saldo com a primeira parcela: ${money(purchase.installment_minimum_cents)}`],["Adiar","Criar uma meta","Preservar a margem enquanto você planeja."]].forEach(([label,value,text])=>{const c=node("article");c.append(node("p",label),node("strong",value),node("p",text));compare.append(c);});
-    $("special").append(compare,node("p",purchase.assumption,"footnote"));
+    // À vista
+    const cVista=node("article");
+    cVista.append(node("p","À vista"),node("strong",money(purchase.price_cents)),node("p",`Menor saldo previsto: ${money(purchase.cash_minimum_cents)}`));
+    compare.append(cVista);
+    // Parcelado – usa o menor saldo projetado com todas as parcelas do horizonte quando disponível
+    const hasProjected = typeof purchase.installment_projected_minimum_cents === "number";
+    const installLabel = hasProjected && purchase.schedule && purchase.schedule.length > 1
+      ? `${purchase.schedule.length} parcela(s) no horizonte`
+      : `${purchase.installments}x – primeira parcela`;
+    const installMinimum = hasProjected && purchase.schedule && purchase.schedule.length > 1
+      ? purchase.installment_projected_minimum_cents
+      : purchase.installment_minimum_cents;
+    const cParc=node("article");
+    cParc.append(node("p",installLabel),node("strong",money(purchase.first_installment_cents)),node("p",`Menor saldo projetado: ${money(installMinimum)}`));
+    compare.append(cParc);
+    // Adiar
+    const cAdiar=node("article");
+    cAdiar.append(node("p","Adiar"),node("strong","Criar uma meta"),node("p","Preservar a margem enquanto você planeja."));
+    compare.append(cAdiar);
+    $("special").append(compare);
+    // Cronograma de parcelas
+    if(purchase.schedule && purchase.schedule.length){
+      const schedHead=node("h3","Parcelas projetadas neste horizonte");
+      schedHead.className="installment-schedule-title";
+      $("special").append(schedHead);
+      const wrap=node("div",undefined,"table-wrap");
+      wrap.setAttribute("tabindex","0");
+      wrap.setAttribute("role","region");
+      wrap.setAttribute("aria-label","Cronograma de parcelas projetadas");
+      const table=node("table");
+      const caption=node("caption","Cronograma de parcelas projetadas no horizonte");
+      caption.className="sr-only";
+      const thead=node("thead");
+      const headerRow=node("tr");
+      headerRow.append(node("th","Parcela"),node("th","Data"),node("th","Valor"));
+      ["th","th","th"].forEach((t,i)=>headerRow.children[i].setAttribute("scope","col"));
+      thead.append(headerRow);
+      const tbody=node("tbody");
+      purchase.schedule.forEach(entry=>{
+        const tr=node("tr");
+        tr.append(node("td",`${entry.number}/${purchase.installments}`),node("td",day(entry.date)),node("td",money(entry.amount_cents)));
+        tbody.append(tr);
+      });
+      table.append(caption,thead,tbody);
+      wrap.append(table);
+      $("special").append(wrap);
+    }
+    // Aviso sobre parcelas fora do horizonte
+    if(purchase.out_of_horizon > 0){
+      const warn=node("p",`⚠ Atenção: ${purchase.out_of_horizon} parcela(s) com vencimento após ${day(report.horizon)} não foram incluídas na projeção acima.`,"footnote");
+      $("special").append(warn);
+    }
+    $("special").append(node("p",purchase.assumption,"footnote"));
   }
   if(safety?.available){
     $("special").append(node("h2",`PIX de ${money(safety.amount_cents)}: ${safety.signal_level}`));
