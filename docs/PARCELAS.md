@@ -106,4 +106,3 @@ node --test tests/web_behaviors.cjs    → 13 passed, 0 failed
 
 - O protótipo não simula juros, IOF nem outras tarifas de parcelamento.
 - O horizonte do cenário padrão é curto (8 dias); com 10 parcelas, 9 ficam fora da projeção. Isso é esperado e informado ao usuário.
-- A avaliação da interface com leitor de tela e teclado em aparelho físico continua pendente.
