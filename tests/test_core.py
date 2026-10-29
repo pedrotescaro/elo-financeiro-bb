@@ -247,6 +247,60 @@ class ApprovalTests(unittest.TestCase):
         report = build_report(load_scenario("month"), True, TooManyTools())
         self.assertEqual(report["mode"], "demo_fallback")
 
+    def test_decline_records_without_changing_snapshot(self):
+        session = DemoSession()
+        session.set_consent(True)
+        rid = session.report["report_id"]
+        minimum_before = session.report["results"]["cashflow"]["minimum_cents"]
+        record = session.decline(rid, "budget-plan")
+        self.assertEqual(record["status"], "declined")
+        self.assertEqual(record["action"], "budget-plan")
+        # Snapshot must be unchanged
+        self.assertEqual(session.report["results"]["cashflow"]["minimum_cents"], minimum_before)
+        self.assertEqual(len(session.history), 1)
+        self.assertEqual(session.history[0]["status"], "declined")
+
+    def test_decline_requires_consent(self):
+        session = DemoSession()
+        with self.assertRaises(PermissionError):
+            session.decline("any", "budget-plan")
+
+    def test_decline_rejects_stale_report_id(self):
+        session = DemoSession()
+        session.set_consent(True)
+        old_rid = session.report["report_id"]
+        session.monitor()
+        with self.assertRaises(ValueError):
+            session.decline(old_rid, "budget-plan")
+
+    def test_decline_rejects_unknown_action(self):
+        session = DemoSession()
+        session.set_consent(True)
+        rid = session.report["report_id"]
+        with self.assertRaises(ValueError):
+            session.decline(rid, "nonexistent-action")
+
+    def test_decline_does_not_prevent_subsequent_approval(self):
+        session = DemoSession()
+        session.set_consent(True)
+        rid = session.report["report_id"]
+        session.decline(rid, "budget-plan")
+        # After declining, the user can still approve the same action
+        record = session.approve(rid, "budget-plan")
+        self.assertEqual(record["status"], "accepted")
+        self.assertEqual(session.report["results"]["cashflow"]["minimum_cents"], 20000)
+
+    def test_decline_invalid_ids_are_rejected(self):
+        session = DemoSession()
+        session.set_consent(True)
+        rid = session.report["report_id"]
+        for bad in [None, 123, "", "x" * 65]:
+            with self.subTest(bad=bad):
+                with self.assertRaises((ValueError, TypeError, AttributeError)):
+                    session.decline(bad, "budget-plan")
+                with self.assertRaises((ValueError, TypeError, AttributeError)):
+                    session.decline(rid, bad)
+
     def test_scenario_name_invalid_types_are_rejected(self):
         session = DemoSession()
         for bad in [None, 123, "", "x" * 41, {"name": "month"}]:
