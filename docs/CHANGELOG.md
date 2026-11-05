@@ -2,6 +2,14 @@
 
 ## [Unreleased]
 
+### Correção do contrato de aprovação — 5 de novembro de 2026
+
+- Aprovação sem `preview_id` aplica exclusivamente a proposta padrão; ajustes personalizados exigem a identidade exata da prévia revisada.
+- Prévias canceladas ou substituídas são rejeitadas, sem aplicar a proposta padrão como alternativa.
+- A idempotência distingue proposta padrão e cada prévia personalizada; identificadores de prévia inválidos são rejeitados.
+- Alterações dos dados que mudam o relatório, incluindo a simulação de nova despesa, invalidam a prévia pendente.
+- Regressões de domínio e HTTP cobrem valores padrão e personalizados, descarte, recusa, mudança dos dados e repetição de aprovações.
+
 ### Ajuste de propostas de redução de gastos flexíveis — Bob
 
 **Data:** 2025

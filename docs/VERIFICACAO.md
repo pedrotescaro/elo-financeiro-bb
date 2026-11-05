@@ -6,7 +6,7 @@ Ambiente local: Windows, Python 3.14.3, Node 24.14.0 e Ruff 0.16.0. Os testes us
 
 | Verificação | Resultado local |
 | --- | --- |
-| `python -m unittest discover -s tests -v` | 212 testes passaram |
+| `python -m unittest discover -s tests` | 223 testes passaram |
 | `python -m ruff check elo tests` | Passou |
 | `python -m compileall -q elo tests` | Passou |
 | `node --check web/app.js` | Passou |
@@ -29,6 +29,12 @@ Cenários verificados em servidor real local:
 | Duas abas (preview_id desatualizado) | Aprovação com pid antigo retorna HTTP 400 |
 | Aprovação personalizada com preview_id correto | `kind: custom`, `applied_cents` registrado |
 | Descarte de prévia via `/api/preview/discard` | Persiste no servidor após GET `/api/state` |
+| Aprovação padrão com prévia personalizada pendente | Aplica somente o valor padrão mostrado na proposta |
+| Aprovação de prévia descartada ou recusada | HTTP 400, sem aplicar a proposta padrão como alternativa |
+| Nova despesa com prévia pendente | Invalida a prévia; o ID anterior é rejeitado também no novo relatório |
+| Repetição de aprovação personalizada | Não duplica o efeito; outro ID ou a proposta padrão não reutilizam essa autorização |
+
+A revisão de integração acrescentou 11 regressões de domínio/HTTP e reproduziu 223 testes Python e 29 testes JavaScript, com Ruff, compilação Python e sintaxe JavaScript aprovados. A avaliação IBM desta execução permaneceu no modo simulado.
 
 ## Validação IBM (Etapa 4)
 

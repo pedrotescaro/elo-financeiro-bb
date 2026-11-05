@@ -639,17 +639,18 @@ class ReductionPreviewTests(unittest.TestCase):
         if flexible == 0:
             return  # Cenário sem flexíveis não cobre este caso.
         reduction = max(1, flexible // 2)
-        session.preview_adjustment(rid, reduction)
+        preview = session.preview_adjustment(rid, reduction)
         # Aprova a redução personalizada.
-        session.approve(rid, "budget-plan")
+        first = session.approve(rid, "budget-plan", preview_id=preview["preview_id"])
         new_rid = session.report["report_id"]
         self.assertNotEqual(rid, new_rid)
         # Segunda aprovação com o mesmo report_id original deve ser ignorada (idempotente).
         first_min = cashflow(session.snapshot)["minimum_cents"]
         # O relatório mudou; a aprovação antiga deve retornar o registro sem duplicar efeito.
-        result = session.approved.get((rid, "budget-plan"))
-        self.assertIsNotNone(result)
+        result = session.approve(rid, "budget-plan", preview_id=preview["preview_id"])
+        self.assertIs(result, first)
         self.assertEqual(result["status"], "accepted")
+        self.assertEqual(len(session.history), 1)
         # O saldo mínimo não deve ter sido alterado novamente.
         self.assertEqual(cashflow(session.snapshot)["minimum_cents"], first_min)
 
@@ -713,8 +714,8 @@ class ReductionPreviewTests(unittest.TestCase):
         )
         if default_reduction is None or custom_reduction == default_reduction:
             return
-        session.preview_adjustment(rid, custom_reduction)
-        session.approve(rid, "budget-plan")
+        preview = session.preview_adjustment(rid, custom_reduction)
+        session.approve(rid, "budget-plan", preview_id=preview["preview_id"])
         # O saldo deve refletir a redução personalizada, não a padrão.
         expected_snap = apply_saving(load_scenario(session.name), custom_reduction)
         self.assertEqual(
@@ -796,6 +797,82 @@ class ReductionPreviewTests(unittest.TestCase):
         self.assertIsNotNone(record["applied_cents"])
 
     # ── discard_preview ──────────────────────────────────────────────────────
+
+    def test_default_approval_does_not_consume_custom_preview(self):
+        session = DemoSession()
+        session.set_consent(True)
+        rid = session.report["report_id"]
+        default_reduction = next(a["reduction_cents"] for a in session.report["actions"]
+                                 if a["id"] == "budget-plan")
+        session.preview_adjustment(rid, 15000)
+        self.assertNotEqual(default_reduction, 15000)
+
+        record = session.approve(rid, "budget-plan")
+
+        self.assertEqual(record["kind"], "default")
+        self.assertEqual(record["applied_cents"], default_reduction)
+        self.assertIsNone(record["preview_id"])
+        self.assertIsNone(session.pending_adjustment)
+        self.assertEqual(session.snapshot, apply_saving(load_scenario("month"), default_reduction))
+
+    def test_cancelled_preview_cannot_approve_default_plan(self):
+        for cancel in ("discard", "decline"):
+            with self.subTest(cancel=cancel):
+                session = DemoSession()
+                session.set_consent(True)
+                rid = session.report["report_id"]
+                preview = session.preview_adjustment(rid, 15000)
+                if cancel == "discard":
+                    session.discard_preview()
+                else:
+                    session.decline(rid, "budget-plan")
+                history_before = list(session.history)
+
+                with self.assertRaises(ValueError):
+                    session.approve(rid, "budget-plan", preview_id=preview["preview_id"])
+
+                self.assertEqual(session.snapshot, load_scenario("month"))
+                self.assertEqual(session.history, history_before)
+
+    def test_approval_rejects_invalid_preview_ids_without_mutation(self):
+        session = DemoSession()
+        session.set_consent(True)
+        rid = session.report["report_id"]
+        preview = session.preview_adjustment(rid, 15000)
+        for bad_id in (True, False, 0, -1, 1.0, "1", [], {}):
+            with self.subTest(preview_id=bad_id):
+                with self.assertRaises(ValueError):
+                    session.approve(rid, "budget-plan", preview_id=bad_id)
+                self.assertEqual(session.snapshot, load_scenario("month"))
+                self.assertEqual(session.history, [])
+                self.assertEqual(session.pending_adjustment["preview_id"], preview["preview_id"])
+
+    def test_monitor_invalidates_preview_for_changed_data(self):
+        session = DemoSession()
+        session.set_consent(True)
+        preview = session.preview_adjustment(session.report["report_id"], 15000)
+        session.monitor()
+        current_flow = cashflow(session.snapshot)
+        self.assertIsNone(session.pending_adjustment)
+
+        with self.assertRaises(ValueError):
+            session.approve(session.report["report_id"], "budget-plan", preview_id=preview["preview_id"])
+        self.assertEqual(cashflow(session.snapshot), current_flow)
+
+    def test_idempotency_does_not_accept_a_different_preview(self):
+        session = DemoSession()
+        session.set_consent(True)
+        rid = session.report["report_id"]
+        first = session.preview_adjustment(rid, 10000)
+        current = session.preview_adjustment(rid, 15000)
+        record = session.approve(rid, "budget-plan", preview_id=current["preview_id"])
+        current_flow = cashflow(session.snapshot)
+
+        with self.assertRaises(ValueError):
+            session.approve(rid, "budget-plan", preview_id=first["preview_id"])
+        self.assertIs(session.approve(rid, "budget-plan", preview_id=current["preview_id"]), record)
+        self.assertEqual(cashflow(session.snapshot), current_flow)
+        self.assertEqual(len(session.history), 1)
 
     def test_discard_preview_clears_pending_and_records_audit(self):
         """discard_preview remove o ajuste pendente e registra na trilha."""

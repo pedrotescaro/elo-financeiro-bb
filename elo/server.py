@@ -49,6 +49,9 @@ class DemoSession:
     def refresh(self) -> None:
         """Reconstrói o relatório com base no snapshot e no consentimento atuais."""
         self.report = build_report(self.snapshot, self.consent, self.planner)
+        if (self.pending_adjustment
+                and self.pending_adjustment["report_id"] != self.report.get("report_id")):
+            self.pending_adjustment = None
         if self.consent:
             tools = ", ".join(t["tool"] for t in self.report["trace"])
             self.record("tools_consulted", "Consultas realizadas com leitura autorizada: " + tools + ".")
@@ -149,7 +152,8 @@ class DemoSession:
 
         Quando preview_id é fornecido, valida que o ajuste pendente ainda corresponde
         à prévia que o usuário revisou, evitando que uma sobreposição de outra aba
-        aplique silenciosamente um valor diferente.
+        aplique silenciosamente um valor diferente. Sem preview_id, aprova apenas
+        a proposta padrão, mesmo quando existe um ajuste pendente.
         """
         if not self.consent:
             raise PermissionError("Autorize a leitura antes de aprovar um plano.")
@@ -157,7 +161,10 @@ class DemoSession:
             raise ValueError("Identificador do relatório inválido.")
         if not isinstance(action_id, str) or not 1 <= len(action_id) <= 40:
             raise ValueError("Identificador da ação inválido.")
-        key = (report_id, action_id)
+        if preview_id is not None and (type(preview_id) is not int or preview_id <= 0
+                                       or action_id != "budget-plan"):
+            raise ValueError("Identificador da prévia inválido.")
+        key = (report_id, action_id, preview_id)
         if key in self.approved:
             return self.approved[key]
         if report_id != self.report.get("report_id"):
@@ -167,26 +174,23 @@ class DemoSession:
             raise ValueError("Ação não permitida.")
         # Valores vêm do plano no servidor, nunca de parâmetros do navegador.
         if action_id == "budget-plan":
-            # Se há um ajuste personalizado pendente para este relatório, aplica-o.
-            # Caso contrário, aplica a redução padrão sugerida.
-            has_pending = (self.pending_adjustment
-                           and self.pending_adjustment.get("report_id") == report_id)
-            if has_pending:
-                # Se o cliente enviou preview_id, verifica que não houve sobreposição.
-                if (preview_id is not None
-                        and self.pending_adjustment.get("preview_id") != preview_id):
+            # Uma aprovação personalizada exige a identidade exata da prévia revisada.
+            if preview_id is not None:
+                if (not self.pending_adjustment
+                        or self.pending_adjustment.get("report_id") != report_id
+                        or self.pending_adjustment.get("preview_id") != preview_id):
                     raise ValueError(
-                        "A prévia foi substituída por outra aba. Revise o novo valor antes de aprovar."
+                        "A prévia foi cancelada ou substituída por outra aba. Revise o valor antes de aprovar."
                     )
                 reduction = self.pending_adjustment["reduction_cents"]
-                applied_preview_id = self.pending_adjustment.get("preview_id")
-                self.pending_adjustment = None
+                applied_preview_id = preview_id
                 kind = "custom"
             else:
                 reduction = action["reduction_cents"]
                 applied_preview_id = None
                 kind = "default"
             self.snapshot = apply_saving(self.snapshot, reduction)
+            self.pending_adjustment = None
         elif action_id == "purchase-goal":
             self.goals.append({"label": self.snapshot["purchase"]["label"], "target_cents": action["target_cents"]})
             kind = "goal"
@@ -509,9 +513,7 @@ class Handler(BaseHTTPRequestHandler):
                     if not isinstance(rid, str) or not isinstance(aid, str):
                         raise ValueError("Identificador inválido.")
                     # preview_id opcional: detecta sobreposição por outra aba.
-                    raw_pid = payload.get("preview_id")
-                    pid = raw_pid if isinstance(raw_pid, int) else None
-                    session.approve(rid, aid, preview_id=pid)
+                    session.approve(rid, aid, preview_id=payload.get("preview_id"))
                 elif path == "/api/decline":
                     rid, aid = payload.get("report_id"), payload.get("action_id")
                     if not isinstance(rid, str) or not isinstance(aid, str):

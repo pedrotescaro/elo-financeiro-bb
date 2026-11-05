@@ -10,7 +10,8 @@ from elo.server import DemoServer
 class HTTPTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
-        cls.server = DemoServer(("127.0.0.1", 0))
+        # A suíte compartilha o IP local; limites de requisições têm testes próprios.
+        cls.server = DemoServer(("127.0.0.1", 0), rate_limit=1000)
         cls.thread = Thread(target=cls.server.serve_forever, daemon=True)
         cls.thread.start()
         cls.base = "http://127.0.0.1:" + str(cls.server.server_port)
@@ -159,13 +160,18 @@ class HTTPTests(unittest.TestCase):
         self.assertGreater(flexible, 0)
         custom_reduction = max(1, flexible // 4)
         # Calcula a prévia.
-        self.post("/api/preview", {"report_id": rid, "reduction_cents": custom_reduction})
+        preview_state = self.post("/api/preview", {"report_id": rid, "reduction_cents": custom_reduction})
         # Aprova a redução personalizada.
-        result = self.post("/api/approve", {"report_id": rid, "action_id": "budget-plan"})
+        result = self.post("/api/approve", {
+            "report_id": rid, "action_id": "budget-plan",
+            "preview_id": preview_state["preview"]["preview_id"],
+        })
         # O saldo deve refletir a redução personalizada.
         new_min = result["report"]["results"]["cashflow"]["minimum_cents"]
         original_min = state["report"]["results"]["cashflow"]["minimum_cents"]
         self.assertGreater(new_min, original_min)
+        self.assertEqual(new_min, preview_state["preview"]["minimum_cents"])
+        self.assertEqual(result["history"][-1]["applied_cents"], custom_reduction)
         # O ajuste pendente deve ter sido limpo.
         self.assertIsNone(result.get("pending_adjustment"))
 
@@ -302,6 +308,123 @@ class HTTPTests(unittest.TestCase):
         self.assertIsNone(result["pending_adjustment"])
         history = [h for h in result["history"] if h.get("kind") == "custom"]
         self.assertEqual(len(history), 1)
+
+    def test_standard_approval_does_not_apply_pending_custom_reduction(self):
+        """O botão padrão aplica o valor mostrado na proposta, mesmo havendo prévia."""
+        state = self.post("/api/consent", {"enabled": True})
+        rid = state["report"]["report_id"]
+        action = next(a for a in state["report"]["actions"] if a["id"] == "budget-plan")
+        default_reduction = action["reduction_cents"]
+        custom_reduction = max(1, default_reduction // 2)
+        self.assertNotEqual(default_reduction, custom_reduction)
+        self.post("/api/preview", {"report_id": rid, "reduction_cents": custom_reduction})
+
+        result = self.post("/api/approve", {"report_id": rid, "action_id": "budget-plan"})
+
+        entry = result["history"][-1]
+        self.assertEqual(entry["kind"], "default")
+        self.assertEqual(entry["applied_cents"], default_reduction)
+        self.assertIsNone(entry["preview_id"])
+        self.assertIsNone(result["pending_adjustment"])
+        self.assertEqual(result["report"]["results"]["cashflow"]["minimum_cents"], action["after_cents"])
+
+    def test_approve_discarded_preview_does_not_fall_back_to_standard(self):
+        """Uma aba com prévia descartada não pode aprovar silenciosamente o padrão."""
+        state = self.post("/api/consent", {"enabled": True})
+        rid = state["report"]["report_id"]
+        preview_state = self.post("/api/preview", {"report_id": rid, "reduction_cents": 15000})
+        self.post("/api/preview/discard", {})
+
+        with self.assertRaises(HTTPError) as error:
+            self.post("/api/approve", {
+                "report_id": rid, "action_id": "budget-plan",
+                "preview_id": preview_state["preview"]["preview_id"],
+            })
+        self.assertEqual(error.exception.code, 400)
+        error.exception.close()
+        with self.client.open(self.base + "/api/state") as response:
+            current = json.load(response)
+        self.assertEqual(current["report"]["results"]["cashflow"], state["report"]["results"]["cashflow"])
+        self.assertFalse(any(h.get("status") == "accepted" for h in current["history"]))
+
+    def test_approve_declined_preview_does_not_fall_back_to_standard(self):
+        """A aprovação de uma prévia recusada retorna erro sem aplicar outro valor."""
+        state = self.post("/api/consent", {"enabled": True})
+        rid = state["report"]["report_id"]
+        preview_state = self.post("/api/preview", {"report_id": rid, "reduction_cents": 15000})
+        self.post("/api/decline", {"report_id": rid, "action_id": "budget-plan"})
+
+        with self.assertRaises(HTTPError) as error:
+            self.post("/api/approve", {
+                "report_id": rid, "action_id": "budget-plan",
+                "preview_id": preview_state["preview"]["preview_id"],
+            })
+        self.assertEqual(error.exception.code, 400)
+        error.exception.close()
+        with self.client.open(self.base + "/api/state") as response:
+            current = json.load(response)
+        self.assertEqual(current["report"]["results"]["cashflow"], state["report"]["results"]["cashflow"])
+        self.assertEqual([h["status"] for h in current["history"]], ["declined"])
+
+    def test_approve_rejects_invalid_preview_ids_without_applying_reduction(self):
+        """IDs de prévia devem ser inteiros positivos, sem aceitar booleanos."""
+        state = self.post("/api/consent", {"enabled": True})
+        rid = state["report"]["report_id"]
+        preview_state = self.post("/api/preview", {"report_id": rid, "reduction_cents": 15000})
+        for invalid_id in [True, False, 0, -1, 1.5, "1", [], {}]:
+            with self.subTest(preview_id=invalid_id):
+                with self.assertRaises(HTTPError) as error:
+                    self.post("/api/approve", {
+                        "report_id": rid, "action_id": "budget-plan", "preview_id": invalid_id,
+                    })
+                self.assertEqual(error.exception.code, 400)
+                error.exception.close()
+        with self.client.open(self.base + "/api/state") as response:
+            current = json.load(response)
+        self.assertEqual(current["pending_adjustment"], preview_state["pending_adjustment"])
+        self.assertEqual(current["report"]["results"]["cashflow"], state["report"]["results"]["cashflow"])
+        self.assertEqual(current["history"], [])
+
+    def test_monitor_invalidates_preview_and_rejects_it_for_updated_report(self):
+        """Dados novos descartam a prévia e impedem reaproveitá-la no relatório novo."""
+        state = self.post("/api/consent", {"enabled": True})
+        preview_state = self.post("/api/preview", {
+            "report_id": state["report"]["report_id"], "reduction_cents": 15000,
+        })
+        monitored = self.post("/api/monitor", {})
+        self.assertIsNone(monitored["pending_adjustment"])
+
+        with self.assertRaises(HTTPError) as error:
+            self.post("/api/approve", {
+                "report_id": monitored["report"]["report_id"], "action_id": "budget-plan",
+                "preview_id": preview_state["preview"]["preview_id"],
+            })
+        self.assertEqual(error.exception.code, 400)
+        error.exception.close()
+        with self.client.open(self.base + "/api/state") as response:
+            current = json.load(response)
+        self.assertEqual(current["report"]["results"]["cashflow"], monitored["report"]["results"]["cashflow"])
+        self.assertFalse(any(h.get("status") == "accepted" for h in current["history"]))
+
+    def test_custom_approval_replay_is_idempotent_without_replaying_standard(self):
+        """A repetição da mesma prévia é idempotente, sem autorizar outra proposta."""
+        state = self.post("/api/consent", {"enabled": True})
+        rid = state["report"]["report_id"]
+        preview_state = self.post("/api/preview", {"report_id": rid, "reduction_cents": 15000})
+        payload = {
+            "report_id": rid, "action_id": "budget-plan",
+            "preview_id": preview_state["preview"]["preview_id"],
+        }
+        approved = self.post("/api/approve", payload)
+        repeated = self.post("/api/approve", payload)
+        self.assertEqual(repeated["history"], approved["history"])
+        self.assertEqual(repeated["report"]["results"]["cashflow"], approved["report"]["results"]["cashflow"])
+        self.assertEqual(len(repeated["history"]), 1)
+
+        with self.assertRaises(HTTPError) as error:
+            self.post("/api/approve", {"report_id": rid, "action_id": "budget-plan"})
+        self.assertEqual(error.exception.code, 400)
+        error.exception.close()
 
     # ── T: recusa cancela prévia ──────────────────────────────────────────────
     def test_decline_clears_pending_preview(self):
