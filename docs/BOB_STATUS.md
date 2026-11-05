@@ -1,5 +1,52 @@
 # BOB_STATUS — Checkpoint
 
+## Sessão — 5 de novembro de 2026: Conclusão do MVP (Bob)
+
+### Resumo
+
+Trabalho realizado nesta sessão do Bob como agente de desenvolvimento:
+
+**Etapa 2 – Fluxo de propostas corrigido:**
+- Descarte de prévia agora cancela a pendência no servidor via `POST /api/preview/discard` (persiste após recarregar).
+- `preview_id` (sequência monótona) adicionado a cada prévia; aprovação com ID desatualizado é rejeitada com 400.
+- `decline()` cancela a prévia pendente vinculada ao mesmo relatório.
+- Histórico registra `kind` (default/custom/goal/declined), `applied_cents` e `preview_id`.
+- Frontend envia `preview_id` na aprovação personalizada; botão de descarte usa `/api/preview/discard`.
+- 19 novos testes Python (182 total) + 5 novos testes JS (29 total).
+
+**Etapa 4 – Validação IBM:**
+- `tests/test_ibm_validation.py` com 30 casos sintéticos inéditos.
+- Cobre cashflow (10), compra (7), PIX (6) e mistos (7).
+- Modo simulado: 30/30 aprovados. Modo real: ativado com credenciais IBM.
+
+**Etapa 5 – Hospedagem:**
+- `/healthz` verificado em processo: `{"status":"ok","synthetic":true}`.
+- Três jornadas de usuário verificadas em servidor local.
+- Docker daemon indisponível; build e deploy externos continuam pendentes.
+
+### Arquivos alterados
+
+- [`elo/server.py`](../elo/server.py) — `discard_preview()`, `preview_id`, `approve(preview_id=)`, `decline()` cancela prévia, `kind`/`applied_cents` no histórico, endpoint `/api/preview/discard`
+- [`web/app.js`](../web/app.js) — descarte chama servidor, aprovação envia `preview_id`, histórico com kind/valor
+- [`tests/test_core.py`](../tests/test_core.py) — 19 novos testes de versionamento, descarte, recusa, histórico
+- [`tests/test_http.py`](../tests/test_http.py) — 8 novos testes HTTP para discard, two-tab, histórico kind
+- [`tests/web_behaviors.cjs`](../tests/web_behaviors.cjs) — 5 novos testes JS (preview_id, descarte, histórico)
+- [`tests/test_ibm_validation.py`](../tests/test_ibm_validation.py) — **novo** — 30 casos de validação IBM
+- [`docs/VALIDACAO.md`](../docs/VALIDACAO.md) — RF11 marcado como implementado/testado
+- [`docs/VERIFICACAO.md`](../docs/VERIFICACAO.md) — resultados atualizados (212 testes, 3 jornadas verificadas)
+
+### Testes executados
+
+| Comando | Resultado |
+|---|---|
+| `python -m unittest discover -s tests -v` | ✅ 212 testes — 0 falhas |
+| `python -m ruff check elo tests` | ✅ `All checks passed!` |
+| `python -m compileall -q elo tests` | ✅ Sem erros |
+| `node --check web/app.js` | ✅ Sem erros |
+| `node --test tests/web_behaviors.cjs` | ✅ 29/29 aprovados |
+
+---
+
 ## Alteração — Etapa 3: Ajuste de propostas de redução de gastos flexíveis (Bob)
 
 ### Campo "Quanto consigo reduzir" na proposta de orçamento

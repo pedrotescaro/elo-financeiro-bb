@@ -15,6 +15,7 @@ O código e os documentos preparados não equivalem à submissão. A chamada IBM
 - [ ] Preencher [o registro da sessão](../bob_sessions/MODELO.md) e anexar capturas/relatórios reais revisados, sem segredos ou dados pessoais.
 - [ ] Configurar localmente projeto, modelo Granite e região disponíveis na conta da equipe, conforme o README; não presumir acesso a um modelo específico.
 - [ ] Executar o adaptador watsonx com dados sintéticos, verificar o modo exibido, as ferramentas permitidas e a contingência. Registrar modelo, região, revisão, data, casos e resultado reais, sem chave/token.
+- [ ] Executar `python -m unittest tests.test_ibm_validation -v` com credenciais reais e registrar: 30 casos, modelo, região, revisão, latências e falhas. O arquivo `tests/test_ibm_validation.py` foi preparado; falta somente a execução com conta autorizada.
 - [ ] Avaliar a seleção de ferramentas em casos inéditos, além dos testes com respostas simuladas, e atualizar a declaração tecnológica com a evidência obtida.
 
 ## Avaliação com pessoas

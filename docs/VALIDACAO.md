@@ -14,7 +14,7 @@
 | RF08 | Explicar sinais de risco | Exibe motivos sem afirmar confirmação de fraude | Regras sintéticas implementadas |
 | RF09 | Revogar leitura | Oculta relatório e limpa planos desta sessão | Implementado/testado |
 | RF10 | Usar IA na seleção de ferramentas | Chamada IBM real e plano validado em casos inéditos | Adaptador pronto; validação pendente |
-| RF11 | Permitir ajuste ou recusa explícita | Usuário consegue alterar proposta e registrar recusa | Backlog |
+| RF11 | Permitir ajuste ou recusa explícita | Usuário consegue alterar proposta e registrar recusa | Implementado/testado |
 | RF12 | Mostrar uso real do Bob | Capturas/relatórios da equipe no repositório | Pendente |
 | RF13 | Recuperar orientações relacionadas | Conceitos/sinônimos e similaridade local, com fallback por tópico e limites visíveis | Implementado/testado em paráfrases sintéticas |
 | RF14 | Explicar cada decisão | Números em centavos, hipóteses e itens não considerados | Implementado/testado |
