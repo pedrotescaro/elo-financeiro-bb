@@ -28,7 +28,27 @@
         <div class="content-grid"><section class="card"><div class="section-head"><h2>Seu saldo, dia a dia</h2><span class="tag">ESTIMATIVA</span></div>
           <figure class="balance-figure"><div id="balance-chart"></div><figcaption id="chart-caption"></figcaption></figure>
           <p class="chart-legend"><span class="legend-balance">Saldo previsto</span><span class="legend-buffer">Margem desejada</span><span class="legend-low">Menor saldo</span></p>
-          <div class="table-wrap" tabindex="0" role="region" aria-label="Tabela com todos os valores da projeção"><table><caption class="sr-only">Projeção de fechamento diário</caption><thead><tr><th scope="col">Dia</th><th scope="col">O que está previsto</th><th scope="col">Saldo</th></tr></thead><tbody id="daily"></tbody></table></div><p class="footnote">Projeção por fechamento diário. Não representa a ordem das movimentações no mesmo dia.</p></section><section class="card action-card"><h2>Um próximo passo possível</h2><div id="actions"></div><p class="footnote">Aprovar registra um plano demonstrativo. Nenhum dinheiro é movimentado.</p></section></div>
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Tabela com todos os valores da projeção"><table><caption class="sr-only">Projeção de fechamento diário</caption><thead><tr><th scope="col">Dia</th><th scope="col">O que está previsto</th><th scope="col">Saldo</th></tr></thead><tbody id="daily"></tbody></table></div><p class="footnote">Projeção por fechamento diário. Não representa a ordem das movimentações no mesmo dia.</p></section><section class="card action-card"><h2>Um próximo passo possível</h2><div id="actions"></div>
+          <div id="reduction-panel" hidden>
+            <h3>Quanto consigo reduzir</h3>
+            <p class="footnote">Informe um valor em reais para ver como a redução dos gastos flexíveis afetaria sua projeção. Despesas essenciais não serão alteradas.</p>
+            <div class="reduction-form">
+              <label for="reduction-input">Valor a reduzir (R$)</label>
+              <input id="reduction-input" type="text" inputmode="decimal" autocomplete="off" placeholder="Ex.: 150,00" aria-describedby="reduction-error reduction-hint"/>
+              <span id="reduction-hint" class="footnote">Digite o valor em reais. Exemplo: 150,00 para R$ 150,00.</span>
+              <p id="reduction-error" role="alert" aria-live="polite" class="reduction-error sr-only"></p>
+              <button id="reduction-preview" class="secondary">Ver prévia da redução</button>
+            </div>
+            <div id="reduction-preview-panel" hidden>
+              <p id="reduction-preview-result"></p>
+              <p id="reduction-preview-warning" class="notice" hidden></p>
+              <div class="action-buttons">
+                <button id="reduction-approve" class="primary">Aprovar redução personalizada</button>
+                <button id="reduction-discard" class="secondary">Descartar prévia</button>
+              </div>
+            </div>
+          </div>
+          <p class="footnote">Aprovar registra um plano demonstrativo. Nenhum dinheiro é movimentado.</p></section></div>
         <section id="special" class="card special" hidden></section>
         <section class="monitor-row"><div><h2>O plano continua depois da escolha.</h2><p>Simule uma nova despesa de R$ 150,00 e veja a recomendação ser atualizada.</p></div><button id="monitor" class="secondary">Simular nova despesa</button></section>
         <section class="card explanations-panel" aria-labelledby="explanations-title"><h2 id="explanations-title">Por que o Elo sugeriu isso</h2><p>Confira os valores, as hipóteses e os limites de cada decisão.</p><div id="explanations"></div></section>

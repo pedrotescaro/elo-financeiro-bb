@@ -64,10 +64,17 @@ const ready = {
 
 async function harness(first = initial) {
   const elements = {};
-  const buttonIds = new Set(["start", "consent-toggle", "monitor", "retry", "text-size"]);
+  const buttonIds = new Set([
+    "start", "consent-toggle", "monitor", "retry", "text-size",
+    "reduction-preview", "reduction-approve", "reduction-discard",
+  ]);
   for (const match of html.matchAll(/id="([^"]+)"/g)) {
     elements[match[1]] = new Element(buttonIds.has(match[1]) ? "button" : "div");
   }
+  // input especial para o campo de redução
+  const inputEl = new Element("input");
+  inputEl.value = "";
+  elements["reduction-input"] = inputEl;
   let response = first;
   const context = vm.createContext({
     document: {
@@ -77,8 +84,12 @@ async function harness(first = initial) {
       createElementNS: (_, tag) => new Element(tag),
       documentElement: new Element(),
     },
-    fetch: async () => {
+    fetch: async (url, options) => {
       if (response instanceof Error) throw response;
+      // Captura o último body enviado para inspeção nos testes.
+      if (options && options.body) {
+        try { context.__lastPostBody = JSON.parse(options.body); } catch {}
+      }
       return {ok: true, json: async () => response};
     },
     AbortController, TypeError, Intl, setTimeout, clearTimeout,
@@ -292,4 +303,243 @@ test("purchase section shows out-of-horizon warning when installments exceed hor
   const warnNode = app.elements.special.children.find(c => c.tag === "p" && c.textContent.includes("fora do horizonte"));
   assert.ok(warnNode, "Deve haver aviso sobre parcelas fora do horizonte");
   assert.match(warnNode.textContent, /4 parcela\(s\)/);
+});
+
+// ── Testes do painel de redução personalizada ─────────────────────────────
+
+// Estado com ação budget-plan disponível e gastos flexíveis.
+const readyWithBudgetPlan = {
+  ...ready,
+  report: {
+    ...ready.report,
+    report_id: "test-report-abc",
+    actions: [{
+      id: "budget-plan",
+      label: "Ativar plano de gastos",
+      reduction_cents: 30000,
+      before_cents: -10000,
+      after_cents: 20000,
+      meets_buffer: true,
+      effect: "Registra um plano e ajusta a previsão de despesas flexíveis.",
+    }],
+    results: {
+      cashflow: {
+        ...ready.report.results.cashflow,
+        flexible_cents: 30000,
+        gap_to_buffer_cents: 30000,
+      },
+    },
+  },
+  pending_adjustment: null,
+};
+
+test("painel de redução é exibido quando há proposta budget-plan", async () => {
+  const app = await harness(readyWithBudgetPlan);
+  assert.equal(app.elements["reduction-panel"].hidden, false,
+    "O painel de redução deve estar visível quando há budget-plan.");
+});
+
+test("painel de redução fica oculto quando não há proposta budget-plan", async () => {
+  const app = await harness(ready);
+  // ready não tem actions com budget-plan.
+  assert.equal(app.elements["reduction-panel"].hidden, true,
+    "O painel de redução deve estar oculto sem budget-plan.");
+});
+
+test("campo de redução com valor inválido exibe mensagem de erro sem chamar o servidor", async () => {
+  const app = await harness(readyWithBudgetPlan);
+  // Configura valor inválido no input.
+  app.elements["reduction-input"].value = "abc";
+  app.elements["reduction-preview"].onclick();
+  await new Promise(resolve => setImmediate(resolve));
+  // Erro deve aparecer.
+  assert.equal(app.elements["reduction-error"].classList.contains("sr-only"), false,
+    "Mensagem de erro deve estar visível após valor inválido.");
+  assert.match(app.elements["reduction-error"].textContent, /Valor inválido/);
+});
+
+test("campo de redução com valor vazio exibe mensagem de erro sem chamar o servidor", async () => {
+  const app = await harness(readyWithBudgetPlan);
+  app.elements["reduction-input"].value = "";
+  app.elements["reduction-preview"].onclick();
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(app.elements["reduction-error"].classList.contains("sr-only"), false);
+  assert.match(app.elements["reduction-error"].textContent, /Valor inválido/);
+});
+
+test("prévia de redução exibe menor saldo projetado retornado pelo servidor", async () => {
+  const previewResponse = {
+    ...readyWithBudgetPlan,
+    pending_adjustment: {
+      report_id: "test-report-abc",
+      reduction_cents: 15000,
+      preview: {
+        reduction_cents: 15000,
+        minimum_cents: 5000,
+        gap_to_buffer_cents: 15000,
+        meets_buffer: false,
+        flexible_total_cents: 30000,
+        warning: "Com essa redução, o menor saldo previsto (5000 centavos) ainda ficará abaixo da margem desejada (20000 centavos). Faltam 15000 centavos para atingir a margem.",
+      },
+    },
+    preview: {
+      reduction_cents: 15000,
+      minimum_cents: 5000,
+      gap_to_buffer_cents: 15000,
+      meets_buffer: false,
+      flexible_total_cents: 30000,
+      warning: "Com essa redução, o menor saldo previsto (5000 centavos) ainda ficará abaixo da margem desejada (20000 centavos). Faltam 15000 centavos para atingir a margem.",
+    },
+  };
+  const app = await harness(readyWithBudgetPlan);
+  app.elements["reduction-input"].value = "150,00";
+  await app.load(previewResponse);
+  // Painel de prévia deve estar visível.
+  assert.equal(app.elements["reduction-preview-panel"].hidden, false,
+    "Painel de prévia deve estar visível após receber a prévia do servidor.");
+  assert.match(app.elements["reduction-preview-result"].textContent, /R\$/,
+    "Resultado da prévia deve exibir valor monetário formatado.");
+});
+
+test("aviso de margem não atingida é exibido quando meets_buffer é false", async () => {
+  const withWarningState = {
+    ...readyWithBudgetPlan,
+    pending_adjustment: {
+      report_id: "test-report-abc",
+      reduction_cents: 5000,
+      preview: {
+        reduction_cents: 5000,
+        minimum_cents: -5000,
+        gap_to_buffer_cents: 25000,
+        meets_buffer: false,
+        flexible_total_cents: 30000,
+        warning: "Com essa redução, o menor saldo previsto ainda ficará abaixo da margem desejada.",
+      },
+    },
+  };
+  const app = await harness(withWarningState);
+  assert.equal(app.elements["reduction-preview-panel"].hidden, false,
+    "Painel de prévia deve estar visível quando há pending_adjustment.");
+  assert.equal(app.elements["reduction-preview-warning"].hidden, false,
+    "Aviso de margem não atingida deve estar visível quando meets_buffer é false.");
+  assert.match(app.elements["reduction-preview-warning"].textContent, /abaixo da margem/);
+});
+
+test("aviso de margem oculto quando meets_buffer é true", async () => {
+  const withSuccessState = {
+    ...readyWithBudgetPlan,
+    pending_adjustment: {
+      report_id: "test-report-abc",
+      reduction_cents: 30000,
+      preview: {
+        reduction_cents: 30000,
+        minimum_cents: 20000,
+        gap_to_buffer_cents: 0,
+        meets_buffer: true,
+        flexible_total_cents: 30000,
+        warning: null,
+      },
+    },
+  };
+  const app = await harness(withSuccessState);
+  assert.equal(app.elements["reduction-preview-panel"].hidden, false);
+  assert.equal(app.elements["reduction-preview-warning"].hidden, true,
+    "Aviso deve estar oculto quando a margem é atingida.");
+});
+
+test("botão de aprovação de redução envia report_id e action_id corretos", async () => {
+  const withApproveState = {
+    ...readyWithBudgetPlan,
+    pending_adjustment: {
+      report_id: "test-report-abc",
+      reduction_cents: 15000,
+      preview: {
+        reduction_cents: 15000,
+        minimum_cents: 5000,
+        gap_to_buffer_cents: 15000,
+        meets_buffer: false,
+        flexible_total_cents: 30000,
+        warning: "Margem não atingida.",
+      },
+    },
+  };
+  const app = await harness(withApproveState);
+  // Simula aprovação
+  await app.load(withApproveState);
+  app.elements["reduction-approve"].onclick();
+  await new Promise(resolve => setImmediate(resolve));
+  // O body enviado deve conter report_id e action_id corretos.
+  const body = app.evaluate("__lastPostBody");
+  assert.equal(body.report_id, "test-report-abc",
+    "report_id deve ser o do relatório vigente.");
+  assert.equal(body.action_id, "budget-plan",
+    "action_id deve ser budget-plan.");
+});
+
+test("botão de recusar proposta envia report_id e action_id corretos", async () => {
+  const app = await harness(readyWithBudgetPlan);
+  // Os botões de ação são criados dinamicamente em $("actions").children.
+  // O segundo filho da primeira ação é o botão "Recusar proposta".
+  const actionWrap = app.elements.actions.children[0];
+  assert.ok(actionWrap, "Deve haver ao menos uma ação renderizada.");
+  const actionRow = actionWrap.children.find(c => c.children && c.children.some(b => b.tag === "button"));
+  assert.ok(actionRow, "Deve haver um div de botões na ação.");
+  const declineBtn = actionRow.children.find(b => b.tag === "button" && (b.textContent || "").includes("Recusar"));
+  assert.ok(declineBtn, "Deve haver um botão de recusar na ação.");
+  declineBtn.onclick();
+  await new Promise(resolve => setImmediate(resolve));
+  const body = app.evaluate("__lastPostBody");
+  assert.equal(body.report_id, "test-report-abc");
+  assert.equal(body.action_id, "budget-plan");
+});
+
+test("descarte de prévia oculta o painel e limpa o campo de entrada", async () => {
+  const withPending = {
+    ...readyWithBudgetPlan,
+    pending_adjustment: {
+      report_id: "test-report-abc",
+      reduction_cents: 10000,
+      preview: {
+        reduction_cents: 10000,
+        minimum_cents: 0,
+        gap_to_buffer_cents: 20000,
+        meets_buffer: false,
+        flexible_total_cents: 30000,
+        warning: "Margem não atingida.",
+      },
+    },
+  };
+  const app = await harness(withPending);
+  assert.equal(app.elements["reduction-preview-panel"].hidden, false);
+  // Aciona o botão de descarte.
+  app.elements["reduction-discard"].onclick();
+  assert.equal(app.elements["reduction-preview-panel"].hidden, true,
+    "Painel de prévia deve ser ocultado após descarte.");
+  assert.equal(app.elements["reduction-input"].value, "",
+    "Campo de entrada deve ser limpo após descarte.");
+});
+
+test("painel de redução é descartado ao trocar de cenário (pending_adjustment limpo)", async () => {
+  const withPending = {
+    ...readyWithBudgetPlan,
+    pending_adjustment: {
+      report_id: "test-report-abc",
+      reduction_cents: 10000,
+      preview: {
+        reduction_cents: 10000,
+        minimum_cents: 0,
+        gap_to_buffer_cents: 20000,
+        meets_buffer: false,
+        flexible_total_cents: 30000,
+        warning: "Margem não atingida.",
+      },
+    },
+  };
+  const app = await harness(withPending);
+  assert.equal(app.elements["reduction-preview-panel"].hidden, false);
+  // Troca de cenário: servidor retorna estado sem ajuste pendente.
+  await app.load({...readyWithBudgetPlan, pending_adjustment: null,
+    report: {...readyWithBudgetPlan.report, report_id: "new-report-xyz"}});
+  assert.equal(app.elements["reduction-preview-panel"].hidden, true,
+    "Painel de prévia deve ser ocultado quando pending_adjustment é null.");
 });

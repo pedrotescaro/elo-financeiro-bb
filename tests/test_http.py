@@ -128,6 +128,118 @@ class HTTPTests(unittest.TestCase):
         self.assertEqual(len(result["goals"]), 1)
         self.assertEqual(result["goals"][0]["label"], "Celular")
 
+    # ── Testes do endpoint /api/preview ──────────────────────────────────────
+
+    def test_preview_via_endpoint_returns_projected_minimum(self):
+        """Prévia calculada no servidor retorna menor saldo e campos obrigatórios."""
+        state = self.post("/api/consent", {"enabled": True})
+        rid = state["report"]["report_id"]
+        # Obtém total de flexíveis para usar uma redução válida.
+        flexible = state["report"]["results"]["cashflow"]["flexible_cents"]
+        self.assertGreater(flexible, 0, "Cenário month deve ter gastos flexíveis.")
+        reduction = max(1, flexible // 2)
+        result = self.post("/api/preview", {"report_id": rid, "reduction_cents": reduction})
+        preview = result["preview"]
+        self.assertIn("minimum_cents", preview)
+        self.assertIn("gap_to_buffer_cents", preview)
+        self.assertIn("meets_buffer", preview)
+        self.assertIn("flexible_total_cents", preview)
+        self.assertEqual(preview["reduction_cents"], reduction)
+        # A prévia não deve modificar o orçamento.
+        self.assertEqual(
+            result["report"]["results"]["cashflow"]["minimum_cents"],
+            state["report"]["results"]["cashflow"]["minimum_cents"],
+        )
+
+    def test_preview_approval_with_correct_version_applies_custom_reduction(self):
+        """Aprovação após prévia aplica a redução personalizada ao orçamento."""
+        state = self.post("/api/consent", {"enabled": True})
+        rid = state["report"]["report_id"]
+        flexible = state["report"]["results"]["cashflow"]["flexible_cents"]
+        self.assertGreater(flexible, 0)
+        custom_reduction = max(1, flexible // 4)
+        # Calcula a prévia.
+        self.post("/api/preview", {"report_id": rid, "reduction_cents": custom_reduction})
+        # Aprova a redução personalizada.
+        result = self.post("/api/approve", {"report_id": rid, "action_id": "budget-plan"})
+        # O saldo deve refletir a redução personalizada.
+        new_min = result["report"]["results"]["cashflow"]["minimum_cents"]
+        original_min = state["report"]["results"]["cashflow"]["minimum_cents"]
+        self.assertGreater(new_min, original_min)
+        # O ajuste pendente deve ter sido limpo.
+        self.assertIsNone(result.get("pending_adjustment"))
+
+    def test_preview_rejected_with_stale_report_id(self):
+        """Prévia com report_id desatualizado deve retornar 400."""
+        state = self.post("/api/consent", {"enabled": True})
+        stale_id = state["report"]["report_id"]
+        # Atualiza o estado do servidor simulando uma nova despesa.
+        self.post("/api/monitor", {})
+        with self.assertRaises(HTTPError) as error:
+            self.post("/api/preview", {"report_id": stale_id, "reduction_cents": 100})
+        self.assertEqual(error.exception.code, 400)
+        error.exception.close()
+
+    def test_preview_rejects_invalid_reduction_non_integer(self):
+        """Redução com tipo inválido deve retornar 400."""
+        state = self.post("/api/consent", {"enabled": True})
+        rid = state["report"]["report_id"]
+        with self.assertRaises(HTTPError) as error:
+            self.post("/api/preview", {"report_id": rid, "reduction_cents": "cem"})
+        self.assertEqual(error.exception.code, 400)
+        error.exception.close()
+
+    def test_preview_rejects_negative_reduction(self):
+        """Redução negativa deve retornar 400."""
+        state = self.post("/api/consent", {"enabled": True})
+        rid = state["report"]["report_id"]
+        with self.assertRaises(HTTPError) as error:
+            self.post("/api/preview", {"report_id": rid, "reduction_cents": -1})
+        self.assertEqual(error.exception.code, 400)
+        error.exception.close()
+
+    def test_preview_rejects_reduction_above_flexible_total(self):
+        """Redução acima do total flexível deve retornar 400."""
+        state = self.post("/api/consent", {"enabled": True})
+        rid = state["report"]["report_id"]
+        flexible = state["report"]["results"]["cashflow"]["flexible_cents"]
+        with self.assertRaises(HTTPError) as error:
+            self.post("/api/preview", {"report_id": rid, "reduction_cents": flexible + 1})
+        self.assertEqual(error.exception.code, 400)
+        error.exception.close()
+
+    def test_preview_requires_csrf(self):
+        """Prévia sem token CSRF válido deve retornar 403."""
+        state = self.post("/api/consent", {"enabled": True})
+        rid = state["report"]["report_id"]
+        with self.assertRaises(HTTPError) as error:
+            self.post("/api/preview", {"report_id": rid, "reduction_cents": 100}, token="wrong")
+        self.assertEqual(error.exception.code, 403)
+        error.exception.close()
+
+    def test_preview_requires_consent(self):
+        """Prévia sem consentimento deve retornar 403."""
+        state = self.state  # consentimento não foi dado ainda
+        rid = state["report"].get("report_id", "noop")
+        with self.assertRaises(HTTPError) as error:
+            self.post("/api/preview", {"report_id": rid, "reduction_cents": 100})
+        self.assertEqual(error.exception.code, 403)
+        error.exception.close()
+
+    def test_preview_does_not_modify_budget_before_approval(self):
+        """A prévia nunca deve alterar o orçamento sem aprovação explícita."""
+        state = self.post("/api/consent", {"enabled": True})
+        rid = state["report"]["report_id"]
+        flexible = state["report"]["results"]["cashflow"]["flexible_cents"]
+        self.assertGreater(flexible, 0)
+        min_before = state["report"]["results"]["cashflow"]["minimum_cents"]
+        # Calcula a prévia mas não aprova.
+        self.post("/api/preview", {"report_id": rid, "reduction_cents": max(1, flexible // 2)})
+        # Obtém o estado atual sem novas ações.
+        current = self.post("/api/consent", {"enabled": True})
+        # O saldo mínimo não deve ter mudado.
+        self.assertEqual(current["report"]["results"]["cashflow"]["minimum_cents"], min_before)
+
 
 if __name__ == "__main__":
     unittest.main()
