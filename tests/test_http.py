@@ -89,6 +89,33 @@ class HTTPTests(unittest.TestCase):
             self.post("/api/scenario", {"name": "nonexistent"})
         self.assertEqual(error.exception.code, 400)
 
+    def test_decline_action_records_without_altering_projection(self):
+        state = self.post("/api/consent", {"enabled": True})
+        rid = state["report"]["report_id"]
+        minimum_before = state["report"]["results"]["cashflow"]["minimum_cents"]
+        result = self.post("/api/decline", {"report_id": rid, "action_id": "budget-plan"})
+        # Projection must remain unchanged
+        self.assertEqual(result["report"]["results"]["cashflow"]["minimum_cents"], minimum_before)
+        # Decline must appear in history
+        declined = [h for h in result["history"] if h.get("status") == "declined"]
+        self.assertEqual(len(declined), 1)
+        self.assertEqual(declined[0]["action"], "budget-plan")
+
+    def test_decline_stale_report_id_returns_400(self):
+        state = self.post("/api/consent", {"enabled": True})
+        stale_id = state["report"]["report_id"]
+        self.post("/api/monitor", {})
+        with self.assertRaises(HTTPError) as error:
+            self.post("/api/decline", {"report_id": stale_id, "action_id": "budget-plan"})
+        self.assertEqual(error.exception.code, 400)
+        error.exception.close()
+
+    def test_decline_without_consent_returns_403(self):
+        with self.assertRaises(HTTPError) as error:
+            self.post("/api/decline", {"report_id": "any", "action_id": "budget-plan"})
+        self.assertEqual(error.exception.code, 403)
+        error.exception.close()
+
     def test_purchase_goal_approval_flow(self):
         """Purchase scenario: approve purchase-goal action via HTTP."""
         self.post("/api/scenario", {"name": "purchase"})

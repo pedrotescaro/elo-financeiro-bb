@@ -124,6 +124,25 @@ class DemoSession:
         self.refresh()
         return record
 
+    def decline(self, report_id: str, action_id: str) -> dict:
+        """Registra a recusa explícita de uma ação sem alterar o snapshot."""
+        if not self.consent:
+            raise PermissionError("Autorize a leitura antes de recusar um plano.")
+        if not isinstance(report_id, str) or not 1 <= len(report_id) <= 64:
+            raise ValueError("Identificador do relatório inválido.")
+        if not isinstance(action_id, str) or not 1 <= len(action_id) <= 40:
+            raise ValueError("Identificador da ação inválido.")
+        if report_id != self.report.get("report_id"):
+            raise ValueError("Os dados mudaram. Revise a nova recomendação antes de recusar.")
+        action = next((a for a in self.report["actions"] if a["id"] == action_id), None)
+        if not action:
+            raise ValueError("Ação não encontrada.")
+        record = {"action": action_id, "report_id": report_id, "label": action["label"],
+                  "status": "declined", "effect": "Proposta recusada; nenhuma alteração foi feita."}
+        self.history.append(record)
+        self.record("action_declined", "Proposta recusada pelo usuário: " + action["label"] + ".")
+        return record
+
     def monitor(self) -> None:
         """Simula uma nova despesa e reavalia a projeção."""
         if not self.consent:
@@ -396,6 +415,11 @@ class Handler(BaseHTTPRequestHandler):
                     if not isinstance(rid, str) or not isinstance(aid, str):
                         raise ValueError("Identificador inválido.")
                     session.approve(rid, aid)
+                elif path == "/api/decline":
+                    rid, aid = payload.get("report_id"), payload.get("action_id")
+                    if not isinstance(rid, str) or not isinstance(aid, str):
+                        raise ValueError("Identificador inválido.")
+                    session.decline(rid, aid)
                 elif path == "/api/monitor":
                     session.monitor()
                 else:
