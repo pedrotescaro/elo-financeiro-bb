@@ -21,7 +21,7 @@ Isso não comprova uso do Bob, chamada IBM real, pesquisa com usuários, execuç
 
 **P0, antes da submissão:** uso central do Bob com evidências reais; integração IBM validada localmente; avaliação em casos inéditos; execução e verificação da hospedagem sintética; pesquisa exploratória; vídeo e declarações finais honestas. Confirmar com o mentor a expectativa sobre demonstração da tecnologia IBM, já que a hospedagem pública permanece por regras.
 
-**P1, se houver capacidade:** edição e recusa explícita de planos; horizonte de parcelas completo; avaliação e ampliação da base de recuperação; preferências de alertas; correções apontadas por leitores de tela e participantes. Não ampliar o escopo antes de concluir as evidências P0.
+**P1, se houver capacidade:** ~~edição e recusa explícita de planos~~ ✅ implementado (Bob, `feature/ajuste-reducao-gastos-flexiveis`); ~~descarte persistente, versionamento de prévia, histórico com kind/valor~~ ✅ implementado (Bob, `fix/proposal-flow-mvp-completion`); ~~validação IBM com 30 casos~~ ✅ implementado (Bot, `fix/proposal-flow-mvp-completion`); horizonte de parcelas completo; avaliação e ampliação da base de recuperação; preferências de alertas; correções apontadas por leitores de tela e participantes. Não ampliar o escopo antes de concluir as evidências P0.
 
 **P2, expansão posterior:** conectores reais BB/Open Finance, operação financeira, crédito, FGTS, investimentos, múltiplos canais e arquitetura distribuída. Não dependem deles para demonstrar o problema central.
 

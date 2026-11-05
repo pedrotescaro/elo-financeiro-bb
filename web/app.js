@@ -11,6 +11,25 @@ const money = cents => {
 const day = value => value.slice(8,10) + "/" + value.slice(5,7);
 const node = (tag, text, className) => { const e = document.createElement(tag); if(text !== undefined) e.textContent = text; if(className) e.className = className; return e; };
 
+// Converte string de reais (ex.: "150,00" ou "150.00") para centavos inteiros.
+// Retorna null se o valor for inválido.
+const parseCents = raw => {
+  if (typeof raw !== "string") return null;
+  const trimmed = raw.trim().replace(/\s/g, "");
+  if (!trimmed) return null;
+  // Aceita vírgula ou ponto como separador decimal, mas não ambos.
+  const normalized = trimmed.replace(",", ".");
+  // Deve ser um número com no máximo 2 casas decimais.
+  if (!/^\d+(\.\d{1,2})?$/.test(normalized)) return null;
+  const float = parseFloat(normalized);
+  if (!isFinite(float) || float < 0) return null;
+  // Converte para centavos sem ponto flutuante intermediário.
+  const [intPart, fracPart = ""] = normalized.split(".");
+  const cents = parseInt(intPart, 10) * 100 + parseInt((fracPart + "0").slice(0, 2), 10);
+  if (!Number.isSafeInteger(cents) || cents <= 0) return null;
+  return cents;
+};
+
 function syncControls(){
   document.querySelectorAll("button").forEach(b => b.disabled = busy);
   $("start").disabled = busy || !state;
@@ -20,6 +39,13 @@ function syncControls(){
   $("monitor").textContent = monitorDone ? "Despesa já simulada" : "Simular nova despesa";
   $("monitor").setAttribute("aria-disabled", String($("monitor").disabled));
   $("main").setAttribute("aria-busy", String(busy));
+  // Controles do painel de redução são gerenciados apenas quando ele está visível.
+  if($("reduction-panel") && !$("reduction-panel").hidden){
+    const hasPreview = state?.pending_adjustment != null;
+    $("reduction-approve").disabled = busy || !hasPreview;
+    $("reduction-discard").disabled = busy || !hasPreview;
+    $("reduction-preview").disabled = busy;
+  }
 }
 
 async function request(path, body){
@@ -192,6 +218,7 @@ function render(){
     const p = flow.gap_to_buffer_cents > 0 ? "Não há redução flexível suficiente para recompor a margem neste cenário. Revise o calendário e as alternativas com atendimento humano." : "Sua projeção já preserva a margem desejada. Continue acompanhando antes de assumir novos compromissos.";
     $("actions").append(node("p",p));
   }
+  const hasBudgetPlan = report.actions.some(a => a.id === "budget-plan");
   report.actions.forEach(a => {
     const wrap=node("div",undefined,"action");
     if(a.id === "budget-plan"){
@@ -210,6 +237,39 @@ function render(){
     actionRow.append(approveBtn,declineBtn);
     wrap.append(actionRow);$("actions").append(wrap);
   });
+  // Painel de redução personalizada — exibido somente quando há proposta budget-plan ativa.
+  const reductionPanel = $("reduction-panel");
+  if(reductionPanel){
+    reductionPanel.hidden = !hasBudgetPlan;
+    if(hasBudgetPlan){
+      // Restaura prévia pendente do servidor, se houver.
+      const pending = state.pending_adjustment;
+      const previewPanel = $("reduction-preview-panel");
+      if(pending && pending.report_id === report.report_id){
+        previewPanel.hidden = false;
+        const p = pending.preview;
+        $("reduction-preview-result").textContent =
+          `Com redução de ${money(pending.reduction_cents)}: menor saldo previsto ${money(p.minimum_cents)}.`;
+        const warnEl = $("reduction-preview-warning");
+        if(p.warning){
+          warnEl.textContent = p.warning;
+          warnEl.hidden = false;
+        } else {
+          warnEl.textContent = "";
+          warnEl.hidden = true;
+        }
+      } else {
+        previewPanel.hidden = true;
+        $("reduction-preview-result").textContent = "";
+        $("reduction-preview-warning").textContent = "";
+        $("reduction-preview-warning").hidden = true;
+        // Limpa o campo de entrada sempre que não há prévia pendente (descarte ou estado novo).
+        $("reduction-input").value = "";
+        $("reduction-error").textContent = "";
+        $("reduction-error").classList.add("sr-only");
+      }
+    }
+  }
   $("special").replaceChildren();
   const purchase=report.results.purchase, safety=report.results.safety;
   $("special").hidden=!(purchase?.available || safety?.available);
@@ -285,13 +345,48 @@ function render(){
     $("sources").append(node("p",guide.retrieval_mode === "local_concepts" ? "Orientações relacionadas por conceitos locais." : "Orientações selecionadas pelo tópico do cenário."),node("p",guide.limitation,"footnote"));
   }
   $("history-panel").hidden=!state.history.length;$("history").replaceChildren();
-  state.history.forEach(h=>$("history").append(node("li",h.label)));
+  state.history.forEach(h=>{
+    const li=node("li");
+    const status = h.status === "accepted"
+      ? (h.kind === "custom" ? "✔ personalizada" : h.kind === "goal" ? "✔ meta" : "✔ padrão")
+      : h.status === "declined" ? "✗ recusada" : "● observada";
+    const detail = h.applied_cents != null ? ` — ${money(h.applied_cents)} aplicados` : "";
+    li.textContent = `${h.label} [${status}${detail}]`;
+    $("history").append(li);
+  });
 }
 
 $("start").onclick=()=>request("/api/consent",{enabled:true});
 $("consent-toggle").onclick=()=>request("/api/consent",{enabled:!state.consent});
 $("monitor").onclick=()=>request("/api/monitor",{});
 $("retry").onclick=()=>request("/api/state");
+$("reduction-preview").onclick=()=>{
+  const raw = $("reduction-input").value;
+  const cents = parseCents(raw);
+  const errorEl = $("reduction-error");
+  if(cents === null){
+    errorEl.textContent = "Valor inválido. Digite um valor positivo em reais. Exemplo: 150,00.";
+    errorEl.classList.remove("sr-only");
+    return;
+  }
+  // Validação de limite (gastos flexíveis) é feita no servidor; aqui apenas limpamos o erro visual.
+  errorEl.textContent = "";
+  errorEl.classList.add("sr-only");
+  const rid = state?.report?.report_id;
+  if(!rid) return;
+  request("/api/preview",{report_id:rid,reduction_cents:cents});
+};
+$("reduction-approve").onclick=()=>{
+  const rid = state?.report?.report_id;
+  if(!rid) return;
+  // Envia preview_id para detectar sobreposição por outra aba; null se aprovação padrão.
+  const previewId = state?.pending_adjustment?.preview_id ?? null;
+  request("/api/approve",{report_id:rid,action_id:"budget-plan",...(previewId !== null ? {preview_id:previewId} : {})});
+};
+$("reduction-discard").onclick=()=>{
+  // Cancela a prévia no servidor para que persista após recarregar a página.
+  request("/api/preview/discard",{});
+};
 $("text-size").onclick=()=>{
   const enabled = document.documentElement.classList.toggle("large-text");
   $("text-size").setAttribute("aria-pressed",String(enabled));
