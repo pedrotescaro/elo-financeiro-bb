@@ -2,6 +2,69 @@
 
 ## [Unreleased]
 
+### Ajuste de propostas de redução de gastos flexíveis — Bob
+
+**Data:** 2025
+**Branch:** `feature/ajuste-reducao-gastos-flexiveis`
+**Contribuição:** Bob
+
+#### O que foi implementado
+
+**`elo/core.py` — nova função `preview_saving()`**
+- Calcula uma prévia de redução sem modificar o snapshot original.
+- Retorna menor saldo previsto, diferença para a margem, flag `meets_buffer` e aviso explícito quando a margem não é atingida.
+- Rejeita valores nulos, negativos, não inteiros e que excedam o total de gastos flexíveis.
+- Preserva despesas essenciais (`flexible=False`) na íntegra.
+- Todos os cálculos operam em centavos inteiros.
+
+**`elo/server.py` — novo método `preview_adjustment()` e endpoint `/api/preview`**
+- `DemoSession.preview_adjustment()`: calcula a prévia no servidor, armazena o ajuste pendente vinculado ao `report_id` vigente.
+- `DemoSession.approve()`: quando há ajuste pendente para o relatório correto, aplica a redução personalizada em vez da padrão.
+- `DemoSession.set_consent(False)`: descarta `pending_adjustment` ao revogar o consentimento.
+- `DemoSession.set_scenario()`: descarta `pending_adjustment` ao trocar de cenário.
+- `DemoSession.public_state()`: expõe `pending_adjustment` (sem dados sensíveis) no estado público.
+- Endpoint `POST /api/preview`: valida tipos, exige CSRF e consentimento, delega ao `preview_adjustment()`.
+
+**`web/index.html` — painel de redução personalizada**
+- Campo `reduction-input` (tipo texto, inputmode decimal) para o usuário informar o valor a reduzir.
+- Botões `reduction-preview`, `reduction-approve`, `reduction-discard`.
+- Elementos `reduction-error`, `reduction-preview-result`, `reduction-preview-warning` para feedback visual.
+- Painel exibido apenas quando há proposta `budget-plan` ativa.
+
+**`web/app.js` — lógica de redução, prévia e aprovação**
+- `parseCents()`: converte string de reais para centavos inteiros sem ponto flutuante intermediário.
+- Validação imediata no cliente (formato, valor positivo); limite de gastos flexíveis validado exclusivamente no servidor.
+- Integração com `/api/preview` e `/api/approve` para o fluxo de redução personalizada.
+- Exibição de prévia e aviso de margem não atingida com base no `pending_adjustment` retornado pelo servidor.
+- Descarte de prévia pelo botão "Descartar prévia".
+
+**`tests/test_core.py` — 18 novos testes de domínio (`ReductionPreviewTests`)**
+Cobrem: prévia de redução, valores inválidos (nulo, negativo, float, string), limite de gastos flexíveis, preservação de despesas essenciais, idempotência de aprovação, revogação de consentimento, troca de cenário, consentimento obrigatório, relatório desatualizado, e aplicação de redução personalizada.
+
+**`tests/test_http.py` — 8 novos testes HTTP**
+Cobrem: prévia via endpoint, aprovação com versão correta, rejeição com versão desatualizada, rejeição de tipo inválido, rejeição de valor negativo, rejeição de valor acima do limite, proteção CSRF, consentimento obrigatório, e isolamento da prévia.
+
+**`tests/web_behaviors.cjs` — 11 novos testes de interface**
+Cobrem: renderização do campo, painel oculto sem budget-plan, erro com valor inválido, erro com valor vazio, exibição da prévia, aviso de margem não atingida, aviso oculto quando margem atingida, aprovação, recusa, descarte e descarte ao trocar de cenário.
+
+#### Funcionalidades preservadas sem alteração
+
+- Aprovação e recusa explícita de propostas de orçamento
+- Metas de compra
+- Cálculo de parcelas dentro do horizonte de planejamento
+- Proteção CSRF, isolamento de sessões, rejeição de propostas desatualizadas
+
+#### Resultado das verificações
+
+| Comando | Resultado |
+|---|---|
+| `python -m unittest discover -s tests -v` | ✅ 163 testes aprovados — 0 falhas |
+| `python -m ruff check elo tests` | ✅ `All checks passed!` — 0 erros |
+| `node --check web/app.js` | ✅ Sem erros de sintaxe |
+| `node --test tests/web_behaviors.cjs` | ✅ 24/24 testes aprovados — 0 falhas |
+
+---
+
 ### `tests/test_ibm_cache.py` — Correções de lint (ruff)
 
 **Data:** 2025  

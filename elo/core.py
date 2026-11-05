@@ -237,6 +237,47 @@ def apply_saving(snapshot: dict, reduction: int) -> dict:
     return changed
 
 
+def preview_saving(snapshot: dict, reduction_cents: int) -> dict:
+    """Calcula uma prévia de redução de gastos flexíveis sem modificar o snapshot.
+
+    Retorna:
+        minimum_cents: menor saldo previsto após a redução
+        gap_to_buffer_cents: diferença entre o menor saldo e a margem desejada
+        meets_buffer: se a margem desejada é atingida
+        flexible_total_cents: total de gastos flexíveis disponíveis no período
+        reduction_cents: valor de redução validado (centavos inteiros)
+        warning: mensagem de aviso quando a margem não é atingida; None caso contrário
+    """
+    validate(snapshot)
+    flow = cashflow(snapshot)
+    flexible_total = flow["flexible_cents"]
+    if type(reduction_cents) is not int or reduction_cents <= 0:
+        raise ValueError("O valor de redução deve ser um número inteiro positivo em centavos.")
+    if reduction_cents > flexible_total:
+        raise ValueError(
+            f"O valor informado ({reduction_cents} centavos) supera o total de gastos "
+            f"flexíveis disponíveis ({flexible_total} centavos)."
+        )
+    projected_snapshot = apply_saving(snapshot, reduction_cents)
+    projected_flow = cashflow(projected_snapshot)
+    minimum = projected_flow["minimum_cents"]
+    gap = max(0, snapshot["buffer_cents"] - minimum)
+    meets = minimum >= snapshot["buffer_cents"]
+    warning = None if meets else (
+        f"Com essa redução, o menor saldo previsto ({minimum} centavos) ainda ficará "
+        f"abaixo da margem desejada ({snapshot['buffer_cents']} centavos). "
+        f"Faltam {gap} centavos para atingir a margem."
+    )
+    return {
+        "reduction_cents": reduction_cents,
+        "minimum_cents": minimum,
+        "gap_to_buffer_cents": gap,
+        "meets_buffer": meets,
+        "flexible_total_cents": flexible_total,
+        "warning": warning,
+    }
+
+
 def _explanations(snapshot: dict, results: dict, actions: list[dict]) -> dict:
     """Expõe dados e limites verificáveis de cada decisão, sem raciocínio de LLM."""
     flow = results["cashflow"]

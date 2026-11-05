@@ -12,7 +12,7 @@ from threading import BoundedSemaphore, RLock
 from time import monotonic
 from typing import Callable
 from urllib.parse import urlsplit
-from .core import CATALOG, ROOT, apply_saving, build_report, load_scenario
+from .core import CATALOG, ROOT, apply_saving, build_report, load_scenario, preview_saving
 
 _MAX_SESSION_NAME_LEN = 40
 
@@ -33,6 +33,7 @@ class DemoSession:
         self.goals: list = []
         self.audit: list = []
         self.audit_sequence = 0
+        self.pending_adjustment: dict | None = None
         self.last_seen = monotonic()
         self.record("session_started", "Sessão demonstrativa iniciada, sem leitura autorizada.")
 
@@ -53,14 +54,42 @@ class DemoSession:
         if self.goals:
             self.report["actions"] = [a for a in self.report["actions"] if a["id"] != "purchase-goal"]
 
+    def preview_adjustment(self, report_id: str, reduction_cents: int) -> dict:
+        """Calcula uma prévia de redução e armazena o ajuste pendente vinculado ao relatório."""
+        if not self.consent:
+            raise PermissionError("Autorize a leitura antes de calcular uma prévia.")
+        if not isinstance(report_id, str) or not 1 <= len(report_id) <= 64:
+            raise ValueError("Identificador do relatório inválido.")
+        if report_id != self.report.get("report_id"):
+            raise ValueError("Os dados mudaram. Revise a nova recomendação antes de calcular uma prévia.")
+        # Validação e cálculo exclusivamente no servidor.
+        preview = preview_saving(self.snapshot, reduction_cents)
+        # Armazena o ajuste pendente vinculado ao report_id vigente.
+        self.pending_adjustment = {
+            "report_id": report_id,
+            "reduction_cents": reduction_cents,
+            "preview": preview,
+        }
+        self.record("preview_calculated",
+                    f"Prévia calculada: redução de {reduction_cents} centavos de gastos flexíveis.")
+        return preview
+
     def public_state(self) -> dict:
         """Retorna o estado serializável para o navegador."""
+        pending = None
+        if self.pending_adjustment:
+            pending = {
+                "report_id": self.pending_adjustment["report_id"],
+                "reduction_cents": self.pending_adjustment["reduction_cents"],
+                "preview": deepcopy(self.pending_adjustment["preview"]),
+            }
         return {"scenario": self.name, "scenario_title": self.snapshot["title"],
                 "scenarios": [{"id": k, "title": v["title"]} for k, v in CATALOG.items()],
                 "consent": self.consent, "csrf": self.csrf, "report": deepcopy(self.report),
                 "history": deepcopy(self.history), "goals": deepcopy(self.goals), "audit": deepcopy(self.audit),
                 "synthetic": True, "monitoring": "Simulado por evento acionado na interface",
-                "monitor_done": any(e["id"] == "new-spend" for e in self.snapshot["events"])}
+                "monitor_done": any(e["id"] == "new-spend" for e in self.snapshot["events"]),
+                "pending_adjustment": pending}
 
     def set_consent(self, enabled: bool) -> None:
         """Ativa ou revoga o consentimento demonstrativo."""
@@ -74,6 +103,7 @@ class DemoSession:
             self.history.clear()
             self.goals.clear()
             self.approved.clear()
+            self.pending_adjustment = None
             self.snapshot = load_scenario(self.name)
             if hasattr(self.planner, "invalidate_cache"):
                 self.planner.invalidate_cache()
@@ -88,6 +118,7 @@ class DemoSession:
         self.approved.clear()
         self.history.clear()
         self.goals.clear()
+        self.pending_adjustment = None
         if hasattr(self.planner, "invalidate_cache"):
             self.planner.invalidate_cache()
         self.record("scenario_selected", "Cenário selecionado: " + self.snapshot["title"] + ".")
@@ -111,7 +142,15 @@ class DemoSession:
             raise ValueError("Ação não permitida.")
         # Valores vêm do plano no servidor, nunca de parâmetros do navegador.
         if action_id == "budget-plan":
-            self.snapshot = apply_saving(self.snapshot, action["reduction_cents"])
+            # Se há um ajuste personalizado pendente para este relatório, aplica-o.
+            # Caso contrário, aplica a redução padrão sugerida.
+            if (self.pending_adjustment
+                    and self.pending_adjustment.get("report_id") == report_id):
+                reduction = self.pending_adjustment["reduction_cents"]
+                self.pending_adjustment = None
+            else:
+                reduction = action["reduction_cents"]
+            self.snapshot = apply_saving(self.snapshot, reduction)
         elif action_id == "purchase-goal":
             self.goals.append({"label": self.snapshot["purchase"]["label"], "target_cents": action["target_cents"]})
         else:
@@ -420,6 +459,16 @@ class Handler(BaseHTTPRequestHandler):
                     if not isinstance(rid, str) or not isinstance(aid, str):
                         raise ValueError("Identificador inválido.")
                     session.decline(rid, aid)
+                elif path == "/api/preview":
+                    rid = payload.get("report_id")
+                    raw_reduction = payload.get("reduction_cents")
+                    if not isinstance(rid, str):
+                        raise ValueError("Identificador do relatório inválido.")
+                    if not isinstance(raw_reduction, int):
+                        raise ValueError("O valor de redução deve ser um número inteiro em centavos.")
+                    preview = session.preview_adjustment(rid, raw_reduction)
+                    self.send_json(200, {**session.public_state(), "preview": preview}, new_cookie=new_cookie)
+                    return
                 elif path == "/api/monitor":
                     session.monitor()
                 else:
