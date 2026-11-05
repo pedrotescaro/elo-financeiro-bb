@@ -241,5 +241,100 @@ class HTTPTests(unittest.TestCase):
         self.assertEqual(current["report"]["results"]["cashflow"]["minimum_cents"], min_before)
 
 
+    # ── T: /api/preview/discard persiste no servidor ─────────────────────────
+    def test_discard_preview_clears_pending_adjustment_on_server(self):
+        """POST /api/preview/discard cancela a prévia; estado posterior não deve ter pending_adjustment."""
+        state = self.post("/api/consent", {"enabled": True})
+        rid = state["report"]["report_id"]
+        flexible = state["report"]["results"]["cashflow"]["flexible_cents"]
+        self.assertGreater(flexible, 0)
+        # Calcula prévia.
+        self.post("/api/preview", {"report_id": rid, "reduction_cents": max(1, flexible // 2)})
+        # Verifica que existe ajuste pendente.
+        mid_state = self.post("/api/consent", {"enabled": True})
+        self.assertIsNotNone(mid_state["pending_adjustment"])
+        # Descarta no servidor.
+        after = self.post("/api/preview/discard", {})
+        self.assertIsNone(after["pending_adjustment"])
+
+    def test_discard_preview_survives_state_reload(self):
+        """Após descarte, GET /api/state não deve devolver pending_adjustment."""
+        state = self.post("/api/consent", {"enabled": True})
+        rid = state["report"]["report_id"]
+        flexible = state["report"]["results"]["cashflow"]["flexible_cents"]
+        self.assertGreater(flexible, 0)
+        self.post("/api/preview", {"report_id": rid, "reduction_cents": max(1, flexible // 2)})
+        self.post("/api/preview/discard", {})
+        import urllib.request
+        req = urllib.request.Request(self.base + "/api/state")
+        with self.client.open(req) as resp:
+            reload_state = json.load(resp)
+        self.assertIsNone(reload_state["pending_adjustment"])
+
+    # ── T: versionamento de prévia (two-tab) ─────────────────────────────────
+    def test_approve_with_stale_preview_id_returns_400(self):
+        """Aprovação com preview_id desatualizado (sobreposição de outra aba) deve retornar 400."""
+        state = self.post("/api/consent", {"enabled": True})
+        rid = state["report"]["report_id"]
+        flexible = state["report"]["results"]["cashflow"]["flexible_cents"]
+        self.assertGreater(flexible, 0, "Precisa de gastos flexíveis.")
+        # Aba A: gera primeira prévia.
+        r1 = self.post("/api/preview", {"report_id": rid, "reduction_cents": max(1, flexible // 4)})
+        pid1 = r1["preview"]["preview_id"]
+        # Aba B: sobrescreve com segunda prévia.
+        self.post("/api/preview", {"report_id": rid, "reduction_cents": max(1, flexible // 2)})
+        # Aba A tenta aprovar com preview_id antigo.
+        from urllib.error import HTTPError
+        with self.assertRaises(HTTPError) as error:
+            self.post("/api/approve", {"report_id": rid, "action_id": "budget-plan", "preview_id": pid1})
+        self.assertEqual(error.exception.code, 400)
+        error.exception.close()
+
+    def test_approve_with_current_preview_id_succeeds(self):
+        """Aprovação com preview_id correto (sem sobreposição) deve ser aceita."""
+        state = self.post("/api/consent", {"enabled": True})
+        rid = state["report"]["report_id"]
+        flexible = state["report"]["results"]["cashflow"]["flexible_cents"]
+        self.assertGreater(flexible, 0)
+        r = self.post("/api/preview", {"report_id": rid, "reduction_cents": max(1, flexible // 2)})
+        pid = r["preview"]["preview_id"]
+        result = self.post("/api/approve", {"report_id": rid, "action_id": "budget-plan", "preview_id": pid})
+        self.assertIsNone(result["pending_adjustment"])
+        history = [h for h in result["history"] if h.get("kind") == "custom"]
+        self.assertEqual(len(history), 1)
+
+    # ── T: recusa cancela prévia ──────────────────────────────────────────────
+    def test_decline_clears_pending_preview(self):
+        """Recusa de budget-plan deve cancelar o ajuste pendente."""
+        state = self.post("/api/consent", {"enabled": True})
+        rid = state["report"]["report_id"]
+        flexible = state["report"]["results"]["cashflow"]["flexible_cents"]
+        self.assertGreater(flexible, 0)
+        self.post("/api/preview", {"report_id": rid, "reduction_cents": max(1, flexible // 2)})
+        result = self.post("/api/decline", {"report_id": rid, "action_id": "budget-plan"})
+        self.assertIsNone(result["pending_adjustment"])
+
+    # ── T: histórico distingue kind ───────────────────────────────────────────
+    def test_history_kind_default_on_standard_approval(self):
+        """Aprovação padrão (sem prévia) registra kind=default no histórico."""
+        state = self.post("/api/consent", {"enabled": True})
+        rid = state["report"]["report_id"]
+        result = self.post("/api/approve", {"report_id": rid, "action_id": "budget-plan"})
+        entry = next((h for h in result["history"] if h.get("action") == "budget-plan"), None)
+        self.assertIsNotNone(entry)
+        self.assertEqual(entry["kind"], "default")
+        self.assertIsNotNone(entry["applied_cents"])
+
+    def test_history_kind_declined_on_decline(self):
+        """Recusa registra kind=declined e applied_cents=None no histórico."""
+        state = self.post("/api/consent", {"enabled": True})
+        rid = state["report"]["report_id"]
+        result = self.post("/api/decline", {"report_id": rid, "action_id": "budget-plan"})
+        entry = next((h for h in result["history"] if h.get("action") == "budget-plan"), None)
+        self.assertIsNotNone(entry)
+        self.assertEqual(entry["kind"], "declined")
+        self.assertIsNone(entry["applied_cents"])
+
+
 if __name__ == "__main__":
     unittest.main()

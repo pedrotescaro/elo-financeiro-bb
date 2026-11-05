@@ -34,6 +34,7 @@ class DemoSession:
         self.audit: list = []
         self.audit_sequence = 0
         self.pending_adjustment: dict | None = None
+        self._preview_seq: int = 0  # monotonico; detecta prévias geradas por outra aba
         self.last_seen = monotonic()
         self.record("session_started", "Sessão demonstrativa iniciada, sem leitura autorizada.")
 
@@ -55,7 +56,12 @@ class DemoSession:
             self.report["actions"] = [a for a in self.report["actions"] if a["id"] != "purchase-goal"]
 
     def preview_adjustment(self, report_id: str, reduction_cents: int) -> dict:
-        """Calcula uma prévia de redução e armazena o ajuste pendente vinculado ao relatório."""
+        """Calcula uma prévia de redução e armazena o ajuste pendente vinculado ao relatório.
+
+        Cada chamada gera um preview_id único (sequência monótona). Aprovações submetidas
+        com um preview_id diferente do atual são rejeitadas, evitando que outra aba altere
+        silenciosamente o valor que o usuário revisou.
+        """
         if not self.consent:
             raise PermissionError("Autorize a leitura antes de calcular uma prévia.")
         if not isinstance(report_id, str) or not 1 <= len(report_id) <= 64:
@@ -64,15 +70,27 @@ class DemoSession:
             raise ValueError("Os dados mudaram. Revise a nova recomendação antes de calcular uma prévia.")
         # Validação e cálculo exclusivamente no servidor.
         preview = preview_saving(self.snapshot, reduction_cents)
+        # Incrementa sequência antes de armazenar para que prévias sobrepostas sejam detectáveis.
+        self._preview_seq += 1
+        preview_id = self._preview_seq
         # Armazena o ajuste pendente vinculado ao report_id vigente.
         self.pending_adjustment = {
             "report_id": report_id,
+            "preview_id": preview_id,
             "reduction_cents": reduction_cents,
             "preview": preview,
         }
         self.record("preview_calculated",
-                    f"Prévia calculada: redução de {reduction_cents} centavos de gastos flexíveis.")
-        return preview
+                    f"Prévia calculada (id={preview_id}): redução de {reduction_cents} centavos de gastos flexíveis.")
+        return {**preview, "preview_id": preview_id}
+
+    def discard_preview(self) -> None:
+        """Cancela o ajuste pendente no servidor e registra o evento na trilha."""
+        if self.pending_adjustment is not None:
+            prev_id = self.pending_adjustment.get("preview_id", "?")
+            self.pending_adjustment = None
+            self.record("preview_discarded",
+                        f"Prévia descartada pelo usuário (id={prev_id}); nenhuma alteração aplicada.")
 
     def public_state(self) -> dict:
         """Retorna o estado serializável para o navegador."""
@@ -80,6 +98,7 @@ class DemoSession:
         if self.pending_adjustment:
             pending = {
                 "report_id": self.pending_adjustment["report_id"],
+                "preview_id": self.pending_adjustment["preview_id"],
                 "reduction_cents": self.pending_adjustment["reduction_cents"],
                 "preview": deepcopy(self.pending_adjustment["preview"]),
             }
@@ -124,8 +143,14 @@ class DemoSession:
         self.record("scenario_selected", "Cenário selecionado: " + self.snapshot["title"] + ".")
         self.refresh()
 
-    def approve(self, report_id: str, action_id: str) -> dict:
-        """Executa a ação aprovada vinculada ao relatório vigente."""
+    def approve(self, report_id: str, action_id: str,
+                preview_id: int | None = None) -> dict:
+        """Executa a ação aprovada vinculada ao relatório vigente.
+
+        Quando preview_id é fornecido, valida que o ajuste pendente ainda corresponde
+        à prévia que o usuário revisou, evitando que uma sobreposição de outra aba
+        aplique silenciosamente um valor diferente.
+        """
         if not self.consent:
             raise PermissionError("Autorize a leitura antes de aprovar um plano.")
         if not isinstance(report_id, str) or not 1 <= len(report_id) <= 64:
@@ -144,19 +169,36 @@ class DemoSession:
         if action_id == "budget-plan":
             # Se há um ajuste personalizado pendente para este relatório, aplica-o.
             # Caso contrário, aplica a redução padrão sugerida.
-            if (self.pending_adjustment
-                    and self.pending_adjustment.get("report_id") == report_id):
+            has_pending = (self.pending_adjustment
+                           and self.pending_adjustment.get("report_id") == report_id)
+            if has_pending:
+                # Se o cliente enviou preview_id, verifica que não houve sobreposição.
+                if (preview_id is not None
+                        and self.pending_adjustment.get("preview_id") != preview_id):
+                    raise ValueError(
+                        "A prévia foi substituída por outra aba. Revise o novo valor antes de aprovar."
+                    )
                 reduction = self.pending_adjustment["reduction_cents"]
+                applied_preview_id = self.pending_adjustment.get("preview_id")
                 self.pending_adjustment = None
+                kind = "custom"
             else:
                 reduction = action["reduction_cents"]
+                applied_preview_id = None
+                kind = "default"
             self.snapshot = apply_saving(self.snapshot, reduction)
         elif action_id == "purchase-goal":
             self.goals.append({"label": self.snapshot["purchase"]["label"], "target_cents": action["target_cents"]})
+            kind = "goal"
+            applied_preview_id = None
+            reduction = None
         else:
             raise ValueError("Ação não permitida.")
         record = {"action": action_id, "report_id": report_id, "label": action["label"],
-                  "status": "accepted", "effect": action["effect"]}
+                  "status": "accepted", "effect": action["effect"],
+                  "kind": kind,
+                  "applied_cents": reduction,
+                  "preview_id": applied_preview_id}
         self.history.append(record)
         self.approved[key] = record
         self.record("action_approved", "Ação autorizada: " + action["label"] + ".")
@@ -164,7 +206,11 @@ class DemoSession:
         return record
 
     def decline(self, report_id: str, action_id: str) -> dict:
-        """Registra a recusa explícita de uma ação sem alterar o snapshot."""
+        """Registra a recusa explícita de uma ação sem alterar o snapshot.
+
+        Cancela também o ajuste pendente associado a esta proposta, pois uma recusa
+        explícita invalida qualquer prévia calculada para o mesmo relatório.
+        """
         if not self.consent:
             raise PermissionError("Autorize a leitura antes de recusar um plano.")
         if not isinstance(report_id, str) or not 1 <= len(report_id) <= 64:
@@ -176,8 +222,17 @@ class DemoSession:
         action = next((a for a in self.report["actions"] if a["id"] == action_id), None)
         if not action:
             raise ValueError("Ação não encontrada.")
+        # Cancela a prévia pendente vinculada ao mesmo relatório.
+        if (self.pending_adjustment
+                and self.pending_adjustment.get("report_id") == report_id
+                and action_id == "budget-plan"):
+            prev_id = self.pending_adjustment.get("preview_id", "?")
+            self.pending_adjustment = None
+            self.record("preview_cancelled_by_decline",
+                        f"Prévia cancelada pela recusa da proposta (id={prev_id}).")
         record = {"action": action_id, "report_id": report_id, "label": action["label"],
-                  "status": "declined", "effect": "Proposta recusada; nenhuma alteração foi feita."}
+                  "status": "declined", "effect": "Proposta recusada; nenhuma alteração foi feita.",
+                  "kind": "declined", "applied_cents": None, "preview_id": None}
         self.history.append(record)
         self.record("action_declined", "Proposta recusada pelo usuário: " + action["label"] + ".")
         return record
@@ -453,7 +508,10 @@ class Handler(BaseHTTPRequestHandler):
                     rid, aid = payload.get("report_id"), payload.get("action_id")
                     if not isinstance(rid, str) or not isinstance(aid, str):
                         raise ValueError("Identificador inválido.")
-                    session.approve(rid, aid)
+                    # preview_id opcional: detecta sobreposição por outra aba.
+                    raw_pid = payload.get("preview_id")
+                    pid = raw_pid if isinstance(raw_pid, int) else None
+                    session.approve(rid, aid, preview_id=pid)
                 elif path == "/api/decline":
                     rid, aid = payload.get("report_id"), payload.get("action_id")
                     if not isinstance(rid, str) or not isinstance(aid, str):
@@ -469,6 +527,9 @@ class Handler(BaseHTTPRequestHandler):
                     preview = session.preview_adjustment(rid, raw_reduction)
                     self.send_json(200, {**session.public_state(), "preview": preview}, new_cookie=new_cookie)
                     return
+                elif path == "/api/preview/discard":
+                    # Cancela a prévia pendente no servidor; persiste após recarregar a página.
+                    session.discard_preview()
                 elif path == "/api/monitor":
                     session.monitor()
                 else:

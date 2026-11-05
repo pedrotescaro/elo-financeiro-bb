@@ -263,6 +263,10 @@ function render(){
         $("reduction-preview-result").textContent = "";
         $("reduction-preview-warning").textContent = "";
         $("reduction-preview-warning").hidden = true;
+        // Limpa o campo de entrada sempre que não há prévia pendente (descarte ou estado novo).
+        $("reduction-input").value = "";
+        $("reduction-error").textContent = "";
+        $("reduction-error").classList.add("sr-only");
       }
     }
   }
@@ -341,7 +345,15 @@ function render(){
     $("sources").append(node("p",guide.retrieval_mode === "local_concepts" ? "Orientações relacionadas por conceitos locais." : "Orientações selecionadas pelo tópico do cenário."),node("p",guide.limitation,"footnote"));
   }
   $("history-panel").hidden=!state.history.length;$("history").replaceChildren();
-  state.history.forEach(h=>$("history").append(node("li",h.label)));
+  state.history.forEach(h=>{
+    const li=node("li");
+    const status = h.status === "accepted"
+      ? (h.kind === "custom" ? "✔ personalizada" : h.kind === "goal" ? "✔ meta" : "✔ padrão")
+      : h.status === "declined" ? "✗ recusada" : "● observada";
+    const detail = h.applied_cents != null ? ` — ${money(h.applied_cents)} aplicados` : "";
+    li.textContent = `${h.label} [${status}${detail}]`;
+    $("history").append(li);
+  });
 }
 
 $("start").onclick=()=>request("/api/consent",{enabled:true});
@@ -367,18 +379,13 @@ $("reduction-preview").onclick=()=>{
 $("reduction-approve").onclick=()=>{
   const rid = state?.report?.report_id;
   if(!rid) return;
-  request("/api/approve",{report_id:rid,action_id:"budget-plan"});
+  // Envia preview_id para detectar sobreposição por outra aba; null se aprovação padrão.
+  const previewId = state?.pending_adjustment?.preview_id ?? null;
+  request("/api/approve",{report_id:rid,action_id:"budget-plan",...(previewId !== null ? {preview_id:previewId} : {})});
 };
 $("reduction-discard").onclick=()=>{
-  const previewPanel = $("reduction-preview-panel");
-  if(previewPanel) previewPanel.hidden = true;
-  $("reduction-preview-result").textContent = "";
-  const warnEl = $("reduction-preview-warning");
-  warnEl.textContent = ""; warnEl.hidden = true;
-  // Limpa o campo de entrada e o estado de pendência local (o servidor descartará na próxima ação).
-  $("reduction-input").value = "";
-  $("reduction-error").textContent = "";
-  $("reduction-error").classList.add("sr-only");
+  // Cancela a prévia no servidor para que persista após recarregar a página.
+  request("/api/preview/discard",{});
 };
 $("text-size").onclick=()=>{
   const enabled = document.documentElement.classList.toggle("large-text");

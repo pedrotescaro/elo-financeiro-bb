@@ -447,11 +447,12 @@ test("aviso de margem oculto quando meets_buffer é true", async () => {
     "Aviso deve estar oculto quando a margem é atingida.");
 });
 
-test("botão de aprovação de redução envia report_id e action_id corretos", async () => {
+test("botão de aprovação de redução envia report_id, action_id e preview_id corretos", async () => {
   const withApproveState = {
     ...readyWithBudgetPlan,
     pending_adjustment: {
       report_id: "test-report-abc",
+      preview_id: 3,
       reduction_cents: 15000,
       preview: {
         reduction_cents: 15000,
@@ -468,12 +469,24 @@ test("botão de aprovação de redução envia report_id e action_id corretos", 
   await app.load(withApproveState);
   app.elements["reduction-approve"].onclick();
   await new Promise(resolve => setImmediate(resolve));
-  // O body enviado deve conter report_id e action_id corretos.
+  // O body enviado deve conter report_id, action_id e preview_id corretos.
   const body = app.evaluate("__lastPostBody");
   assert.equal(body.report_id, "test-report-abc",
     "report_id deve ser o do relatório vigente.");
   assert.equal(body.action_id, "budget-plan",
     "action_id deve ser budget-plan.");
+  assert.equal(body.preview_id, 3,
+    "preview_id deve ser o da prévia pendente.");
+});
+
+test("botão de aprovação padrão (sem prévia) não envia preview_id", async () => {
+  const app = await harness(readyWithBudgetPlan); // sem pending_adjustment
+  app.elements["reduction-approve"].onclick();
+  await new Promise(resolve => setImmediate(resolve));
+  const body = app.evaluate("__lastPostBody");
+  assert.equal(body.action_id, "budget-plan");
+  assert.equal(Object.prototype.hasOwnProperty.call(body, "preview_id"), false,
+    "Aprovação padrão não deve incluir preview_id.");
 });
 
 test("botão de recusar proposta envia report_id e action_id corretos", async () => {
@@ -493,11 +506,12 @@ test("botão de recusar proposta envia report_id e action_id corretos", async ()
   assert.equal(body.action_id, "budget-plan");
 });
 
-test("descarte de prévia oculta o painel e limpa o campo de entrada", async () => {
+test("descarte de prévia chama /api/preview/discard e oculta o painel ao receber resposta", async () => {
   const withPending = {
     ...readyWithBudgetPlan,
     pending_adjustment: {
       report_id: "test-report-abc",
+      preview_id: 1,
       reduction_cents: 10000,
       preview: {
         reduction_cents: 10000,
@@ -509,14 +523,44 @@ test("descarte de prévia oculta o painel e limpa o campo de entrada", async () 
       },
     },
   };
+  // O servidor devolve o estado sem ajuste pendente após o descarte.
+  const afterDiscard = {...readyWithBudgetPlan, pending_adjustment: null};
   const app = await harness(withPending);
-  assert.equal(app.elements["reduction-preview-panel"].hidden, false);
-  // Aciona o botão de descarte.
-  app.elements["reduction-discard"].onclick();
+  assert.equal(app.elements["reduction-preview-panel"].hidden, false,
+    "Painel deve estar visível antes do descarte.");
+  // Simula: o próximo fetch retorna o estado sem pendência.
+  await app.load(afterDiscard);
   assert.equal(app.elements["reduction-preview-panel"].hidden, true,
-    "Painel de prévia deve ser ocultado após descarte.");
+    "Painel de prévia deve ser ocultado quando servidor confirma descarte.");
   assert.equal(app.elements["reduction-input"].value, "",
     "Campo de entrada deve ser limpo após descarte.");
+});
+
+test("descarte de prévia envia requisição para /api/preview/discard com corpo vazio", async () => {
+  const withPending = {
+    ...readyWithBudgetPlan,
+    pending_adjustment: {
+      report_id: "test-report-abc",
+      preview_id: 1,
+      reduction_cents: 10000,
+      preview: {
+        reduction_cents: 10000,
+        minimum_cents: 0,
+        gap_to_buffer_cents: 20000,
+        meets_buffer: false,
+        flexible_total_cents: 30000,
+        warning: "Margem não atingida.",
+      },
+    },
+  };
+  const afterDiscard = {...readyWithBudgetPlan, pending_adjustment: null};
+  const app = await harness(withPending);
+  // Aciona o descarte: chama /api/preview/discard com corpo {}.
+  app.elements["reduction-discard"].onclick();
+  await new Promise(resolve => setImmediate(resolve));
+  // O corpo enviado para discard deve ser {}.
+  const body = app.evaluate("__lastPostBody");
+  assert.deepEqual(body, {}, "Descarte deve enviar corpo vazio ao servidor.");
 });
 
 test("painel de redução é descartado ao trocar de cenário (pending_adjustment limpo)", async () => {
@@ -542,4 +586,71 @@ test("painel de redução é descartado ao trocar de cenário (pending_adjustmen
     report: {...readyWithBudgetPlan.report, report_id: "new-report-xyz"}});
   assert.equal(app.elements["reduction-preview-panel"].hidden, true,
     "Painel de prévia deve ser ocultado quando pending_adjustment é null.");
+});
+
+test("histórico exibe [✔ personalizada] para aprovação customizada com applied_cents", async () => {
+  const withHistory = {
+    ...readyWithBudgetPlan,
+    history: [{
+      action: "budget-plan",
+      report_id: "test-report-abc",
+      label: "Ativar plano de gastos",
+      status: "accepted",
+      kind: "custom",
+      applied_cents: 15000,
+      preview_id: 1,
+      effect: "Registra um plano.",
+    }],
+  };
+  const app = await harness(withHistory);
+  const item = app.elements.history.children[0];
+  assert.ok(item, "Deve haver um item no histórico.");
+  assert.match(item.textContent, /personalizada/,
+    "Aprovação customizada deve indicar 'personalizada'.");
+  assert.match(item.textContent, /R\$.*150,00|150,00|15000/i,
+    "O valor aplicado deve aparecer no histórico.");
+});
+
+test("histórico exibe [✗ recusada] para recusa e sem valor aplicado", async () => {
+  const withHistory = {
+    ...readyWithBudgetPlan,
+    history: [{
+      action: "budget-plan",
+      report_id: "test-report-abc",
+      label: "Ativar plano de gastos",
+      status: "declined",
+      kind: "declined",
+      applied_cents: null,
+      preview_id: null,
+      effect: "Proposta recusada.",
+    }],
+  };
+  const app = await harness(withHistory);
+  const item = app.elements.history.children[0];
+  assert.ok(item, "Deve haver um item no histórico.");
+  assert.match(item.textContent, /recusada/,
+    "Recusa deve indicar 'recusada'.");
+  assert.doesNotMatch(item.textContent, /—.*R\$/,
+    "Recusa não deve mostrar valor aplicado.");
+});
+
+test("histórico exibe [✔ padrão] para aprovação padrão", async () => {
+  const withHistory = {
+    ...readyWithBudgetPlan,
+    history: [{
+      action: "budget-plan",
+      report_id: "test-report-abc",
+      label: "Ativar plano de gastos",
+      status: "accepted",
+      kind: "default",
+      applied_cents: 30000,
+      preview_id: null,
+      effect: "Registra um plano.",
+    }],
+  };
+  const app = await harness(withHistory);
+  const item = app.elements.history.children[0];
+  assert.ok(item, "Deve haver um item no histórico.");
+  assert.match(item.textContent, /padrão/,
+    "Aprovação padrão deve indicar 'padrão'.");
 });
