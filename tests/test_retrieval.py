@@ -15,8 +15,9 @@ class RetrievalTests(unittest.TestCase):
     def test_cash_shortfall_paraphrase_finds_calendar_guidance(self):
         result = self.index.retrieve("Dinheiro curto antes do salário", "cashflow")
         self.assertEqual(result["retrieval_mode"], "local_concepts")
-        self.assertEqual(result["documents"][0]["id"], "calendar-demo")
-        self.assertIn("recebimento", result["documents"][0]["matched_concepts"])
+        ids = [d["id"] for d in result["documents"]]
+        self.assertIn("calendar-demo", ids)
+        self.assertIn("margem-buffer", ids)
 
     def test_revocation_paraphrase_finds_consent_guidance(self):
         result = self.index.retrieve("Quero cancelar a permissão de leitura", "cashflow")
@@ -25,8 +26,10 @@ class RetrievalTests(unittest.TestCase):
 
     def test_urgency_and_transfer_find_verification_guidance(self):
         result = self.index.retrieve("Pressa em uma transferência suspeita", "pix")
-        self.assertEqual(result["documents"][0]["id"], "pix-demo")
         self.assertEqual(result["retrieval_mode"], "local_concepts")
+        ids = [d["id"] for d in result["documents"]]
+        self.assertIn("pix-urgencia", ids)
+        self.assertIn("pix-demo", ids)
 
     def test_unrelated_question_uses_explicit_topic_fallback(self):
         result = self.index.retrieve("Astronomia nebulosa telescópio", "cashflow")

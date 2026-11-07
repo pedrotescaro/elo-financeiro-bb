@@ -12,15 +12,39 @@
     "url":null
   },
   {
+    "id":"pix-urgencia","title":"Urgência e pressão são sinais de alerta em transferências",
+    "topics":["pix"],"type":"orientação do protótipo","reviewed_at":"2026-11-07",
+    "text":"Mensagens que criam pressa para transferir dinheiro são um padrão comum em golpes. Antes de enviar um PIX para um destinatário novo ou por um valor atípico, ligue para a pessoa por um número que você já conhece ou acesse o aplicativo oficial do banco. Não use links ou telefones recebidos na mesma mensagem que pediu a transferência.",
+    "url":null
+  },
+  {
     "id":"calendar-demo","title":"O calendário importa tanto quanto o saldo",
     "topics":["cashflow"],"type":"orientação do protótipo","reviewed_at":"2026-10-21",
     "text":"O saldo inicial, as contas e os recebimentos esperados formam o calendário da projeção. Quando a renda chega depois do vencimento, pode faltar dinheiro antes de receber. Compare o menor saldo previsto com a margem escolhida. As datas e os valores deste exemplo são sintéticos; recebimentos podem atrasar.",
     "url":null
   },
   {
+    "id":"margem-buffer","title":"Manter uma reserva antes do próximo recebimento",
+    "topics":["cashflow"],"type":"orientação do protótipo","reviewed_at":"2026-11-07",
+    "text":"A margem de segurança é o valor mínimo que você quer manter no período. Se o menor saldo projetado ficar abaixo dela, há risco de aperto de caixa antes do próximo salário ou renda. Reduzir gastos flexíveis pode elevar essa margem. Os valores deste exemplo são estimativas com entradas conhecidas, não previsões financeiras.",
+    "url":null
+  },
+  {
     "id":"purchase-demo","title":"Uma parcela menor não mostra o compromisso inteiro",
     "topics":["purchase"],"type":"orientação do protótipo","reviewed_at":"2026-10-21",
     "text":"Compare o preço da compra com o saldo e com as contas antes do próximo recebimento. No exemplo de parcelamento, somente a primeira parcela entra na projeção. As parcelas seguintes e possíveis juros precisam de uma análise mais longa. Criar uma meta demonstrativa não reserva dinheiro nem contrata a compra.",
+    "url":null
+  },
+  {
+    "id":"parcelamento-juros","title":"Parcelamento: considere o custo total e os meses seguintes",
+    "topics":["purchase"],"type":"orientação do protótipo","reviewed_at":"2026-11-07",
+    "text":"O valor total pago em parcelas com juros pode ser significativamente maior do que o preço à vista. Verifique a taxa efetiva mensal e multiplique pelo número de parcelas para comparar o custo real. Nesta demonstração apenas a primeira parcela é projetada no fluxo de caixa; os meses seguintes não aparecem no horizonte de planejamento.",
+    "url":null
+  },
+  {
+    "id":"meta-compra","title":"Meta de compra: planejamento sem compromisso imediato",
+    "topics":["purchase"],"type":"orientação do protótipo","reviewed_at":"2026-11-07",
+    "text":"Criar uma meta nesta demonstração registra a intenção de compra e estima quanto guardar por mês para atingir o valor até a data escolhida. Isso não reserva dinheiro nem aciona nenhuma operação bancária. O prazo e o valor sugeridos são calculados com os dados sintéticos do cenário.",
     "url":null
   }
 ]
