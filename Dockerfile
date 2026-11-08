@@ -7,6 +7,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 WORKDIR /app
 COPY elo/ ./elo/
 COPY web/ ./web/
+COPY assets/ ./assets/
 COPY data/ ./data/
 
 # A demonstração não precisa escrever arquivos nem executar como root.

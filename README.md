@@ -26,6 +26,10 @@ python -m elo.server
 
 Abra **http://127.0.0.1:8000**. Não é necessário instalar pacotes. A sessão existe apenas na memória, expira após 30 minutos sem uso e é descartada ao reiniciar o servidor.
 
+Para explicar a proposta, clique em **Apresentar a ideia**. A apresentação percorre problema, proposta, jornada prática e tecnologias, com navegação pelos tópicos ou pelas setas do teclado. **Demonstrar na prática** abre o cenário real; a leitura dos dados continua dependendo da autorização na interface. **Reiniciar cenário** restaura os dados fictícios e limpa os planos, mantendo o consentimento atual.
+
+Os textos dos campos da competição estão em [Inscrição](docs/INSCRICAO.md), e a narração sugerida está em [Roteiro](docs/DEMO.md).
+
 ```bash
 python -m unittest discover -s tests -v
 ```

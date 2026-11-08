@@ -1,5 +1,6 @@
 import http.cookiejar
 import json
+from pathlib import Path
 from threading import Thread
 import unittest
 from urllib.error import HTTPError
@@ -55,9 +56,19 @@ class HTTPTests(unittest.TestCase):
         self.assertEqual(error.exception.code, 400)
 
     def test_static_path_traversal_rejected(self):
-        with self.assertRaises(HTTPError) as error:
-            self.client.open(self.base + "/../data/scenarios.json")
-        self.assertEqual(error.exception.code, 404)
+        for path in ["/../data/scenarios.json", "/assets/../data/scenarios.json", "/assets/unknown.png"]:
+            with self.subTest(path=path):
+                with self.assertRaises(HTTPError) as error:
+                    self.client.open(self.base + path)
+                self.assertEqual(error.exception.code, 404)
+                error.exception.close()
+
+    def test_readme_logo_is_served_as_original_png(self):
+        logo = Path(__file__).resolve().parents[1] / "assets" / "logo-elo-financeiro.png"
+        with self.client.open(self.base + "/assets/logo-elo-financeiro.png") as response:
+            self.assertEqual(response.status, 200)
+            self.assertEqual(response.headers["Content-Type"], "image/png")
+            self.assertEqual(response.read(), logo.read_bytes())
 
     # ── T4: stale approval via HTTP ──────────────────────────────────────────
     def test_stale_report_id_returns_400(self):

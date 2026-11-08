@@ -65,8 +65,11 @@ const ready = {
 async function harness(first = initial) {
   const elements = {};
   const buttonIds = new Set([
-    "start", "consent-toggle", "monitor", "retry", "text-size",
+    "start", "consent-toggle", "monitor", "retry", "text-size", "demo-reset",
     "reduction-preview", "reduction-approve", "reduction-discard",
+    "presenter-launch", "presentation-close", "pitch-previous", "pitch-next",
+    "pitch-demo-month", "pitch-demo-purchase", "pitch-demo-pix",
+    "pitch-tab-0", "pitch-tab-1", "pitch-tab-2", "pitch-tab-3",
   ]);
   for (const match of html.matchAll(/id="([^"]+)"/g)) {
     elements[match[1]] = new Element(buttonIds.has(match[1]) ? "button" : "div");
@@ -85,6 +88,7 @@ async function harness(first = initial) {
       documentElement: new Element(),
     },
     fetch: async (url, options) => {
+      context.__lastUrl = url;
       if (response instanceof Error) throw response;
       // Captura o último body enviado para inspeção nos testes.
       if (options && options.body) {
@@ -109,11 +113,81 @@ async function harness(first = initial) {
 test("startup network error leaves a working retry and blocks consent until loaded", async () => {
   const app = await harness(new TypeError("fetch failed"));
   assert.equal(app.elements.start.disabled, true);
+  assert.equal(app.elements["demo-reset"].disabled, true);
   assert.equal(app.elements.retry.hidden, false);
   assert.match(app.elements.error.textContent, /conectar ao servidor/);
   await app.load(initial);
   assert.equal(app.elements.start.disabled, false);
   assert.equal(app.elements.retry.hidden, true);
+});
+
+test("demo progress reflects decisions without claiming a skipped step was completed", async () => {
+  const app = await harness();
+  assert.equal(app.elements["step-consent"].attrs["aria-current"], "step");
+  await app.load(ready);
+  assert.equal(app.elements["step-consent"].attrs["data-state"], "done");
+  assert.equal(app.elements["step-plan"].attrs["aria-current"], "step");
+  assert.equal(app.elements["step-monitor"].attrs["data-state"], "done");
+  await app.load({...ready, monitor_done: false, history: [{status: "accepted"}]});
+  assert.equal(app.elements["step-plan"].attrs["data-state"], "done");
+  assert.equal(app.elements["step-monitor"].attrs["aria-current"], "step");
+  await app.load(initial);
+  assert.equal(app.elements["step-plan"].attrs["data-state"], "upcoming");
+  assert.equal(app.elements["step-monitor"].attrs["data-state"], "upcoming");
+});
+
+test("restart uses the active scenario endpoint so plans and simulated expense reset together", async () => {
+  const app = await harness({...ready, scenario: "purchase"});
+  await app.elements["demo-reset"].onclick();
+  assert.equal(app.evaluate("__lastUrl"), "/api/scenario");
+  assert.deepEqual(JSON.parse(JSON.stringify(app.evaluate("__lastPostBody"))), {name: "purchase"});
+});
+
+test("PIX progress guides inspection of signals without requiring a nonexistent plan", async () => {
+  const app = await harness({...ready, scenario: "pix"});
+  assert.equal(app.elements["step-plan-label"].textContent, "Confira os sinais");
+  assert.equal(app.elements["step-plan"].attrs["aria-current"], "step");
+  assert.equal(app.elements["step-monitor"].hidden, true);
+  await app.load({...ready, scenario: "month"});
+  assert.equal(app.elements["step-monitor"].hidden, false);
+});
+
+test("presentation opens without reading financial data and returns without changing consent", async () => {
+  const app = await harness();
+  app.elements["presenter-launch"].onclick();
+  assert.equal(app.elements["presentation-panel"].hidden, false);
+  assert.equal(app.elements["dashboard-view"].hidden, true);
+  assert.equal(app.evaluate("state.consent"), false);
+  assert.equal(app.evaluate("__lastUrl"), "/api/state");
+  app.elements["presentation-close"].onclick();
+  assert.equal(app.elements["dashboard-view"].hidden, false);
+  assert.equal(app.elements["presentation-panel"].hidden, true);
+  assert.equal(app.evaluate("state.consent"), false);
+});
+
+test("presentation navigation stays bounded and topic tabs select the requested frame", async () => {
+  const app = await harness();
+  app.elements["presenter-launch"].onclick();
+  assert.equal(app.elements["pitch-previous"].disabled, true);
+  app.elements["pitch-tab-3"].onclick();
+  assert.equal(app.elements["pitch-slide-3"].hidden, false);
+  assert.equal(app.elements["pitch-next"].disabled, true);
+  app.evaluate("showPresentationSlide(100)");
+  assert.equal(app.evaluate("presentationIndex"), 3);
+  app.elements["pitch-previous"].onclick();
+  assert.equal(app.elements["pitch-slide-2"].hidden, false);
+  assert.equal(app.elements["pitch-slide-3"].hidden, true);
+  assert.equal(app.elements["pitch-position"].textContent, "3 de 4");
+});
+
+test("presentation journey shortcuts reset the selected scenario without granting consent", async () => {
+  const app = await harness();
+  app.elements["presenter-launch"].onclick();
+  await app.elements["pitch-demo-pix"].onclick();
+  assert.equal(app.elements["dashboard-view"].hidden, false);
+  assert.equal(app.evaluate("__lastUrl"), "/api/scenario");
+  assert.equal(app.evaluate("__lastPostBody.name"), "pix");
+  assert.equal(app.evaluate("state.consent"), false);
 });
 
 test("monitor stays disabled after request cleanup and subsequent refresh", async () => {
@@ -423,6 +497,8 @@ test("aviso de margem não atingida é exibido quando meets_buffer é false", as
   assert.equal(app.elements["reduction-preview-warning"].hidden, false,
     "Aviso de margem não atingida deve estar visível quando meets_buffer é false.");
   assert.match(app.elements["reduction-preview-warning"].textContent, /abaixo da margem/);
+  assert.match(app.elements["reduction-preview-warning"].textContent, /R\$.*250,00/);
+  assert.doesNotMatch(app.elements["reduction-preview-warning"].textContent, /centavos/);
 });
 
 test("aviso de margem oculto quando meets_buffer é true", async () => {

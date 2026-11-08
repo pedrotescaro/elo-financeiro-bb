@@ -5,6 +5,8 @@
 !elo/**
 !web/
 !web/**
+!assets/
+!assets/logo-elo-financeiro.png
 !data/
 !data/**
 **/__pycache__/

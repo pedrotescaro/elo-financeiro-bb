@@ -1,63 +1,168 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#132c5c">
   <title>Elo Financeiro · Sua próxima decisão, com mais clareza</title>
-  <link rel="stylesheet" href="/style.css"><script defer src="/app.js"></script>
+  <link rel="icon" href="/assets/logo-elo-financeiro.png" type="image/png">
+  <link rel="stylesheet" href="/style.css">
+  <script defer src="/app.js"></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Pular para o conteúdo</a>
   <div class="shell">
-    <aside>
-      <a class="brand" href="/" aria-label="Elo Financeiro, início"><span class="mark">e</span><span>elo<span class="brand-sub">financeiro</span></span></a>
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="Elo Financeiro, início"><img src="/assets/logo-elo-financeiro.png" alt="Elo Financeiro" width="1774" height="887"></a>
       <p class="side-caption">Sua próxima decisão,<br>com mais clareza.</p>
-      <nav aria-label="Cenários da demonstração"><p class="eyebrow">EXPERIMENTE UMA JORNADA</p><div id="scenarios"></div></nav>
+      <nav aria-label="Cenários da demonstração"><h2 class="nav-heading">Explore os cenários</h2><div id="scenarios"></div></nav>
+      <div class="side-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6l8-3Z"/><path d="m8 12 3 3 5-6"/></svg>
+        <p>Você escolhe cada passo.<span>Nenhum dinheiro é movimentado nesta demonstração.</span></p>
+      </div>
       <div class="side-bottom"><span class="tag">IBM SkillsBuild</span><p>Proposta acadêmica para o desafio de serviços financeiros do Banco do Brasil.</p><p>Sem vínculo oficial com o banco.</p></div>
     </aside>
     <main id="main" tabindex="-1">
-      <header><div><h1>Olhe para o que vem a seguir.</h1><p class="subtitle">Entenda seu saldo futuro. Escolha um plano. Acompanhe o resultado.</p></div><span class="demo-badge">DADOS SINTÉTICOS</span></header>
-      <div class="toolbar"><span id="scenario-title"></span><div class="toolbar-actions"><button class="text-button" id="text-size" aria-pressed="false">Aumentar texto</button><button class="text-button" id="consent-toggle">Autorizar leitura</button></div></div>
+      <section id="presentation-panel" class="presentation-panel" aria-label="Apresentação do Elo Financeiro" hidden>
+        <header class="pitch-header">
+          <img src="/assets/logo-elo-financeiro.png" alt="Elo Financeiro" width="1774" height="887">
+          <span class="pitch-context">IBM SkillsBuild · Proposta acadêmica</span>
+          <button id="presentation-close" class="secondary">Voltar ao dashboard</button>
+        </header>
+        <div class="pitch-stage">
+          <section id="pitch-slide-0" class="pitch-slide" aria-labelledby="pitch-title-0">
+            <div class="pitch-copy">
+              <h1 id="pitch-title-0" tabindex="-1">O saldo de hoje<br>não conta <em>toda a história.</em></h1>
+              <p class="pitch-lede">Entre o dinheiro disponível e o próximo recebimento, existe um calendário de contas. O Elo mostra esse intervalo antes de você decidir.</p>
+              <p class="pitch-purpose">Nosso objetivo<strong>Preservar uma margem financeira até o próximo recebimento.</strong></p>
+            </div>
+            <figure class="story-figure">
+              <div class="story-heading"><h2>O aperto está entre as datas.</h2><span>Exemplo fictício</span></div>
+              <svg viewBox="0 0 520 310" role="img" aria-labelledby="story-title story-desc">
+                <title id="story-title">O saldo fica negativo antes do recebimento</title><desc id="story-desc">No cenário inicial, o saldo começa em 1.500 reais em 7 de outubro, chega a menos 100 reais em 13 de outubro e termina em 1.700 reais em 15 de outubro.</desc>
+                <path class="story-fill" d="M44 94 254 238 476 76V270H44Z"/>
+                <path class="story-zero" d="M36 225H484"/><text x="484" y="246" text-anchor="end" class="story-axis">Saldo zero</text><path class="story-line" d="m44 94 210 144 222-162"/>
+                <circle cx="44" cy="94" r="6" class="story-dot"/><circle cx="254" cy="238" r="8" class="story-low"/><circle cx="476" cy="76" r="6" class="story-dot"/>
+                <text x="36" y="58" class="story-value">R$ 1.500</text><text x="254" y="207" text-anchor="middle" class="story-value story-negative">−R$ 100</text><text x="484" y="40" text-anchor="end" class="story-value">R$ 1.700</text>
+                <text x="36" y="298" class="story-axis">07/10 · hoje</text><text x="254" y="298" text-anchor="middle" class="story-axis">13/10 · contas</text><text x="484" y="298" text-anchor="end" class="story-axis">15/10 · entrada</text>
+              </svg>
+              <figcaption>Um saldo final positivo não elimina o aperto que acontece antes.</figcaption>
+            </figure>
+          </section>
+          <section id="pitch-slide-1" class="pitch-slide" aria-labelledby="pitch-title-1" hidden>
+            <div class="pitch-copy"><h1 id="pitch-title-1" tabindex="-1">Antecipar.<br>Explicar.<br><em>Você decide.</em></h1><p class="pitch-lede">O Elo combina o calendário, as ferramentas de cálculo e a sua autorização para transformar uma previsão em um próximo passo possível.</p><p class="pitch-purpose">Uma escolha informada<strong>O impacto aparece antes da aprovação.</strong></p></div>
+            <ol class="solution-sequence">
+              <li><span>1</span><div><h2>Enxerga o que vem a seguir</h2><p>Projeta o saldo e encontra o ponto de menor margem.</p></div></li>
+              <li><span>2</span><div><h2>Explica uma alternativa</h2><p>Mostra os valores, as hipóteses e o efeito do ajuste.</p></div></li>
+              <li><span>3</span><div><h2>Espera a sua escolha</h2><p>Você pode aprovar, personalizar ou recusar a proposta.</p></div></li>
+              <li><span>4</span><div><h2>Reavalia quando algo muda</h2><p>Uma nova despesa muda a projeção e a recomendação.</p></div></li>
+            </ol>
+          </section>
+          <section id="pitch-slide-2" class="pitch-slide" aria-labelledby="pitch-title-2" hidden>
+            <div class="pitch-copy"><h1 id="pitch-title-2" tabindex="-1">Uma mudança.<br><em>Um novo cenário.</em></h1><p class="pitch-lede">A demonstração acompanha uma decisão completa: identificar o aperto, aprovar um plano e perceber o impacto de uma nova despesa.</p><button id="pitch-demo-month" class="pitch-primary">Demonstrar na prática <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg></button><div class="pitch-other-journeys"><span>Outras jornadas</span><button id="pitch-demo-purchase">Comparar uma compra</button><button id="pitch-demo-pix">Conferir um PIX</button></div></div>
+            <div class="outcome-story" aria-label="Jornada com dados fictícios">
+              <div><span class="outcome-label">Antes do plano</span><strong class="outcome-negative">−R$ 100</strong><p>Menor saldo previsto antes de receber.</p></div>
+              <div><span class="outcome-label">Redução de R$ 300 aprovada</span><strong>R$ 200</strong><p>A projeção preserva a margem desejada.</p></div>
+              <div><span class="outcome-label">Nova despesa de R$ 150</span><strong>R$ 50</strong><p>O contexto mudou. A análise também.</p></div>
+              <small>Valores do cenário inicial. Nenhum dinheiro é movimentado.</small>
+            </div>
+          </section>
+          <section id="pitch-slide-3" class="pitch-slide pitch-technology" aria-labelledby="pitch-title-3" hidden>
+            <div class="pitch-copy"><h1 id="pitch-title-3" tabindex="-1">Autonomia com<br><em>limites claros.</em></h1><p class="pitch-lede">As ferramentas calculam. O código valida permissões. A pessoa autoriza cada plano.</p><p class="pitch-purpose">Protótipo executável<strong>Python, HTML, CSS e JavaScript. Dados sintéticos e decisões rastreáveis.</strong></p><a class="pitch-repository" href="https://github.com/pedrotescaro/elo-financeiro-bb" target="_blank" rel="noopener noreferrer">Conhecer o código do projeto</a></div>
+            <dl class="technology-list">
+              <div><dt><span>Ferramentas locais</span><small>Em funcionamento</small></dt><dd>Projeção de caixa, comparação de compra, sinais ilustrativos de risco e orientações curadas. Demonstração por regras.</dd></div>
+              <div><dt><span>IBM Bob</span><small>Registro da equipe</small></dt><dd>O checkpoint relata apoio ao desenvolvimento e aos testes. Capturas e exportações originais ainda precisam ser anexadas.</dd></div>
+              <div><dt><span>IBM watsonx.ai</span><small>Adaptador opcional</small></dt><dd>Seleção limitada de ferramentas. A chamada real na conta IBM ainda não foi validada.</dd></div>
+              <div><dt><span>watsonx Orchestrate</span><small>Não integrado</small></dt><dd>O protótipo atual não utiliza a plataforma Orchestrate. A execução local não substitui esse requisito do programa.</dd></div>
+            </dl>
+          </section>
+        </div>
+        <footer class="pitch-footer"><nav aria-label="Tópicos da apresentação"><button id="pitch-tab-0" aria-current="step">O problema</button><button id="pitch-tab-1">A proposta</button><button id="pitch-tab-2">Na prática</button><button id="pitch-tab-3">A tecnologia</button></nav><div class="pitch-pagination"><span id="pitch-position" aria-live="polite">1 de 4</span><button id="pitch-previous" class="secondary" aria-label="Tópico anterior">Anterior</button><button id="pitch-next" class="primary" aria-label="Próximo tópico">Avançar</button></div></footer>
+      </section>
+      <div id="dashboard-view">
+      <header class="page-header">
+        <div><h1>Sua visão financeira</h1><p class="subtitle">Entenda seu saldo futuro. Escolha um plano. Acompanhe o resultado.</p></div>
+        <div class="header-actions"><span class="demo-badge"><span aria-hidden="true"></span>Dados sintéticos</span><button id="presenter-launch" class="primary" aria-expanded="false" aria-controls="presentation-panel">Apresentar a ideia</button></div>
+      </header>
+      <div class="toolbar">
+        <div class="scenario-meta"><strong id="scenario-title"></strong><span id="scenario-period"></span></div>
+        <div class="toolbar-actions">
+          <button class="text-button" id="text-size" aria-pressed="false">Aumentar texto</button>
+          <button class="text-button" id="consent-toggle">Autorizar leitura</button>
+          <button class="reset-button" id="demo-reset" title="Restaurar os dados e limpar planos deste cenário"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6"/></svg>Reiniciar cenário</button>
+        </div>
+      </div>
+      <ol class="demo-progress" aria-label="Etapas da demonstração">
+        <li id="step-consent" data-state="current" aria-current="step"><span class="step-number" aria-hidden="true">1</span><span>Autorize a análise</span></li>
+        <li id="step-plan" data-state="upcoming"><span class="step-number" aria-hidden="true">2</span><span id="step-plan-label">Escolha um plano</span></li>
+        <li id="step-monitor" data-state="upcoming"><span class="step-number" aria-hidden="true">3</span><span>Acompanhe o impacto</span></li>
+      </ol>
       <p id="status" role="status" aria-live="polite" class="status-message"></p>
       <p id="error" role="alert" aria-live="assertive" class="sr-only"></p>
       <button id="retry" class="secondary" hidden>Carregar cenário novamente</button>
       <p id="notice" class="notice" hidden></p>
-      <section id="consent-panel" class="consent-panel"><span class="large-icon" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 13h26m-7-7 7 7-7 7M33 27H7m7-7-7 7 7 7"/></svg></span><h2>Comece com uma escolha sua.</h2><p>Autorize o agente a analisar os dados fictícios deste cenário. Você pode desativar a leitura e limpar os planos desta sessão quando quiser.</p><button class="primary" id="start">Autorizar dados da demonstração</button><small>Esta autorização demonstra a experiência do produto. Não conecta contas bancárias.</small></section>
+      <section id="consent-panel" class="consent-panel">
+        <div class="consent-intro">
+          <span class="large-icon" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 13h26m-7-7 7 7-7 7M33 27H7m7-7-7 7 7 7"/></svg></span>
+          <h2>Comece com uma escolha sua.</h2>
+          <p>Autorize o agente a analisar os dados fictícios deste cenário. Você pode desativar a leitura e limpar os planos desta sessão quando quiser.</p>
+          <button class="primary" id="start">Autorizar dados da demonstração <span aria-hidden="true">→</span></button>
+          <small>Esta autorização demonstra a experiência do produto. Não conecta contas bancárias.</small>
+        </div>
+        <div class="consent-preview" aria-label="O que você vai experimentar">
+          <h3>Uma decisão de cada vez.</h3><p>Veja como o calendário das contas muda a leitura do seu saldo.</p>
+          <ul><li>Projeção de saldo, dia a dia</li><li>Alternativas antes de decidir</li><li>Reavaliação após uma nova despesa</li></ul>
+          <span class="preview-note">Você autoriza. O Elo calcula. Você decide.</span>
+        </div>
+      </section>
       <div id="workspace" hidden>
-        <section class="insight"><h2 id="report-title" tabindex="-1"></h2><p id="report-description"></p><span id="mode" class="mode"></span></section>
-        <section class="metrics" aria-label="Resumo da projeção"><article><p>Menor saldo previsto</p><strong id="minimum"></strong><small id="minimum-date"></small></article><article><p>Margem desejada</p><strong id="buffer"></strong><small>Referência deste cenário</small></article><article><p>Saldo no fim do período</p><strong id="closing"></strong><small id="horizon"></small></article></section>
-        <div class="content-grid"><section class="card"><div class="section-head"><h2>Seu saldo, dia a dia</h2><span class="tag">ESTIMATIVA</span></div>
-          <figure class="balance-figure"><div id="balance-chart"></div><figcaption id="chart-caption"></figcaption></figure>
-          <p class="chart-legend"><span class="legend-balance">Saldo previsto</span><span class="legend-buffer">Margem desejada</span><span class="legend-low">Menor saldo</span></p>
-          <div class="table-wrap" tabindex="0" role="region" aria-label="Tabela com todos os valores da projeção"><table><caption class="sr-only">Projeção de fechamento diário</caption><thead><tr><th scope="col">Dia</th><th scope="col">O que está previsto</th><th scope="col">Saldo</th></tr></thead><tbody id="daily"></tbody></table></div><p class="footnote">Projeção por fechamento diário. Não representa a ordem das movimentações no mesmo dia.</p></section><section class="card action-card"><h2>Um próximo passo possível</h2><div id="actions"></div>
-          <div id="reduction-panel" hidden>
-            <h3>Quanto consigo reduzir</h3>
-            <p class="footnote">Informe um valor em reais para ver como a redução dos gastos flexíveis afetaria sua projeção. Despesas essenciais não serão alteradas.</p>
-            <div class="reduction-form">
-              <label for="reduction-input">Valor a reduzir (R$)</label>
-              <input id="reduction-input" type="text" inputmode="decimal" autocomplete="off" placeholder="Ex.: 150,00" aria-describedby="reduction-error reduction-hint"/>
-              <span id="reduction-hint" class="footnote">Digite o valor em reais. Exemplo: 150,00 para R$ 150,00.</span>
-              <p id="reduction-error" role="alert" aria-live="polite" class="reduction-error sr-only"></p>
-              <button id="reduction-preview" class="secondary">Ver prévia da redução</button>
-            </div>
-            <div id="reduction-preview-panel" hidden>
-              <p id="reduction-preview-result"></p>
-              <p id="reduction-preview-warning" class="notice" hidden></p>
-              <div class="action-buttons">
-                <button id="reduction-approve" class="primary">Aprovar redução personalizada</button>
-                <button id="reduction-discard" class="secondary">Descartar prévia</button>
-              </div>
-            </div>
-          </div>
-          <p class="footnote">Aprovar registra um plano demonstrativo. Nenhum dinheiro é movimentado.</p></section></div>
+        <section class="insight"><div><h2 id="report-title" tabindex="-1"></h2><p id="report-description"></p></div><span id="projection-state" class="projection-state"></span></section>
+        <section class="metrics" aria-label="Resumo da projeção">
+          <article class="metric-primary"><p>Menor saldo previsto</p><strong id="minimum"></strong><small id="minimum-date"></small></article>
+          <article><p>Margem desejada</p><strong id="buffer"></strong><small>Referência deste cenário</small></article>
+          <article><p>Saldo no fim do período</p><strong id="closing"></strong><small id="horizon"></small></article>
+        </section>
         <section id="special" class="card special" hidden></section>
-        <section class="monitor-row"><div><h2>O plano continua depois da escolha.</h2><p>Simule uma nova despesa de R$ 150,00 e veja a recomendação ser atualizada.</p></div><button id="monitor" class="secondary">Simular nova despesa</button></section>
-        <section class="card explanations-panel" aria-labelledby="explanations-title"><h2 id="explanations-title">Por que o Elo sugeriu isso</h2><p>Confira os valores, as hipóteses e os limites de cada decisão.</p><div id="explanations"></div></section>
-        <details class="card trace"><summary id="trace-title">Ferramentas e orientações consultadas</summary><div aria-labelledby="trace-title"><p id="trace-description"></p><ol id="trace"></ol><div id="sources"></div></div></details>
-        <section id="history-panel" class="card" hidden><h2>Suas escolhas nesta sessão</h2><ul id="history"></ul></section>
-        <section id="goals-panel" class="card" hidden aria-labelledby="goals-title"><h2 id="goals-title">Metas desta sessão</h2><p class="footnote">Registros de intenção. Nenhum dinheiro foi reservado ou movimentado.</p><ul id="goals"></ul></section>
+        <div class="content-grid">
+          <section class="card chart-card">
+            <div class="section-head"><h2>Seu saldo, dia a dia</h2><span class="tag">Estimativa</span></div>
+            <figure class="balance-figure"><div id="balance-chart"></div><figcaption id="chart-caption"></figcaption></figure>
+            <p class="chart-legend"><span class="legend-balance">Saldo previsto</span><span class="legend-buffer">Margem desejada</span><span class="legend-low">Menor saldo</span></p>
+            <details class="daily-details"><summary>Ver os valores de cada dia</summary>
+              <div class="table-wrap" tabindex="0" role="region" aria-label="Tabela com todos os valores da projeção"><table><caption class="sr-only">Projeção de fechamento diário</caption><thead><tr><th scope="col">Dia</th><th scope="col">O que está previsto</th><th scope="col">Saldo</th></tr></thead><tbody id="daily"></tbody></table></div>
+              <p class="footnote">Projeção por fechamento diário. Não representa a ordem das movimentações no mesmo dia.</p>
+            </details>
+          </section>
+          <section class="card action-card">
+            <div class="section-head"><h2>Um próximo passo possível</h2><svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 17 10 11l4 4 6-10M14 5h6v6"/></svg></div>
+            <div id="actions"></div>
+            <div id="reduction-panel" hidden>
+              <details class="reduction-details" id="reduction-options"><summary>Ajustar o valor da redução</summary>
+                <h3>Quanto consigo reduzir</h3><p class="footnote">Informe um valor em reais para ver como a redução dos gastos flexíveis afetaria sua projeção. Despesas essenciais não serão alteradas.</p>
+                <div class="reduction-form">
+                  <label for="reduction-input">Valor a reduzir (R$)</label>
+                  <div class="input-action"><input id="reduction-input" type="text" inputmode="decimal" autocomplete="off" placeholder="Ex.: 150,00" aria-describedby="reduction-error reduction-hint"><button id="reduction-preview" class="secondary">Ver prévia da redução</button></div>
+                  <span id="reduction-hint" class="footnote">Digite o valor em reais. Exemplo: 150,00 para R$ 150,00.</span>
+                  <p id="reduction-error" role="alert" aria-live="polite" class="reduction-error sr-only"></p>
+                </div>
+                <div id="reduction-preview-panel" hidden><p id="reduction-preview-result"></p><p id="reduction-preview-warning" class="notice" hidden></p><div class="action-buttons"><button id="reduction-approve" class="primary">Aprovar redução personalizada</button><button id="reduction-discard" class="secondary">Descartar prévia</button></div></div>
+              </details>
+            </div>
+            <p class="footnote action-disclaimer">Aprovar registra um plano demonstrativo. Nenhum dinheiro é movimentado.</p>
+            <section class="monitor-row"><div><h3>O plano continua depois da escolha.</h3><p id="monitor-copy">Simule uma nova despesa de R$ 150,00 e veja a recomendação ser atualizada.</p></div><button id="monitor" class="secondary">Simular nova despesa</button></section>
+          </section>
+        </div>
+        <p id="mode" class="mode"></p>
+        <div class="support-grid">
+          <details class="card explanations-panel" aria-labelledby="explanations-title"><summary id="explanations-title">Por que o Elo sugeriu isso</summary><p>Confira os valores, as hipóteses e os limites de cada decisão.</p><div id="explanations"></div></details>
+          <details class="card trace"><summary id="trace-title">Ferramentas e orientações consultadas</summary><div aria-labelledby="trace-title"><p id="trace-description"></p><ol id="trace"></ol><div id="sources"></div></div></details>
+        </div>
+        <section id="history-panel" class="card session-panel" hidden><h2>Suas escolhas nesta sessão</h2><ul id="history"></ul></section>
+        <section id="goals-panel" class="card session-panel" hidden aria-labelledby="goals-title"><h2 id="goals-title">Metas desta sessão</h2><p class="footnote">Registros de intenção. Nenhum dinheiro foi reservado ou movimentado.</p><ul id="goals"></ul></section>
       </div>
-      <section id="audit-panel" class="card audit-panel" aria-labelledby="audit-title" hidden><h2 id="audit-title">O que aconteceu nesta sessão</h2><p>Consultas, autorizações e revogações. Registros temporários, apagados ao encerrar a sessão no servidor.</p><ol id="audit"></ol></section>
-      <footer>Protótipo educacional · Valores e cenários fictícios · Projeções não garantem resultados futuros</footer>
+      <details id="audit-panel" class="card audit-panel" aria-labelledby="audit-title" hidden><summary id="audit-title">O que aconteceu nesta sessão</summary><p>Consultas, autorizações e revogações. Registros temporários, apagados ao encerrar a sessão no servidor.</p><ol id="audit"></ol></details>
+      <footer><span>Elo Financeiro</span><span>Protótipo educacional · Valores e cenários fictícios · Projeções não garantem resultados futuros</span></footer>
+      </div>
     </main>
   </div>
 </body>

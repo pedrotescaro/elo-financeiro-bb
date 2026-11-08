@@ -462,13 +462,17 @@ class Handler(BaseHTTPRequestHandler):
             except RuntimeError:
                 self.send_json(503, {"error": "A demonstração está ocupada."})
             return
-        routes = {"/": ("index.html", "text/html"), "/app.js": ("app.js", "text/javascript"),
-                  "/style.css": ("style.css", "text/css")}
+        routes = {
+            "/": (ROOT / "web" / "index.html", "text/html; charset=utf-8"),
+            "/app.js": (ROOT / "web" / "app.js", "text/javascript; charset=utf-8"),
+            "/style.css": (ROOT / "web" / "style.css", "text/css; charset=utf-8"),
+            "/assets/logo-elo-financeiro.png": (ROOT / "assets" / "logo-elo-financeiro.png", "image/png"),
+        }
         if path not in routes:
             self.send_json(404, {"error": "Recurso não encontrado."})
             return
-        name, mime = routes[path]
-        self.send_bytes(200, (ROOT / "web" / name).read_bytes(), mime + "; charset=utf-8")
+        file_path, mime = routes[path]
+        self.send_bytes(200, file_path.read_bytes(), mime)
 
     def do_POST(self) -> None:
         new_cookie = None

@@ -1,6 +1,8 @@
 "use strict";
 let state;
 let busy = false;
+let presentationOpen = false;
+let presentationIndex = 0;
 const $ = id => document.getElementById(id);
 const integerFormat = new Intl.NumberFormat("pt-BR", {maximumFractionDigits:0});
 const money = cents => {
@@ -34,11 +36,13 @@ function syncControls(){
   document.querySelectorAll("button").forEach(b => b.disabled = busy);
   $("start").disabled = busy || !state;
   $("consent-toggle").disabled = busy || !state;
+  $("demo-reset").disabled = busy || !state;
   const monitorDone = state?.monitor_done === true;
   $("monitor").disabled = busy || !state?.consent || monitorDone;
   $("monitor").textContent = monitorDone ? "Despesa já simulada" : "Simular nova despesa";
   $("monitor").setAttribute("aria-disabled", String($("monitor").disabled));
   $("main").setAttribute("aria-busy", String(busy));
+  syncPresentationControls();
   // Controles do painel de redução são gerenciados apenas quando ele está visível.
   if($("reduction-panel") && !$("reduction-panel").hidden){
     const hasPreview = state?.pending_adjustment != null;
@@ -46,6 +50,37 @@ function syncControls(){
     $("reduction-discard").disabled = busy || !hasPreview;
     $("reduction-preview").disabled = busy;
   }
+}
+
+function syncPresentationControls(){
+  $("pitch-previous").disabled = busy || presentationIndex === 0;
+  $("pitch-next").disabled = busy || presentationIndex === 3;
+}
+
+function showPresentationSlide(index){
+  presentationIndex = Math.max(0,Math.min(3,index));
+  for(let i=0;i<4;i++){
+    $("pitch-slide-"+i).hidden = i !== presentationIndex;
+    $("pitch-tab-"+i).setAttribute("aria-current",i === presentationIndex ? "step" : "false");
+  }
+  $("pitch-position").textContent = `${presentationIndex+1} de 4`;
+  syncPresentationControls();
+}
+
+function setPresentation(enabled){
+  presentationOpen = enabled;
+  $("presentation-panel").hidden = !enabled;
+  $("dashboard-view").hidden = enabled;
+  $("presenter-launch").setAttribute("aria-expanded",String(enabled));
+  document.documentElement.classList[enabled ? "add" : "remove"]("presentation-mode");
+  showPresentationSlide(enabled ? 0 : presentationIndex);
+  const focusTarget = enabled ? $("pitch-title-0") : $("presenter-launch");
+  if(typeof focusTarget.focus === "function") focusTarget.focus({preventScroll:true});
+}
+
+async function demonstrateScenario(name){
+  setPresentation(false);
+  if(state) await request("/api/scenario",{name});
 }
 
 async function request(path, body){
@@ -149,9 +184,11 @@ function renderChart(flow){
   svg.append(svgNode("title",{id:"chart-title"},"Saldo previsto por fechamento diário"),
     svgNode("desc",{id:"chart-description"},`Menor saldo: ${money(flow.minimum_cents)} em ${day(flow.minimum_date)}. Margem desejada: ${money(flow.buffer_cents)}. Consulte todos os valores na tabela abaixo.`));
   const line = (value,className) => svgNode("line",{x1:left,x2:right,y1:y(value),y2:y(value),class:className});
+  const points = values.map((value,index)=>`${x(index)},${y(value)}`).join(" ");
+  svg.append(svgNode("polygon",{points:`${left},${bottom} ${points} ${right},${bottom}`,class:"chart-area"}));
+  [0.25,0.5,0.75].forEach(fraction => svg.append(line(low + (high-low) * fraction,"chart-grid")));
   svg.append(line(0,"chart-zero"),line(flow.buffer_cents,"chart-buffer"));
   svg.append(svgNode("text",{x:right,y:y(0)-7,"text-anchor":"end",class:"chart-label"},"zero"));
-  const points = values.map((value,index)=>`${x(index)},${y(value)}`).join(" ");
   svg.append(svgNode("polyline",{points,class:"chart-line"}));
   flow.daily.forEach((row,index)=>{
     const isLowest = row.date === flow.minimum_date;
@@ -166,11 +203,44 @@ function renderChart(flow){
   $("chart-caption").textContent = `Menor saldo: ${money(flow.minimum_cents)} em ${day(flow.minimum_date)}${flow.minimum_cents < 0 ? " (abaixo de zero)" : ""}. Margem desejada: ${money(flow.buffer_cents)}.`;
 }
 
+function renderDemoProgress(){
+  const isPix = state.scenario === "pix";
+  const hasDecision = state.history.some(entry => entry.status === "accepted" || entry.status === "declined");
+  const active = !state.consent ? 0 : !isPix && hasDecision ? 2 : 1;
+  const completed = [state.consent, state.consent && hasDecision, state.consent && state.monitor_done];
+  $("step-plan-label").textContent = isPix ? "Confira os sinais" : state.scenario === "purchase" ? "Compare as opções" : "Escolha um plano";
+  $("step-monitor").hidden = isPix;
+  ["step-consent", "step-plan", "step-monitor"].forEach((id, index) => {
+    const done = completed[index];
+    $(id).setAttribute("data-state", done ? "done" : index === active ? "current" : "upcoming");
+    $(id).setAttribute("aria-current", !done && index === active ? "step" : "false");
+  });
+}
+
+function scenarioIcon(id){
+  const paths = {
+    month: "M3 20h18M5 16v-5m7 5V4m7 12V8",
+    purchase: "M5 7h14l1 14H4L5 7Zm3 0V6a4 4 0 0 1 8 0v1",
+    pix: "m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6l8-3Zm-4 9 3 3 5-6",
+  };
+  const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  Object.entries({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"1.6","stroke-linecap":"round","stroke-linejoin":"round","aria-hidden":"true",class:"scenario-icon"}).forEach(([key,value]) => icon.setAttribute(key,value));
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("d", paths[id] || paths.month);
+  icon.append(path);
+  return icon;
+}
+
 function render(){
   renderAudit();
+  renderDemoProgress();
   $("scenarios").replaceChildren();
   state.scenarios.forEach(s => {
-    const b = node("button", s.title, s.id === state.scenario ? "active" : "");
+    const b = node("button", undefined, s.id === state.scenario ? "active" : "");
+    const label = node("span",s.title,"scenario-label");
+    const descriptions = {month:"Previsão de caixa",purchase:"Planejar a compra",pix:"Conferir um PIX"};
+    label.append(node("span",descriptions[s.id] || "Cenário demonstrativo","scenario-description"));
+    b.append(scenarioIcon(s.id),label);
     b.id = "scenario-" + s.id;
     b.setAttribute("aria-label", "Selecionar cenário: " + s.title);
     if(s.id === state.scenario) b.setAttribute("aria-current","true");
@@ -178,7 +248,10 @@ function render(){
     $("scenarios").append(b);
   });
   $("scenario-title").textContent = state.scenario_title;
-  $("consent-toggle").textContent = state.consent ? "Desativar leitura e limpar planos" : "Autorizar leitura";
+  $("scenario-period").textContent = "Cenário fictício · você controla as escolhas";
+  $("consent-toggle").textContent = state.consent ? "Desativar leitura" : "Autorizar leitura";
+  $("consent-toggle").setAttribute("aria-label",state.consent ? "Desativar leitura e limpar planos" : "Autorizar leitura");
+  $("consent-toggle").title = state.consent ? "Desativar a leitura e limpar os planos desta sessão" : "Autorizar a leitura dos dados fictícios";
   $("consent-panel").hidden = state.consent;
   $("workspace").hidden = !state.consent;
   $("notice").textContent = "";
@@ -204,6 +277,14 @@ function render(){
   $("buffer").textContent = money(flow.buffer_cents);
   $("closing").textContent = money(flow.closing_cents);
   $("horizon").textContent = `Em ${day(report.horizon)}`;
+  const firstDate = flow.daily[0]?.date;
+  $("scenario-period").textContent = firstDate ? `${day(firstDate)} a ${day(report.horizon)} · calendário fictício` : "Calendário fictício";
+  const preservesBuffer = flow.minimum_cents >= flow.buffer_cents;
+  $("projection-state").textContent = flow.minimum_cents < 0 ? "Atenção ao saldo" : preservesBuffer ? "Margem preservada" : "Margem reduzida";
+  $("projection-state").setAttribute("data-state", preservesBuffer ? "positive" : "attention");
+  $("monitor-copy").textContent = state.monitor_done
+    ? "Nova despesa de R$ 150,00 incluída. Confira o impacto na projeção e no histórico."
+    : "Simule uma nova despesa de R$ 150,00 e veja a recomendação ser atualizada.";
   renderChart(flow);
   $("daily").replaceChildren();
   flow.daily.forEach((r,index) => {
@@ -223,7 +304,14 @@ function render(){
     const wrap=node("div",undefined,"action");
     if(a.id === "budget-plan"){
       wrap.append(node("p",`Proposta: reduzir ${money(a.reduction_cents)} dos gastos flexíveis previstos. As despesas essenciais permanecem na projeção.`));
-      wrap.append(node("p",`Menor saldo: ${money(a.before_cents)} → ${money(a.after_cents)}.${a.meets_buffer ? " Margem desejada preservada." : " A margem desejada ainda não é atingida."}`,"impact"));
+      const impact = node("div",undefined,"impact");
+      const comparison = node("div",undefined,"impact-comparison");
+      const before = node("div"), after = node("div");
+      before.append(node("span","Sem este plano"),node("strong",money(a.before_cents),a.before_cents < 0 ? "negative" : ""));
+      after.append(node("span","Com este plano"),node("strong",money(a.after_cents)));
+      comparison.append(before,node("span","→","impact-arrow"),after);
+      impact.append(comparison,node("small",a.meets_buffer ? "Margem desejada preservada." : "A margem desejada ainda não é atingida."));
+      wrap.append(impact);
     } else wrap.append(node("p",`Registre a meta de ${money(a.target_cents)} e preserve sua margem antes da compra. Nenhuma aplicação automática será feita.`));
     const actionRow=node("div",undefined,"action-buttons");
     const approveBtn=node("button",a.label,"primary");
@@ -246,13 +334,16 @@ function render(){
       const pending = state.pending_adjustment;
       const previewPanel = $("reduction-preview-panel");
       if(pending && pending.report_id === report.report_id){
+        $("reduction-options").open = true;
         previewPanel.hidden = false;
         const p = pending.preview;
         $("reduction-preview-result").textContent =
           `Com redução de ${money(pending.reduction_cents)}: menor saldo previsto ${money(p.minimum_cents)}.`;
         const warnEl = $("reduction-preview-warning");
         if(p.warning){
-          warnEl.textContent = p.warning;
+          warnEl.textContent = Number.isSafeInteger(p.gap_to_buffer_cents)
+            ? `O menor saldo de ${money(p.minimum_cents)} ainda fica abaixo da margem desejada de ${money(flow.buffer_cents)}. Faltam ${money(p.gap_to_buffer_cents)} para atingir a margem.`
+            : p.warning;
           warnEl.hidden = false;
         } else {
           warnEl.textContent = "";
@@ -360,6 +451,23 @@ $("start").onclick=()=>request("/api/consent",{enabled:true});
 $("consent-toggle").onclick=()=>request("/api/consent",{enabled:!state.consent});
 $("monitor").onclick=()=>request("/api/monitor",{});
 $("retry").onclick=()=>request("/api/state");
+$("demo-reset").onclick=()=>request("/api/scenario",{name:state.scenario});
+$("presenter-launch").onclick=()=>setPresentation(true);
+$("presentation-close").onclick=()=>setPresentation(false);
+$("pitch-previous").onclick=()=>showPresentationSlide(presentationIndex-1);
+$("pitch-next").onclick=()=>showPresentationSlide(presentationIndex+1);
+for(let i=0;i<4;i++) $("pitch-tab-"+i).onclick=()=>showPresentationSlide(i);
+$("pitch-demo-month").onclick=()=>demonstrateScenario("month");
+$("pitch-demo-purchase").onclick=()=>demonstrateScenario("purchase");
+$("pitch-demo-pix").onclick=()=>demonstrateScenario("pix");
+if(typeof document.addEventListener === "function"){
+  document.addEventListener("keydown",event=>{
+    if(!presentationOpen || /^(INPUT|TEXTAREA|SELECT)$/.test(event.target.tagName)) return;
+    if(event.key === "Escape") {event.preventDefault();setPresentation(false);}
+    else if(event.key === "ArrowRight") {event.preventDefault();showPresentationSlide(presentationIndex+1);}
+    else if(event.key === "ArrowLeft") {event.preventDefault();showPresentationSlide(presentationIndex-1);}
+  });
+}
 $("reduction-preview").onclick=()=>{
   const raw = $("reduction-input").value;
   const cents = parseCents(raw);
