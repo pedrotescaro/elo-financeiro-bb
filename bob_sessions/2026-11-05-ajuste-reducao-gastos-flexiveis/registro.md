@@ -45,7 +45,10 @@ node --test tests/web_behaviors.cjs       → tests 24 | pass 24 | fail 0
 
 ## Evidências anexadas
 
-- Captura do resumo da tarefa/consumo no Bob IDE: [inserir link relativo para screenshot real — ex.: `resumo-sessao.png`]
+- Captura do painel de configurações do Bob IDE (conta, plano, uso, tarefas recentes): [`resumo-sessao.png`](resumo-sessao.png)
+  - A mesma captura em `bob_sessions/2026-11-08-mvp-completion/resumo-sessao.png` mostra esta tarefa na lista "Recent Tasks" do painel Bob (entrada "No projeto Elo Financeiro, implemento o ajuste de propostas de r… · 3 min ago").
+  - Conta: `pedroatescaro@gmail.com` · Team: `ibm-skillsbuild-ell (Region: us-east)` · Plano: `enterprise plan`
+  > **Ação necessária:** copie ou crie um link simbólico do arquivo `resumo-sessao.png` para esta pasta, ou salve uma captura dedicada a esta sessão.
 - Outras capturas exigidas pelo programa: [inserir links relativos]
-- Relatório exportado pelo Bob: [inserir link relativo, ou registrar que a edição não oferece exportação]
+- Relatório exportado pelo Bob: a edição atual não oferece exportação de relatório por tarefa.
 - Revisão dos anexos para remoção de segredos e dados pessoais: [responsável e data reais]

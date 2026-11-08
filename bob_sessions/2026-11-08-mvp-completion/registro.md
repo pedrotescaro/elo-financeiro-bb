@@ -114,9 +114,14 @@ node --test tests/web_behaviors.cjs       → tests 29 | pass 29 | fail 0
 
 ## Evidências anexadas
 
-- Captura do resumo da tarefa/consumo no Bob IDE: **[inserir screenshot real — ex.: `resumo-tarefa.png`]**
-  > Como obter: abra a tarefa no Bob IDE → selecione o cabeçalho → capture o resumo de consumo.
+- Captura do painel de configurações do Bob IDE (conta, plano, uso, tarefas recentes): [`resumo-sessao.png`](resumo-sessao.png)
+  - Conta: `pedroatescaro@gmail.com` · Team: `ibm-skillsbuild-ell (Region: us-east)`
+  - Plano: `enterprise plan` · Orçamento: 150,00 (34% usado) · Uso acumulado: 49,62
+  - Bob versão: `2.3.0`
+  - Tarefas visíveis no painel: esta sessão ("Você é um agente de desenvolvimento de software responsável p…") e a sessão anterior ("No projeto Elo Financeiro, implemento o ajuste de propostas de r…")
+  - Output do Git visível: `git blame --root --incremental 01ab24fdd…` sobre `bob_sessions/2026-11-05-ajuste-reducao-gastos-flexiveis/registro.md`
+  > **Ação necessária:** salve a imagem enviada no chat como `resumo-sessao.png` nesta pasta (`bob_sessions/2026-11-08-mvp-completion/resumo-sessao.png`).
 - Captura da saída dos testes no terminal: **[inserir screenshot — ex.: `testes-212-ok.png`]**
-- Captura das três jornadas no navegador: **[inserir screenshots — ex.: `jornada-caixa.png`, `jornada-compra.png`, `jornada-pix.png`]**
-- Relatório exportado pelo Bob: **[inserir link relativo, ou registrar que a edição não oferece exportação]**
-- Revisão dos anexos para remoção de segredos e dados pessoais: **[responsável e data reais]**
+- Captura das três jornadas no navegador: **[inserir screenshots se disponíveis — ex.: `jornada-caixa.png`]**
+- Relatório exportado pelo Bob: a edição atual não oferece exportação de relatório por tarefa; painel de configurações é a evidência disponível.
+- Revisão dos anexos para remoção de segredos e dados pessoais: [responsável e data reais — verificar que `resumo-sessao.png` não expõe tokens, chaves ou dados de clientes]
