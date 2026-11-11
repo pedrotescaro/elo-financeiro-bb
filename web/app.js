@@ -269,7 +269,12 @@ function render(){
   $("report-description").textContent = flow.first_negative_date
     ? `Mesmo com um recebimento esperado, o saldo pode chegar a ${money(flow.minimum_cents)} em ${day(flow.minimum_date)}. O calendário dos compromissos faz diferença.`
     : `O menor saldo previsto até ${day(report.horizon)} é ${money(flow.minimum_cents)}. Compare esse valor com sua margem desejada de ${money(flow.buffer_cents)} antes de decidir.`;
-  $("mode").textContent = report.mode === "watsonx" ? "Planejamento de ferramentas: IBM watsonx.ai · Cálculos: ferramentas determinísticas" : "Demonstração por regras · Planejamento por IA generativa ainda não validado";
+  const planner = {
+    watsonx: "Planejador: IBM watsonx.ai escolheu as ferramentas · cálculos feitos no código, não pelo modelo",
+    demo_fallback: "Planejador: contingência por regras · o IBM watsonx.ai não respondeu com um plano válido",
+  }[report.mode] || "Planejador: regras locais · IBM watsonx.ai desligado nesta execução";
+  $("mode").textContent = planner;
+  $("mode").setAttribute("data-mode", report.mode || "demo_rules");
   if(report.warning){$("notice").textContent=report.warning;$("notice").hidden=false;}
   $("minimum").textContent = money(flow.minimum_cents);
   $("minimum").className = flow.minimum_cents < 0 ? "negative" : "";

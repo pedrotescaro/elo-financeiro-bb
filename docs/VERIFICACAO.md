@@ -1,4 +1,20 @@
-# Verificação técnica — 5 de novembro de 2026
+# Verificação técnica
+
+## Reexecução em 11 de novembro de 2026
+
+Depois do selo do planejador, do script de prova do watsonx e da ampliação do vocabulário de recuperação, no mesmo ambiente local:
+
+| Verificação | Resultado local |
+| --- | --- |
+| `python -m unittest discover -s tests` | 233 testes passaram |
+| `python -m ruff check elo tests` | Passou |
+| `python -m compileall -q elo tests` | Passou |
+| `node --check web/app.js` | Passou |
+| `node --test tests/web_behaviors.cjs` | 36 testes passaram |
+| `python -m elo.prova_watsonx` sem credenciais | Saiu com código 2, sem chamada e sem gravar arquivo, como esperado |
+| Chamada real ao watsonx.ai | Não executada: sem credenciais da conta do programa neste ambiente |
+
+## Verificação de 5 de novembro de 2026
 
 Ambiente local: Windows, Python 3.14.3, Node 24.14.0 e Ruff 0.16.0. Os testes usam apenas dados sintéticos. A demonstração continua iniciando com `python -m elo.server`, sem instalar pacotes.
 

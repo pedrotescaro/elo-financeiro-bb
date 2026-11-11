@@ -230,6 +230,18 @@ test("chart identifies the lowest balance in text and retains the daily table", 
   assert.equal(svg.children.some(e => String(e.attrs.points).includes("NaN")), false);
 });
 
+test("planner badge names IBM watsonx.ai only when the model actually planned", async () => {
+  const app = await harness({...ready, report: {...ready.report, mode: "watsonx"}});
+  assert.match(app.elements.mode.textContent, /IBM watsonx\.ai escolheu as ferramentas/);
+  assert.equal(app.elements.mode.attrs["data-mode"], "watsonx");
+  await app.load({...ready, report: {...ready.report, mode: "demo_fallback"}});
+  assert.match(app.elements.mode.textContent, /contingência por regras/);
+  assert.equal(app.elements.mode.attrs["data-mode"], "demo_fallback");
+  await app.load({...ready, report: {...ready.report, mode: "demo_rules"}});
+  assert.match(app.elements.mode.textContent, /regras locais/);
+  assert.doesNotMatch(app.elements.mode.textContent, /escolheu/);
+});
+
 test("currency formatting is exact for integer cents and rejects unsafe values", async () => {
   const app = await harness();
   assert.equal(app.evaluate("money(0)"), "R$\u00a00,00");

@@ -1,5 +1,17 @@
 # Requisitos e validação
 
+## Stakeholder e caso de uso
+
+O stakeholder central é o **gerente de relacionamento do Banco do Brasil**. O problema é o tempo gasto para reconstruir o cenário financeiro de um cliente durante a preparação do atendimento. O caso de uso completo, a persona e as métricas estão em [PROPOSTA.md](PROPOSTA.md).
+
+| Dimensão | Baseline | Meta | Estado |
+| --- | --- | --- | --- |
+| Tempo de preparação por atendimento complexo | 15 a 20 min [SUPOSIÇÃO A VALIDAR] | 2 a 3 min [SUPOSIÇÃO A VALIDAR] | Não medido; método definido em PROPOSTA.md |
+| Erros de identificação do pior dia de saldo | Não medido | Zero nos cenários sintéticos | Verificado pelos testes automatizados |
+| Aprovação explícita antes de qualquer ação | Não existe no fluxo atual | 100% exigida | Implementado e testado (RF01, RF05) |
+
+As duas primeiras métricas de tempo são suposições de design. Não devem ser apresentadas como resultados até serem medidas com gerentes voluntários usando cenários sintéticos.
+
 ## Requisitos do MVP
 
 | ID | Requisito | Critério de aceite | Estado |
@@ -10,12 +22,12 @@
 | RF04 | Oferecer plano viável | Reduz somente previsões flexíveis e informa quando a margem não é atingida | Implementado/testado |
 | RF05 | Solicitar aprovação específica | Vincula ação ao relatório vigente | Implementado/testado |
 | RF06 | Acompanhar mudança | Nova despesa atualiza projeção e recomendação | Simulação implementada/testada |
-| RF07 | Comparar uma compra | Expõe impacto à vista e limite da simulação parcelada | Implementado/testado |
+| RF07 | Comparar uma compra | Expõe impacto à vista e projeta as parcelas dentro do horizonte | Implementado/testado; sem juros |
 | RF08 | Explicar sinais de risco | Exibe motivos sem afirmar confirmação de fraude | Regras sintéticas implementadas |
 | RF09 | Revogar leitura | Oculta relatório e limpa planos desta sessão | Implementado/testado |
-| RF10 | Usar IA na seleção de ferramentas | Chamada IBM real e plano validado em casos inéditos | Adaptador pronto; validação pendente |
+| RF10 | Usar IA na seleção de ferramentas | Chamada IBM real e plano validado em casos inéditos | Adaptador, selo na interface e script de prova prontos; chamada real pendente |
 | RF11 | Permitir ajuste ou recusa explícita | Usuário consegue alterar proposta e registrar recusa | Implementado/testado |
-| RF12 | Mostrar uso real do Bob | Capturas/relatórios da equipe no repositório | Pendente |
+| RF12 | Mostrar uso real do Bob | Capturas/relatórios da equipe no repositório | Cinco sessões registradas com commits e capturas; falta o parágrafo de revisão de cada integrante |
 | RF13 | Recuperar orientações relacionadas | Conceitos/sinônimos e similaridade local, com fallback por tópico e limites visíveis | Implementado/testado em paráfrases sintéticas |
 | RF14 | Explicar cada decisão | Números em centavos, hipóteses e itens não considerados | Implementado/testado |
 | RF15 | Mostrar a trilha da sessão | Consultas, autorizações e revogações, sem apagar o registro ao revogar | Implementado/testado; retenção temporária |

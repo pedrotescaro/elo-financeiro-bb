@@ -31,6 +31,24 @@ class RetrievalTests(unittest.TestCase):
         self.assertIn("pix-urgencia", ids)
         self.assertIn("pix-demo", ids)
 
+    def test_colloquial_shortfall_words_reach_margin_guidance(self):
+        for question in ("Fico no sufoco antes do holerite", "A conta zerou antes de cair o salário",
+                         "Vou ficar no vermelho este mês?"):
+            with self.subTest(question=question):
+                result = self.index.retrieve(question, "cashflow")
+                self.assertEqual(result["retrieval_mode"], "local_concepts")
+                self.assertIn("margem-buffer", [d["id"] for d in result["documents"]])
+
+    def test_installment_synonym_finds_installment_guidance(self):
+        result = self.index.retrieve("Prestações de um aparelho novo", "purchase")
+        self.assertEqual(result["retrieval_mode"], "local_concepts")
+        self.assertIn("parcelamento-juros", [d["id"] for d in result["documents"]])
+
+    def test_unknown_recipient_finds_pix_verification(self):
+        result = self.index.retrieve("Pediram para transferir urgente a um desconhecido", "pix")
+        self.assertEqual(result["retrieval_mode"], "local_concepts")
+        self.assertIn("verificação", result["documents"][0]["matched_concepts"])
+
     def test_unrelated_question_uses_explicit_topic_fallback(self):
         result = self.index.retrieve("Astronomia nebulosa telescópio", "cashflow")
         self.assertEqual(result["retrieval_mode"], "topic_fallback")

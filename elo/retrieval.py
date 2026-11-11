@@ -11,14 +11,14 @@ import unicodedata
 
 
 _CONCEPTS = {
-    "saldo": "saldo dinheiro caixa recursos",
+    "saldo": "saldo dinheiro caixa recursos grana",
     "calendário": "calendario vencimento vencimentos data datas conta contas compromisso compromissos",
-    "recebimento": "recebimento recebimentos renda salario salarios entrada entradas",
-    "margem": "margem reserva folga aperto curto falta negativo negativa",
+    "recebimento": "recebimento recebimentos renda salario salarios entrada entradas holerite",
+    "margem": "margem reserva folga aperto apertado apertada sufoco curto falta faltar faltando negativo negativa vermelho zerar zerou zerado estourar estourou",
     "consentimento": "consentimento autorizar autorizado autorizacao leitura acesso compartilhamento permissao revogacao revogar desativar cancelar",
-    "compra": "compra comprar celular produto adiar preco",
-    "parcelamento": "parcela parcelas parcelado parcelamento juros",
-    "verificação": "verificar verificacao conferir confirme identidade destinatario urgencia pressa suspeito golpe golpes fraude pix transferencia",
+    "compra": "compra comprar celular produto adiar preco aparelho",
+    "parcelamento": "parcela parcelas parcelado parcelamento juros prestacao prestacoes",
+    "verificação": "verificar verificacao conferir confirme identidade destinatario urgencia urgente pressa suspeito suspeita estranho golpe golpes fraude pix transferencia transferir desconhecido",
 }
 _STOPWORDS = frozenset(
     "a ao aos as ate com como da das de do dos e em entre esse esta este ha na nas nao no nos "
