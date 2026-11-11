@@ -325,18 +325,29 @@ class IBMValidationTests(unittest.TestCase):
             return
         final_tools = set(t["tool"] for t in report["trace"])
         model_mode = report.get("mode", "")
-        passed = expected_min.issubset(final_tools) and expected_policy.issubset(final_tools)
+        call = getattr(planner, "last_call", None) or {}
+        # Sem modo "watsonx" a política por regras é que respondeu; isso não conta
+        # como acerto do modelo, mesmo que as ferramentas finais estejam corretas.
+        answered_by_model = model_mode == "watsonx"
+        passed = (answered_by_model and expected_min.issubset(final_tools)
+                  and expected_policy.issubset(final_tools))
+        note = ""
+        if not answered_by_model:
+            note = f"modo {model_mode}: o modelo não respondeu com plano válido"
+        elif not passed:
+            note = f"missing: {expected_policy - final_tools}"
         self.results.append({
             "id": case_id, "description": description,
             "expected_min": expected_min, "expected_policy": expected_policy,
-            "model_tools": None,  # não disponível diretamente no relatório
+            "model_tools": call.get("generated_text"),
+            "model_id": call.get("model_id"),
             "final_tools": final_tools, "mode": model_mode,
             "pass": passed, "latency_s": round(latency, 2),
-            "note": "" if passed else f"missing: {expected_policy - final_tools}",
+            "note": note,
         })
         self.assertTrue(
             passed,
-            f"Caso {case_id} falhou — ferramentas finais: {final_tools}",
+            f"Caso {case_id} falhou: {note or final_tools}",
         )
 
     @classmethod
@@ -349,7 +360,12 @@ class IBMValidationTests(unittest.TestCase):
         if not _has_credentials():
             print("MODO: simulado (sem credenciais IBM configuradas)")
         else:
-            print("MODO: chamadas reais ao Watson")
+            print("MODO: chamadas reais ao IBM watsonx.ai")
+            models = sorted({r["model_id"] for r in cls.results if r.get("model_id")})
+            latencies = [r["latency_s"] for r in cls.results if r.get("latency_s") is not None]
+            print("Modelo informado pela API: " + (", ".join(models) or "nenhum"))
+            if latencies:
+                print(f"Latência média {sum(latencies) / len(latencies):.2f}s, máxima {max(latencies):.2f}s")
         failures = [r for r in cls.results if not r["pass"]]
         if failures:
             print("\nFALHAS:")

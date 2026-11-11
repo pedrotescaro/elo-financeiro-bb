@@ -123,6 +123,9 @@ class WatsonxPlanner:
         self._token_cache = token_cache if token_cache is not None else _GLOBAL_TOKEN_CACHE
         self._inference_cache = _InferenceCache()
         self._clock = clock
+        # Metadados da última resposta recebida do watsonx.ai, sem token, chave ou projeto.
+        # Servem de evidência de que a chamada real aconteceu (scripts/prova_watsonx.py).
+        self.last_call: dict | None = None
 
     def _validate_configuration(self) -> None:
         """Valida ao planejar, permitindo contingência mesmo sem configuração IBM."""
@@ -170,7 +173,9 @@ class WatsonxPlanner:
 
         cached = self._inference_cache.get(snapshot_digest, config_digest)
         if cached is not None:
+            self.last_call = {"cache_hit": True, "tools": list(cached)}
             return list(cached)
+        self.last_call = None
 
         budget_start = self._clock()
 
@@ -209,6 +214,18 @@ class WatsonxPlanner:
         if not isinstance(results, list) or not results or not isinstance(results[0], dict):
             raise ValueError("Resposta do planejador IBM inválida.")
         generated = results[0].get("generated_text")
+        # Registra o que a própria API informou, antes de validar o plano, para que uma
+        # resposta real com plano inválido também fique documentada.
+        self.last_call = {
+            "cache_hit": False,
+            "model_id": envelope.get("model_id"),
+            "model_version": envelope.get("model_version"),
+            "created_at": envelope.get("created_at"),
+            "input_token_count": results[0].get("input_token_count"),
+            "generated_token_count": results[0].get("generated_token_count"),
+            "stop_reason": results[0].get("stop_reason"),
+            "generated_text": generated[:300] if isinstance(generated, str) else None,
+        }
         if not isinstance(generated, str):
             raise ValueError("Resposta do planejador IBM inválida.")
         plan = json.loads(generated)

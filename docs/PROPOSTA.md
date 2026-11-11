@@ -2,94 +2,100 @@
 
 ## Definição em uma frase
 
-**Elo Financeiro é um agente pessoal proativo, concebido para o ecossistema do Banco do Brasil, que transforma dados autorizados em decisões explicadas e planos acompanhados para preservar a margem financeira do usuário.**
+**Elo Financeiro é um agente de apoio ao atendimento, concebido para o ecossistema do Banco do Brasil, que transforma dados autorizados em um calendário de saldo diário com alternativas calculadas e aprovação explícita, para que o gerente de relacionamento chegue à conversa com o cliente já com o cenário mapeado.**
 
 ## Problema central
 
-O usuário sabe quanto tem hoje, mas pode não conseguir relacionar esse saldo às próximas contas, ao cartão e às datas dos recebimentos. A dúvida importante é: "Se eu decidir isso agora, ainda consigo cumprir o que preciso até receber de novo?"
+O gerente de relacionamento do BB atende clientes que chegam após o problema ter acontecido: saldo zerou antes do recebimento, parcelamento comprometeu a margem, ou uma mensagem urgente criou dúvida sobre um PIX. Para preparar esse atendimento, o gerente precisa reconstruir o cenário financeiro do cliente a partir de informações dispersas, montar o calendário de contas mentalmente ou em planilha, e identificar qual ajuste é viável antes de propor qualquer ação.
 
-Nossa hipótese é que a fragmentação das informações e a carga de comparar cenários aumentam decisões impulsivas e atrasam a percepção de apertos financeiros. Isso deve ser verificado em pesquisa; não temos dados que comprovem prevalência ou impacto dessa hipótese.
+Nossa hipótese é que essa reconstrução consome entre quinze e vinte minutos por atendimento de perfil financeiro complexo. Com o agente, o gerente abre a análise já calculada em dois a três minutos: vê o calendário diário, o menor saldo previsto, as hipóteses usadas e o efeito de um possível ajuste. [SUPOSIÇÃO A VALIDAR: tanto o tempo atual quanto o tempo esperado são estimativas sem medição; precisam ser verificados em entrevistas com gerentes reais ou em um piloto supervisionado.]
 
-## Público inicial e persona de trabalho
+## Stakeholder: gerente de relacionamento do Banco do Brasil
 
-Pessoas adultas em início de autonomia financeira, incluindo jovens trabalhadores e autônomos com renda variável, que usam serviços digitais e encontram dificuldade para antecipar compromissos. Não tentaremos atender todos os públicos da trilha no primeiro MVP.
+**Nome para a persona de trabalho:** Marcos, gerente de relacionamento de uma agência de médio porte, dez anos de banco.
 
-**Persona hipotética:** uma pessoa que recebe em datas diferentes, consulta o saldo pelo celular e precisa decidir entre pagar contas, fazer uma compra e manter algum dinheiro disponível. Quer orientações curtas, respeitosas e verificáveis. Não quer que o banco escolha ou movimente dinheiro por ela.
+**Rotina relevante:** atende de oito a doze clientes por dia, dos quais dois a três apresentam situações de fluxo de caixa pessoal que exigem análise antes de propor um produto ou encaminhamento. Usa o sistema do banco para consultar saldo e histórico, mas não tem uma ferramenta que projete o calendário de saídas e entradas futuras em uma tela.
 
-Não é uma persona baseada em entrevistas já realizadas. Sua idade, renda e hábitos não serão apresentados como fatos de pesquisa.
+**Dor principal:** o tempo gasto para montar o cenário manualmente compete com o tempo disponível para o atendimento em si. Quando a projeção não está pronta, a conversa começa pelo diagnóstico e não pela solução.
 
-**Ponto de vista:** essa pessoa precisa enxergar as consequências de uma decisão no tempo, porque saldo atual e categorias de gastos não explicam sozinhos o risco de faltar dinheiro antes do próximo recebimento.
+**Frequência:** dois a três atendimentos com esse perfil por dia, estimados [SUPOSIÇÃO A VALIDAR]. Em agências de maior volume, pode ser mais.
 
-**Pergunta de design:** como tornar esse risco compreensível e oferecer uma ação viável, preservando o controle da pessoa sobre dados e escolhas?
+**Ponto de vista:** Marcos precisa chegar ao atendimento com o cenário mapeado, as alternativas calculadas e os limites declarados, para que a conversa comece na solução e não no diagnóstico.
+
+Esta persona é hipotética e construída a partir do problema descrito. Não foi validada em entrevistas com gerentes do BB. Antes de declarar eficiência ou preferência, a equipe deve verificar com gerentes reais.
+
+## Caso de uso de ponta a ponta
+
+### Situação inicial (baseline)
+
+O cliente liga para a agência dizendo que o saldo sumiu antes do recebimento. Marcos abre o sistema do banco, consulta saldo e histórico, monta o calendário de saídas previstas manualmente ou em uma planilha separada, calcula o menor saldo esperado, identifica os gastos flexíveis e verifica qual redução seria viável sem cortar despesas essenciais. Estimativa de tempo para essa preparação: quinze a vinte minutos. [SUPOSIÇÃO A VALIDAR]
+
+### Com o Elo Financeiro
+
+Marcos autoriza a leitura dos dados sintéticos do cliente no agente. O sistema apresenta o calendário diário, o menor saldo previsto, a data do risco, a proposta de redução de gastos flexíveis com efeito calculado, e os limites da análise. Marcos confere as hipóteses, aprova ou ajusta a proposta, e parte para o atendimento com o cenário documentado. Estimativa de tempo para essa preparação: dois a três minutos. [SUPOSIÇÃO A VALIDAR]
+
+### Meta de desempenho
+
+| Dimensão | Baseline estimado | Meta com o agente | Método de medição | Amostra |
+| --- | --- | --- | --- | --- |
+| Tempo de preparação por atendimento de perfil complexo | 15 a 20 min [SUPOSIÇÃO A VALIDAR] | 2 a 3 min [SUPOSIÇÃO A VALIDAR] | Cronometrar em sessões com gerentes voluntários usando cenários sintéticos | 5 a 10 gerentes, 3 cenários cada |
+| Erros de identificação do pior dia de saldo | Não medido [SUPOSIÇÃO A VALIDAR] | Zero erros nos cenários sintéticos testados | Comparar resultado do agente com cálculo manual independente | Todos os cenários da demonstração |
+| Aprovação explícita antes de qualquer ação | Não existe no fluxo atual | 100% das ações requerem aprovação | Verificado nos testes automatizados | 233 testes Python e 36 de interface |
+
+Toda métrica sem fonte está marcada com [SUPOSIÇÃO A VALIDAR]. O avaliador deve tratar essas suposições como hipóteses de design, não como resultados obtidos.
 
 ## Experiência proposta
 
-O produto começa pela meta "Quero manter R$ X de margem até meu próximo recebimento". Essa margem é definida pelo usuário e pode ser zero; não é um valor imposto como adequado para todas as pessoas.
+O gerente abre o agente durante a preparação do atendimento. Após autorizar a leitura do cenário:
 
-O agente combina compromissos conhecidos, entradas esperadas e preferências autorizadas. Ao encontrar uma situação relevante, apresenta uma mensagem com quatro partes:
+1. **O que pode acontecer:** menor saldo previsto, data do risco, recebimentos e saídas que contribuem.
+2. **Por quê:** valores em centavos, hipóteses usadas e o que não foi considerado, transparente para que o gerente possa corrigir premissas incorretas antes de apresentar ao cliente.
+3. **Alternativas:** ajuste de gastos flexíveis com efeito calculado, ou indicação de que a margem não é atingida com os flexíveis disponíveis.
+4. **O que acontece ao aprovar:** efeito exato, a que versão dos dados está vinculado, e a necessidade de reaprovar se uma nova despesa surgir.
 
-1. **O que pode acontecer:** menor saldo previsto e a data do risco.
-2. **Por quê:** compromissos que contribuíram para a projeção, origem dos dados e hipóteses.
-3. **Alternativas:** ajustes em gastos flexíveis, adiamento de uma compra ou conversa com atendimento quando o problema permanece.
-4. **O que acontece se aceitar:** efeito exato da ação e o que o agente acompanhará.
-
-O usuário pode aceitar, ajustar ou recusar. A versão inicial implementa aceitar e recusar por ausência de ação; edição livre do plano entra no backlog. Quando um evento novo muda o contexto, o sistema reavalia o plano. Um plano anterior não autoriza uma nova ação financeira.
+O gerente pode aceitar a proposta padrão, ajustar o valor da redução, recusar e registrar a recusa, ou revogar o acesso ao final da sessão.
 
 ## Antes e depois
 
-| Momento | Experiência atual hipotética | Experiência com o Elo |
+| Momento | Fluxo atual (estimado) | Com o Elo |
 | --- | --- | --- |
-| Consultar saldo | Vê o valor disponível agora | Vê também o menor saldo previsto até receber |
-| Decidir uma compra | Compara preço e parcela isoladamente | Compara impacto no calendário e hipóteses |
-| Perceber um aperto | Descobre após gastar ou perto do vencimento | Recebe um alerta priorizado com motivos |
-| Organizar gastos | Precisa montar um plano do zero | Avalia uma sugestão que respeita despesas essenciais |
-| Rever o plano | Refaz a análise manualmente | Recebe atualização quando chegam novos eventos |
-
-## Diferencial a testar
-
-O diferencial não é a presença de um chat, mas o ciclo **objetivo → antecipação → alternativa explicada → aprovação → acompanhamento**. A hipótese de inovação é ligar segurança de decisão, educação contextual e previsibilidade em uma jornada curta.
-
-Não afirmamos que esse recurso seja inédito no mercado. A equipe deve comparar assistentes, agregadores e funcionalidades do BB antes de declarar exclusividade ou vantagem competitiva.
+| Preparar o atendimento | 15 a 20 min para montar calendário manualmente [SUPOSIÇÃO A VALIDAR] | 2 a 3 min para revisar análise já calculada [SUPOSIÇÃO A VALIDAR] |
+| Identificar o pior dia de saldo | Cálculo manual sujeito a omissão de eventos | Calendário diário completo com o menor saldo destacado |
+| Propor um ajuste | Depende da experiência do gerente e do tempo disponível | Proposta com efeito calculado, hipóteses visíveis e aprovação vinculada |
+| Rever após nova despesa | Nova análise manual | Reavaliação automática; plano anterior não é reaproveitado |
+| Documentar a conversa | Anotação livre | Trilha temporária de consultas, aprovações e revogações |
 
 ## Aderência à trilha Banco do Brasil
 
 | Dimensão da trilha | Decisão de produto | Evidência demonstrável |
 | --- | --- | --- |
-| Segurança | Explica sinais de atenção, controla permissões e limita execução | Cenário PIX e rejeição de ação não permitida |
-| Inclusão | Português simples, caminhos curtos e funcionamento inicial com poucos dados | Teste de compreensão e uso por teclado |
-| Personalização | Usa calendário, margem e compromissos do cenário | Comparação de cenários com resultados diferentes |
-| Escala | Separa ferramentas, política, modelo e conectores | Arquitetura modular; teste de escala ainda pendente |
-| Responsabilidade | Diferencia fatos, hipóteses e limites; usuário aprova | Aprovação vinculada aos dados e revogação |
-| Educação e engajamento | Explica a consequência da decisão no momento relevante | Comparação de compra e meta escolhida |
-
-Alertas de fraude também cabem na trilha do BB, mas não serão a única narrativa. Nosso foco é a experiência financeira pessoal, com proteção integrada.
+| Segurança | Consentimento por sessão, aprovação vinculada à versão, sinais de risco em PIX | Cenário PIX e rejeição de ação não permitida nos testes |
+| Inclusão | Português simples, teclado, ampliação de texto, limites visíveis | Interface verificada; avaliação com leitores de tela pendente |
+| Personalização | Calendário, margem e gastos do cenário; ajuste editável pelo gerente | Comparação de cenários com resultados diferentes |
+| Escala | Ferramentas separadas, política, modelo e conectores | Arquitetura modular; teste de escala ainda pendente |
+| Responsabilidade | Hipóteses e limites visíveis; gerente aprova antes de qualquer ação | Aprovação vinculada aos dados, revogação e trilha temporária |
+| Educação e engajamento | Explica o calendário no momento do atendimento | Comparação de compra e meta registrada pelo gerente |
 
 ## O que entra e o que fica para depois
 
-**MVP:** previsão de caixa com eventos conhecidos, decisão de compra, alertas ilustrativos de segurança, consentimento, aprovação e reavaliação. A jornada de caixa deve receber a maior parte do esforço e do tempo de vídeo.
+**MVP:** previsão de caixa com eventos conhecidos, comparação de compra, sinais de risco em PIX, consentimento, aprovação e reavaliação. A jornada de caixa deve receber a maior parte do tempo no vídeo.
 
-**Expansão:** planos ajustáveis, educação por RAG com fontes curadas e versionadas, memória de preferências autorizadas, múltiplas contas, comparação de crédito com custo total e critérios explícitos, acessibilidade validada e encaminhamento humano.
-
-**FGTS:** permanece como possível assunto de orientação futura. O agente precisaria consultar regras oficiais atuais e esclarecer condições. Não prometemos descobrir saldo, elegibilidade ou sacar FGTS; não é uma funcionalidade central do MVP.
-
-**Investimentos:** somente simulações e educação numa expansão. Recomendações personalizadas, suitability e contratação exigiriam processos próprios do banco. Não entraremos nisso para a primeira entrega.
+**Expansão:** planos editáveis com múltiplos ajustes, RAG semântico sobre documentação curada, memória de atendimentos autorizados, comparação de crédito com custo total, acessibilidade validada com leitores de tela, integração com dados reais do Open Finance mediante parceria com o BB.
 
 ## Papel do Banco do Brasil e modelo de valor
 
-Posicionamento inicial: serviço digital que poderia ser incorporado ao aplicativo ou ecossistema do BB, condicionado a uma parceria e a integrações autorizadas. O protótipo independente apenas demonstra essa experiência; não simula uma afiliação oficial.
+Posicionamento inicial: ferramenta de suporte ao atendimento que poderia ser incorporada ao sistema interno do BB, condicionada a parceria e integrações autorizadas. O protótipo independente demonstra a experiência; não simula uma afiliação oficial.
 
-O usuário ganha clareza e controle. O banco poderia ganhar engajamento útil, relacionamento e atendimento mais contextual. Redução de atrasos, perdas ou custo de atendimento são hipóteses de negócio a medir, não resultados obtidos.
-
-O modelo principal não exige assinatura do cliente. A discussão de SaaS cabe como opção B2B futura: uma plataforma de agentes fornecida a instituições financeiras. Isso não deve ampliar o escopo do trabalho atual.
+O gerente ganha tempo de preparação e documentação. O banco poderia ganhar eficiência no atendimento e satisfação do cliente por chegar mais rápido à solução. Redução de reclamações, inadimplência ou custo de atendimento são hipóteses de negócio a medir, não resultados obtidos.
 
 ## Autonomia com finalidade clara
 
-O sistema pode consultar dados consentidos, executar cálculos, recuperar orientações e apresentar recomendações dentro do objetivo escolhido. Pode registrar orçamento, meta ou lembrete após autorização específica.
+O sistema consulta dados consentidos, executa cálculos, recupera orientações e apresenta recomendações dentro do objetivo do atendimento. Registra orçamento ou meta após aprovação específica do gerente.
 
-Não contrata crédito, não compra ativos, não transfere dinheiro e não presume que um benefício esteja disponível. Em produção, pagamentos seriam uma jornada separada com autorização específica e controles do banco.
+Não contrata crédito, não compra ativos, não transfere dinheiro e não presume elegibilidade a qualquer produto. O gerente aprova cada ação. Em produção, operações financeiras seriam jornadas separadas com autorização específica e controles do banco.
 
 ## Pesquisa necessária
 
-Validar: se o público entende "menor saldo previsto"; que margem deseja; quais alertas considera úteis; quais compromissos não devem ser tratados como flexíveis; como prefere recusar; quando deseja atendimento humano; quais dados aceita compartilhar.
+Validar com gerentes reais: quanto tempo levam hoje para preparar um atendimento de perfil complexo; quais informações consultam; quais hipóteses mais frequentemente estão erradas no primeiro olhar; quando prefeririam ver o cenário antes vs. durante o atendimento; o que precisariam ajustar na interface para confiar na análise; quais limites são inaceitáveis como suposições.
 
-Entrevistas não devem coletar extratos, CPF, credenciais ou dados financeiros identificáveis. Usar situações fictícias e registrar apenas respostas anônimas permitidas pelas regras do programa.
+Entrevistas não devem coletar dados de clientes, extratos, CPF ou credenciais. Usar cenários fictícios e registrar apenas respostas anônimas permitidas pelas regras do programa.

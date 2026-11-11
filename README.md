@@ -8,11 +8,11 @@
 
 Proposta acadêmica para a **Trilha 1 do IBM SkillsBuild AI Experiential Learning Lab: Serviços Financeiros Digitais Inteligentes, Seguros e Inclusivos com Banco do Brasil**.
 
-O Elo propõe um agente pessoal que antecipa apertos de caixa, explica o impacto de decisões e acompanha planos escolhidos pelo usuário. Seu objetivo central é **preservar uma margem financeira até o próximo recebimento**.
+O Elo propõe um agente que antecipa apertos de caixa, explica o impacto de decisões e acompanha planos aprovados. Seu objetivo central é **preservar uma margem financeira até o próximo recebimento**. Na proposta atual, quem usa o agente é o gerente de relacionamento do BB, ao preparar o atendimento de um cliente; os dados são sempre sintéticos.
 
 O saldo de hoje pode parecer suficiente, mesmo quando as contas dos próximos dias vão deixá-lo negativo. O Elo considera o calendário: identifica o problema antes do vencimento, consulta ferramentas de cálculo e orientação, apresenta alternativas e acompanha o resultado de uma ação autorizada.
 
-> Status: protótipo executável com dados sintéticos, testes automatizados e pacote para hospedagem demonstrativa. O modo padrão usa regras. A publicação, a chamada IBM real e as evidências do Bob continuam pendentes. Não é uma integração oficial do Banco do Brasil nem uma entrega IBM finalizada.
+> Status: protótipo executável com dados sintéticos, 233 testes Python e 36 de interface, e pacote para hospedagem demonstrativa. O stakeholder é o gerente de relacionamento do BB. Cinco sessões do IBM Bob, de dois integrantes, estão documentadas com commits e capturas. A chamada IBM real, a publicação e o vídeo novo continuam pendentes. O que mudou depois do feedback está em [Resposta ao feedback](docs/RESPOSTA_AO_FEEDBACK.md). Não é uma integração oficial do Banco do Brasil nem uma entrega IBM finalizada.
 
 ## Executar localmente
 
@@ -34,6 +34,8 @@ Os textos dos campos da competição estão em [Inscrição](docs/INSCRICAO.md),
 python -m unittest discover -s tests -v
 ```
 
+Para comprovar a chamada real ao IBM watsonx.ai, configure as variáveis da seção "Conectar o planejador IBM" e rode `python -m elo.prova_watsonx`. A evidência vai para `docs/evidencias/watsonx/`, sem chave nem token.
+
 ## O que está pronto
 
 | Capacidade | Situação |
@@ -41,19 +43,27 @@ python -m unittest discover -s tests -v
 | Três cenários e interface responsiva em português | Implementados |
 | Projeção de caixa por fechamento diário | Todos os dias do horizonte, gráfico com o menor saldo e tabela; centavos inteiros |
 | Consentimento demonstrativo e revogação | Implementados por sessão |
-| Plano de redução de gastos flexíveis | Implementado; depende de aprovação |
-| Aprovação vinculada à versão dos dados | Implementada; rejeita plano desatualizado |
-| Simulação de compra e criação de meta | Implementadas; parcelas futuras não projetadas |
+| Plano de redução de gastos flexíveis | Implementado; depende de aprovação; valor ajustável pelo gerente |
+| Aprovação vinculada à versão dos dados | Implementada; rejeita plano desatualizado; versionamento por `preview_id` |
+| Recusa explícita de proposta | Implementada; cancela a prévia vinculada |
+| Simulação de compra e criação de meta | Implementadas; parcelas projetadas dentro do horizonte, sem juros |
 | Sinais ilustrativos de risco em PIX | Implementados por regras; sem detecção validada |
 | Reavaliação após nova despesa | Implementada; evento simulado pela interface |
-| Planejador IBM watsonx.ai | Adaptador REST implementado; chamada real não validada |
-| Recuperação de orientações | Conceitos e sinônimos curados + similaridade TF-IDF local; busca por tópico como contingência; sem embeddings ou geração de respostas |
+| Planejador IBM watsonx.ai | Adaptador REST testado com respostas simuladas; selo no topo da análise mostra quem planejou; `python -m elo.prova_watsonx` grava a evidência da chamada real. A chamada real com credenciais do programa ainda não foi executada |
+| Recuperação de orientações | Conceitos e sinônimos curados, incluindo termos coloquiais, mais similaridade TF-IDF local; busca por tópico como contingência; sem embeddings nem geração de respostas |
 | Explicações e trilha da sessão | Números, hipóteses, exclusões, consultas, autorizações e revogações visíveis |
 | Recursos de acesso | Teclado, foco visível, rótulos, mensagens de estado e opção de ampliar texto; avaliação com leitores de tela pendente |
-| Controles da demonstração pública | Expiração, limites de recursos, origem restrita e cabeçalhos; Dockerfile e guia de deploy preparados |
-| IBM Bob | Uso e evidências precisam ser realizados pela equipe |
+| Controles da demonstração pública | Expiração, limites de recursos, origem restrita e cabeçalhos; Dockerfile e guia de deploy preparados; execução da imagem e deploy externos pendentes |
+| IBM Bob | Cinco sessões (28/10 a 11/11/2026) com registro, captura e commits em `bob_sessions/`, conferidas com `git log`; falta o parágrafo de revisão de cada integrante |
+| Stakeholder e caso de uso | Gerente de relacionamento do BB definido como stakeholder; caso de uso com baseline e meta; métricas marcadas como [SUPOSIÇÃO A VALIDAR] |
+| Declaração técnica dos produtos IBM | `docs/DECLARACAO_TECNICA.md` criado com produtos, finalidades, arquivos e estado de validação |
+| Dossiê de apresentação | `docs/DOSSIE.md` criado com onze slides em sequência definida |
+| Roteiro do vídeo com Bob operando | `docs/DEMO.md` reescrito com cena do Bob no início e no encerramento; vídeo novo ainda não gravado |
+| Resposta ao feedback | `docs/RESPOSTA_AO_FEEDBACK.md` criado com rastreabilidade ponto a ponto |
 | BB / Open Finance / pagamentos / crédito | Integrações de produção fora deste protótipo |
-| Publicação acessível aos avaliadores | Pendente |
+| Publicação acessível aos avaliadores | Pendente; guia em `docs/DEPLOY.md` e checklist em `docs/PLANO_TECNICO.md` |
+| Vídeo gravado e publicado | Pendente |
+| Chamada IBM real executada | Pendente; rodar `python -m elo.prova_watsonx` com credenciais (passos em `docs/PLANO_TECNICO.md`) |
 
 ## Três jornadas com uma mesma finalidade
 
@@ -94,13 +104,18 @@ Para hospedar os cenários sintéticos atrás de HTTPS, siga [Deploy](docs/DEPLO
 
 ## Documentação do projeto
 
-- [Proposta completa, público e modelo de valor](docs/PROPOSTA.md)
+- [Proposta completa, stakeholder e métricas](docs/PROPOSTA.md)
 - [Arquitetura, ferramentas e fronteiras de autonomia](docs/ARQUITETURA.md)
-- [Requisitos, métricas e pesquisa com usuários](docs/VALIDACAO.md)
+- [Requisitos, métricas e validação](docs/VALIDACAO.md)
 - [Cronograma até a entrega e backlog](docs/ROADMAP.md)
-- [Texto do problema e da solução, abaixo de 500 palavras](docs/SUBMISSAO.md)
+- [Texto do problema e da solução, para o formulário](docs/SUBMISSAO.md)
+- [Declaração técnica dos produtos IBM usados](docs/DECLARACAO_TECNICA.md)
 - [Roteiro de demonstração de até três minutos](docs/DEMO.md)
-- [Como comprovar o uso real do IBM Bob](bob_sessions/README.md)
+- [Uso do IBM Bob: evidências, prompts e mapeamento](docs/USO_DO_BOB.md)
+- [Como registrar evidências reais do Bob](bob_sessions/README.md)
+- [Dossiê de apresentação em slides](docs/DOSSIE.md)
+- [Resposta ao feedback do avaliador](docs/RESPOSTA_AO_FEEDBACK.md)
+- [Plano de validação IBM, RAG e publicação](docs/PLANO_TECNICO.md)
 - [Checklist final e pendências da equipe](docs/ENTREGA.md)
 - [Publicar a demonstração sintética](docs/DEPLOY.md)
 - [Referências e limites da fundamentação](docs/REFERENCIAS.md)
@@ -113,7 +128,7 @@ web/          Interface da demonstração
 data/         Cenários sintéticos e orientações curadas
 tests/        Verificações de cálculos, consentimento e aprovação
 docs/         Proposta, arquitetura, pesquisa e entrega
-bob_sessions/ Evidências reais a inserir pela equipe
+bob_sessions/ Registros e capturas das sessões reais do IBM Bob
 ```
 
 ## Limites e próximos passos

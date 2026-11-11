@@ -11,11 +11,12 @@ O código e os documentos preparados não equivalem à submissão. A chamada IBM
 
 ## Evidências IBM reais
 
-- [ ] Realizar trabalho relevante no IBM Bob da conta autorizada, revisar o resultado e seguir [o procedimento de evidências](../bob_sessions/README.md).
-- [ ] Preencher [o registro da sessão](../bob_sessions/MODELO.md) e anexar capturas/relatórios reais revisados, sem segredos ou dados pessoais.
+- [x] Realizar trabalho relevante no IBM Bob da conta autorizada: cinco sessões registradas em [bob_sessions](../bob_sessions/README.md).
+- [ ] Escrever o parágrafo "Revisão do integrante na época da sessão" em cada registro; os demais campos já estão preenchidos.
 - [ ] Configurar localmente projeto, modelo Granite e região disponíveis na conta da equipe, conforme o README; não presumir acesso a um modelo específico.
 - [ ] Executar o adaptador watsonx com dados sintéticos, verificar o modo exibido, as ferramentas permitidas e a contingência. Registrar modelo, região, revisão, data, casos e resultado reais, sem chave/token.
-- [ ] Executar `python -m unittest tests.test_ibm_validation -v` com credenciais reais e registrar: 30 casos, modelo, região, revisão, latências e falhas. O arquivo `tests/test_ibm_validation.py` foi preparado; falta somente a execução com conta autorizada.
+- [ ] Executar `python -m elo.prova_watsonx` com credenciais reais e commitar o JSON gerado em `docs/evidencias/watsonx/`.
+- [ ] Executar `python -m unittest tests.test_ibm_validation -v` com credenciais reais e registrar: 30 casos, modelo, região, latências e falhas.
 - [ ] Avaliar a seleção de ferramentas em casos inéditos, além dos testes com respostas simuladas, e atualizar a declaração tecnológica com a evidência obtida.
 
 ## Avaliação com pessoas
@@ -35,7 +36,7 @@ O código e os documentos preparados não equivalem à submissão. A chamada IBM
 ## Vídeo e submissão
 
 - [ ] Gravar e cronometrar [o roteiro](DEMO.md): até 180 segundos, com pelo menos 90 segundos de software, conforme os materiais fornecidos e as regras confirmadas na plataforma.
-- [ ] Preencher a cena do Bob somente depois do trabalho real. Identificar o modo por regras e as limitações da demonstração.
+- [ ] Gravar a cena do Bob com uma sessão real (Prompt 7 ou 10 de [USO_DO_BOB](USO_DO_BOB.md)). Deixar o selo do planejador visível e dizer o modo que ele mostra.
 - [ ] Revisar [o texto de submissão](SUBMISSAO.md), mantendo o documento inteiro abaixo de 500 palavras, e atualizar somente as capacidades comprovadas.
 - [ ] Publicar o vídeo e conferir os links do vídeo, protótipo, repositório e evidências com as permissões exigidas, sem login do autor.
 - [ ] Preencher membros, identificação da equipe, links e declarações na plataforma; enviar e guardar a confirmação real da submissão.

@@ -175,8 +175,12 @@ td:last-child { font-weight: 600; font-variant-numeric: tabular-nums; }
 .compare article + article { border-left: 1px solid var(--line); padding-left: 24px; }
 .compare strong { display: block; margin: 6px 0; color: var(--navy); font-size: 1.25rem; font-variant-numeric: tabular-nums; }
 .installment-schedule-title { margin-top: 24px; }
-.mode { display: flex; align-items: center; gap: 8px; margin: 16px 0; color: var(--muted); font-size: .75rem; }
-.mode::before { content: ""; width: 5px; height: 5px; flex: 0 0 5px; border-radius: 50%; background: #8898b2; }
+.mode { display: inline-flex; align-items: center; gap: 8px; margin: 10px 0 0; padding: 4px 10px; border: 1px solid rgba(219, 229, 249, .4); border-radius: 999px; font-size: .78rem; max-width: 100%; }
+.mode::before { content: ""; width: 7px; height: 7px; flex: 0 0 7px; border-radius: 50%; background: #aab8d0; }
+.insight .mode[data-mode="watsonx"] { color: #e3edff; border-color: #7fa8f0; }
+.mode[data-mode="watsonx"]::before { background: #8fb8ff; }
+.insight .mode[data-mode="demo_fallback"] { color: #ffe9c7; border-color: #e0a457; }
+.mode[data-mode="demo_fallback"]::before { background: #f2a83b; }
 .support-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px; align-items: start; }
 .support-grid > details { padding: 6px 20px; }
 .support-grid > details[open] { padding-bottom: 20px; }
