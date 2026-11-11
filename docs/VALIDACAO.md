@@ -2,15 +2,18 @@
 
 ## Stakeholder e caso de uso
 
-O stakeholder central é o **gerente de relacionamento do Banco do Brasil**. O problema é o tempo gasto para reconstruir o cenário financeiro de um cliente durante a preparação do atendimento. O caso de uso completo, a persona e as métricas estão em [PROPOSTA.md](PROPOSTA.md).
+O stakeholder principal é a **analista de negócios de uma agência do Banco do Brasil**, que precisa decidir toda semana quais clientes os gerentes devem procurar antes do aperto. O secundário é o **gerente de relacionamento**, que abre cada caso no atendimento. Personas, caso de uso e métricas completas estão em [PROPOSTA.md](PROPOSTA.md).
 
-| Dimensão | Baseline | Meta | Estado |
-| --- | --- | --- | --- |
-| Tempo de preparação por atendimento complexo | 15 a 20 min [SUPOSIÇÃO A VALIDAR] | 2 a 3 min [SUPOSIÇÃO A VALIDAR] | Não medido; método definido em PROPOSTA.md |
-| Erros de identificação do pior dia de saldo | Não medido | Zero nos cenários sintéticos | Verificado pelos testes automatizados |
-| Aprovação explícita antes de qualquer ação | Não existe no fluxo atual | 100% exigida | Implementado e testado (RF01, RF05) |
+| Dimensão | Valor | Estado |
+| --- | --- | --- |
+| Clientes em risco identificados na carteira sintética | 15 de 37, com 6 resolvíveis por ajuste | Medido |
+| Antecedência do aviso antes do primeiro saldo negativo | Mediana de 7 dias | Medido na carteira sintética |
+| Tempo de análise da carteira e de cada pergunta | Cerca de 3 ms e 4 ms | Medido; exibido na tela |
+| Coerência entre visão do analista e atendimento | 100% dos 37 clientes | Verificado por teste automatizado |
+| Tempo da triagem manual hoje | 2 a 3 h por semana | [SUPOSIÇÃO A VALIDAR] |
+| Acerto da interpretação de perguntas pelo IBM watsonx.ai | A medir em 30 perguntas | Pendente (Prompt 13 de `USO_DO_BOB.md`) |
 
-As duas primeiras métricas de tempo são suposições de design. Não devem ser apresentadas como resultados até serem medidas com gerentes voluntários usando cenários sintéticos.
+Os valores medidos vêm de dados sintéticos e não representam resultado com clientes reais. O tempo da triagem manual só deve ser apresentado como resultado depois de cronometrado com analistas voluntários.
 
 ## Requisitos do MVP
 
@@ -27,12 +30,15 @@ As duas primeiras métricas de tempo são suposições de design. Não devem ser
 | RF09 | Revogar leitura | Oculta relatório e limpa planos desta sessão | Implementado/testado |
 | RF10 | Usar IA na seleção de ferramentas | Chamada IBM real e plano validado em casos inéditos | Adaptador, selo na interface e script de prova prontos; chamada real pendente |
 | RF11 | Permitir ajuste ou recusa explícita | Usuário consegue alterar proposta e registrar recusa | Implementado/testado |
-| RF12 | Mostrar uso real do Bob | Capturas/relatórios da equipe no repositório | Cinco sessões registradas com commits e capturas; falta o parágrafo de revisão de cada integrante |
+| RF12 | Mostrar uso real do Bob | Capturas/relatórios da equipe no repositório | Cinco sessões registradas com commits e capturas; falta o parágrafo de revisão de cada integrante e uma sessão sobre a visão do analista |
 | RF13 | Recuperar orientações relacionadas | Conceitos/sinônimos e similaridade local, com fallback por tópico e limites visíveis | Implementado/testado em paráfrases sintéticas |
 | RF14 | Explicar cada decisão | Números em centavos, hipóteses e itens não considerados | Implementado/testado |
 | RF15 | Mostrar a trilha da sessão | Consultas, autorizações e revogações, sem apagar o registro ao revogar | Implementado/testado; retenção temporária |
 | RF16 | Facilitar leitura e operação | Teclado, rótulos, foco, ampliação de texto e estados de carregamento/erro | Implementado; avaliação assistiva pendente |
 | RF17 | Preparar demo pública sintética | Origem exata, expiração, limites de recursos, cabeçalhos e Dockerfile | Controles implementados; deploy externo pendente |
+| RF18 | Analisar a carteira da agência | Mesmo cálculo do atendimento para cada cliente; clientes sem consentimento ficam fora | Implementado/testado |
+| RF19 | Responder perguntas do analista em português | Consulta estruturada validada; resposta com números do código e tempo medido | Implementado/testado; interpretação por regras e pelo IBM watsonx.ai com contingência |
+| RF20 | Abrir um cliente da carteira no atendimento | Mesmo menor saldo e mesma proposta nas duas visões; recusa para cliente sem consentimento | Implementado/testado |
 
 ## Requisitos de qualidade
 

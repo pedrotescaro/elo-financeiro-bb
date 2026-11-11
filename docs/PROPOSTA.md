@@ -2,100 +2,92 @@
 
 ## Definição em uma frase
 
-**Elo Financeiro é um agente de apoio ao atendimento, concebido para o ecossistema do Banco do Brasil, que transforma dados autorizados em um calendário de saldo diário com alternativas calculadas e aprovação explícita, para que o gerente de relacionamento chegue à conversa com o cliente já com o cenário mapeado.**
+**Elo Financeiro é um agente de IA conversacional para o analista de negócios de uma agência do Banco do Brasil: ele pergunta em português sobre a carteira de clientes, o agente aponta quem vai ficar sem dinheiro antes do próximo recebimento e por quê, e o gerente de relacionamento abre cada caso com o calendário de saldo, uma proposta calculada e aprovação explícita.**
+
+## O que mudou depois do feedback
+
+O consultor de submissão sugeriu redirecionar o foco para IA conversacional voltada a analistas de negócios e para dados corporativos. Acatamos a sugestão sem descartar o que já funcionava: o motor de projeção de caixa, que antes atendia um cliente por vez, agora também roda sobre uma carteira inteira (dado corporativo da agência) e responde a perguntas do analista. A tela de atendimento continua existindo e virou o segundo passo do fluxo.
 
 ## Problema central
 
-O gerente de relacionamento do BB atende clientes que chegam após o problema ter acontecido: saldo zerou antes do recebimento, parcelamento comprometeu a margem, ou uma mensagem urgente criou dúvida sobre um PIX. Para preparar esse atendimento, o gerente precisa reconstruir o cenário financeiro do cliente a partir de informações dispersas, montar o calendário de contas mentalmente ou em planilha, e identificar qual ajuste é viável antes de propor qualquer ação.
+O analista de negócios responsável por uma carteira de pessoas físicas precisa decidir, toda semana, quais clientes o gerente de relacionamento deve procurar antes que o problema aconteça. Para isso ele teria de olhar cliente por cliente: saldo, contas a vencer, data do próximo recebimento e o que dá para ajustar. Com dezenas de clientes, a triagem fica para depois, e o contato só acontece quando o cliente já entrou no negativo, no cheque especial ou numa renegociação.
 
-Nossa hipótese é que essa reconstrução consome entre quinze e vinte minutos por atendimento de perfil financeiro complexo. Com o agente, o gerente abre a análise já calculada em dois a três minutos: vê o calendário diário, o menor saldo previsto, as hipóteses usadas e o efeito de um possível ajuste. [SUPOSIÇÃO A VALIDAR: tanto o tempo atual quanto o tempo esperado são estimativas sem medição; precisam ser verificados em entrevistas com gerentes reais ou em um piloto supervisionado.]
+## Stakeholders
 
-## Stakeholder: gerente de relacionamento do Banco do Brasil
+### Principal: analista de negócios da agência
 
-**Nome para a persona de trabalho:** Marcos, gerente de relacionamento de uma agência de médio porte, dez anos de banco.
+**Persona de trabalho:** Carla, analista de negócios de uma agência de médio porte, acompanha a carteira de pessoas físicas de três gerentes.
 
-**Rotina relevante:** atende de oito a doze clientes por dia, dos quais dois a três apresentam situações de fluxo de caixa pessoal que exigem análise antes de propor um produto ou encaminhamento. Usa o sistema do banco para consultar saldo e histórico, mas não tem uma ferramenta que projete o calendário de saídas e entradas futuras em uma tela.
+**Rotina relevante:** uma vez por semana prepara a lista de clientes que os gerentes devem procurar. Usa relatórios do banco para saldo e histórico, mas não tem uma visão de saldo futuro por cliente, com as contas que ainda vão vencer.
 
-**Dor principal:** o tempo gasto para montar o cenário manualmente compete com o tempo disponível para o atendimento em si. Quando a projeção não está pronta, a conversa começa pelo diagnóstico e não pela solução.
+**Dor:** a triagem manual não cabe na semana. Ela prioriza pelos casos que já deram problema, não pelos que vão dar.
 
-**Frequência:** dois a três atendimentos com esse perfil por dia, estimados [SUPOSIÇÃO A VALIDAR]. Em agências de maior volume, pode ser mais.
+**Frequência:** semanal, sobre a carteira inteira [SUPOSIÇÃO A VALIDAR].
 
-**Ponto de vista:** Marcos precisa chegar ao atendimento com o cenário mapeado, as alternativas calculadas e os limites declarados, para que a conversa comece na solução e não no diagnóstico.
+### Secundário: gerente de relacionamento
 
-Esta persona é hipotética e construída a partir do problema descrito. Não foi validada em entrevistas com gerentes do BB. Antes de declarar eficiência ou preferência, a equipe deve verificar com gerentes reais.
+**Persona de trabalho:** Marcos, gerente de relacionamento, recebe a lista e liga para cada cliente. Precisa chegar à conversa com o calendário de saldo, o pior dia, as hipóteses e uma alternativa já calculada.
+
+As duas personas são hipotéticas, construídas a partir do problema. Não foram validadas em entrevistas com funcionários do BB.
 
 ## Caso de uso de ponta a ponta
 
-### Situação inicial (baseline)
+1. Carla abre a visão do analista. O agente já analisou os 37 clientes da carteira sintética que deram consentimento de compartilhamento; 3 sem consentimento ficaram de fora.
+2. Ela pergunta "quem fica no vermelho nos próximos 7 dias?". O IBM watsonx.ai interpreta a pergunta (ou, sem credenciais, as regras locais) e o código calcula a resposta: quais clientes, a falta somada para a margem e o próximo passo de cada um.
+3. Ela pergunta "quem resolve com ajuste de gastos flexíveis?" e separa os casos simples (6) dos que pedem conversa mais longa.
+4. Marcos clica em "Abrir no atendimento" num desses clientes. A tela de atendimento mostra o calendário diário, o menor saldo e a proposta de ajuste com efeito calculado.
+5. Na conversa com o cliente, Marcos aprova o ajuste, ou ajusta o valor, ou registra a recusa. Nenhum dinheiro é movimentado. Se surgir uma nova despesa, a projeção é recalculada e a aprovação anterior deixa de valer.
 
-O cliente liga para a agência dizendo que o saldo sumiu antes do recebimento. Marcos abre o sistema do banco, consulta saldo e histórico, monta o calendário de saídas previstas manualmente ou em uma planilha separada, calcula o menor saldo esperado, identifica os gastos flexíveis e verifica qual redução seria viável sem cortar despesas essenciais. Estimativa de tempo para essa preparação: quinze a vinte minutos. [SUPOSIÇÃO A VALIDAR]
+## Meta de desempenho
 
-### Com o Elo Financeiro
-
-Marcos autoriza a leitura dos dados sintéticos do cliente no agente. O sistema apresenta o calendário diário, o menor saldo previsto, a data do risco, a proposta de redução de gastos flexíveis com efeito calculado, e os limites da análise. Marcos confere as hipóteses, aprova ou ajusta a proposta, e parte para o atendimento com o cenário documentado. Estimativa de tempo para essa preparação: dois a três minutos. [SUPOSIÇÃO A VALIDAR]
-
-### Meta de desempenho
-
-| Dimensão | Baseline estimado | Meta com o agente | Método de medição | Amostra |
+| Dimensão | Antes (sem o agente) | Com o agente | Fonte ou método | Amostra |
 | --- | --- | --- | --- | --- |
-| Tempo de preparação por atendimento de perfil complexo | 15 a 20 min [SUPOSIÇÃO A VALIDAR] | 2 a 3 min [SUPOSIÇÃO A VALIDAR] | Cronometrar em sessões com gerentes voluntários usando cenários sintéticos | 5 a 10 gerentes, 3 cenários cada |
-| Erros de identificação do pior dia de saldo | Não medido [SUPOSIÇÃO A VALIDAR] | Zero erros nos cenários sintéticos testados | Comparar resultado do agente com cálculo manual independente | Todos os cenários da demonstração |
-| Aprovação explícita antes de qualquer ação | Não existe no fluxo atual | 100% das ações requerem aprovação | Verificado nos testes automatizados | 233 testes Python e 36 de interface |
+| Tempo do computador para analisar a carteira | Não se aplica | Cerca de 3 ms para 37 clientes; cerca de 4 ms por pergunta respondida | **Medido**: `tempo_analise_ms` e `tempo_resposta_ms`, exibidos na tela e devolvidos pela API, em notebook da equipe | Carteira sintética de 40 clientes |
+| Tempo do analista para a triagem semanal | 3 a 5 min por cliente, cerca de 2 a 3 h para 37 clientes [SUPOSIÇÃO A VALIDAR] | Menos de 15 min para ler as respostas e revisar os casos [SUPOSIÇÃO A VALIDAR] | Cronometrar analistas voluntários fazendo a mesma triagem com planilha e com o Elo | 5 analistas, mesma carteira sintética |
+| Clientes em risco identificados | Depende da revisão manual [SUPOSIÇÃO A VALIDAR] | 15 de 37 (11 negativos e 4 abaixo da margem), com 6 resolvíveis por ajuste | **Medido** na carteira sintética | 37 clientes com consentimento |
+| Antecedência do aviso | Contato depois do aperto [SUPOSIÇÃO A VALIDAR] | Mediana de 7 dias antes do primeiro saldo negativo (mínimo de 3) | **Medido** na carteira sintética (`dias_ate_risco`) | 11 clientes com saldo negativo |
+| Coerência entre a visão do analista e a do atendimento | Não se aplica | 100%: menor saldo, data e "resolve com ajuste" iguais nas duas telas | **Verificado** por teste automatizado cliente a cliente (`tests/test_carteira.py`) | 37 clientes |
+| Ação sem aprovação | Não se aplica | Zero | **Verificado** nos testes automatizados | 258 testes Python e 40 de interface |
 
-Toda métrica sem fonte está marcada com [SUPOSIÇÃO A VALIDAR]. O avaliador deve tratar essas suposições como hipóteses de design, não como resultados obtidos.
-
-## Experiência proposta
-
-O gerente abre o agente durante a preparação do atendimento. Após autorizar a leitura do cenário:
-
-1. **O que pode acontecer:** menor saldo previsto, data do risco, recebimentos e saídas que contribuem.
-2. **Por quê:** valores em centavos, hipóteses usadas e o que não foi considerado, transparente para que o gerente possa corrigir premissas incorretas antes de apresentar ao cliente.
-3. **Alternativas:** ajuste de gastos flexíveis com efeito calculado, ou indicação de que a margem não é atingida com os flexíveis disponíveis.
-4. **O que acontece ao aprovar:** efeito exato, a que versão dos dados está vinculado, e a necessidade de reaprovar se uma nova despesa surgir.
-
-O gerente pode aceitar a proposta padrão, ajustar o valor da redução, recusar e registrar a recusa, ou revogar o acesso ao final da sessão.
-
-## Antes e depois
-
-| Momento | Fluxo atual (estimado) | Com o Elo |
-| --- | --- | --- |
-| Preparar o atendimento | 15 a 20 min para montar calendário manualmente [SUPOSIÇÃO A VALIDAR] | 2 a 3 min para revisar análise já calculada [SUPOSIÇÃO A VALIDAR] |
-| Identificar o pior dia de saldo | Cálculo manual sujeito a omissão de eventos | Calendário diário completo com o menor saldo destacado |
-| Propor um ajuste | Depende da experiência do gerente e do tempo disponível | Proposta com efeito calculado, hipóteses visíveis e aprovação vinculada |
-| Rever após nova despesa | Nova análise manual | Reavaliação automática; plano anterior não é reaproveitado |
-| Documentar a conversa | Anotação livre | Trilha temporária de consultas, aprovações e revogações |
+As linhas marcadas como **Medido** ou **Verificado** são resultados do protótipo com dados sintéticos. As linhas com [SUPOSIÇÃO A VALIDAR] são hipóteses de trabalho, não resultados.
 
 ## Aderência à trilha Banco do Brasil
 
 | Dimensão da trilha | Decisão de produto | Evidência demonstrável |
 | --- | --- | --- |
-| Segurança | Consentimento por sessão, aprovação vinculada à versão, sinais de risco em PIX | Cenário PIX e rejeição de ação não permitida nos testes |
-| Inclusão | Português simples, teclado, ampliação de texto, limites visíveis | Interface verificada; avaliação com leitores de tela pendente |
-| Personalização | Calendário, margem e gastos do cenário; ajuste editável pelo gerente | Comparação de cenários com resultados diferentes |
-| Escala | Ferramentas separadas, política, modelo e conectores | Arquitetura modular; teste de escala ainda pendente |
-| Responsabilidade | Hipóteses e limites visíveis; gerente aprova antes de qualquer ação | Aprovação vinculada aos dados, revogação e trilha temporária |
-| Educação e engajamento | Explica o calendário no momento do atendimento | Comparação de compra e meta registrada pelo gerente |
+| Escala | Uma pergunta analisa a carteira inteira, com o mesmo cálculo da tela de atendimento | Visão do analista com 37 clientes; tempo medido na tela |
+| Personalização | Cada cliente tem calendário, margem e gastos próprios | Respostas por segmento, prazo e cliente |
+| Segurança e consentimento | Só entram clientes com consentimento de compartilhamento, no modelo do Open Finance; aprovação vinculada à versão dos dados | Clientes sem consentimento são recusados na análise e no atendimento (testes) |
+| Inclusão | Perguntas em português comum; telas com teclado, foco visível e texto ampliável | Interface verificada; avaliação com leitores de tela pendente |
+| Responsabilidade | O agente não oferece crédito, não move dinheiro e mostra hipóteses e limites | Textos de limite em cada resposta; trilha da sessão |
+| Prevenção de golpes | Sinais de risco em PIX na tela de atendimento | Cenário PIX; sem confirmação de fraude |
+
+## Antes e depois
+
+| Momento | Hoje (estimado) | Com o Elo |
+| --- | --- | --- |
+| Escolher quem procurar | Triagem manual, cliente a cliente [SUPOSIÇÃO A VALIDAR] | Pergunta em português sobre a carteira inteira |
+| Saber quando o aperto acontece | Cálculo manual sujeito a omissão de contas | Data do primeiro saldo negativo por cliente |
+| Separar casos simples de casos difíceis | Depende da experiência | "Resolve com ajuste de gastos flexíveis" calculado |
+| Preparar a conversa com o cliente | Montar o calendário de novo | Abrir o cliente direto na tela de atendimento |
+| Rever após nova despesa | Nova análise manual | Reavaliação automática; aprovação anterior não vale |
 
 ## O que entra e o que fica para depois
 
-**MVP:** previsão de caixa com eventos conhecidos, comparação de compra, sinais de risco em PIX, consentimento, aprovação e reavaliação. A jornada de caixa deve receber a maior parte do tempo no vídeo.
+**Nesta versão:** visão do analista com perguntas em português sobre a carteira sintética, interpretação pelo IBM watsonx.ai com contingência por regras, abertura do cliente na tela de atendimento, projeção de caixa, proposta com aprovação, compra parcelada e sinais de PIX.
 
-**Expansão:** planos editáveis com múltiplos ajustes, RAG semântico sobre documentação curada, memória de atendimentos autorizados, comparação de crédito com custo total, acessibilidade validada com leitores de tela, integração com dados reais do Open Finance mediante parceria com o BB.
+**Depois:** orquestrar os papéis do agente no IBM watsonx Orchestrate (recomendado pelo guia do programa); ampliar as perguntas do analista (por gerente, por produto, por tendência); recuperação semântica sobre normas internas; dados reais via Open Finance, só com parceria e autorização do BB.
 
 ## Papel do Banco do Brasil e modelo de valor
 
-Posicionamento inicial: ferramenta de suporte ao atendimento que poderia ser incorporada ao sistema interno do BB, condicionada a parceria e integrações autorizadas. O protótipo independente demonstra a experiência; não simula uma afiliação oficial.
+Posicionamento: ferramenta interna de apoio a analistas e gerentes, que poderia ser incorporada aos sistemas do banco mediante parceria e integrações autorizadas. O protótipo é independente e não simula afiliação oficial.
 
-O gerente ganha tempo de preparação e documentação. O banco poderia ganhar eficiência no atendimento e satisfação do cliente por chegar mais rápido à solução. Redução de reclamações, inadimplência ou custo de atendimento são hipóteses de negócio a medir, não resultados obtidos.
+Valor esperado para o banco: contato proativo antes do aperto, menos tempo de triagem e conversa mais curta com o cliente. Redução de inadimplência, de uso de crédito caro ou de reclamações são hipóteses de negócio a medir, não resultados obtidos.
 
 ## Autonomia com finalidade clara
 
-O sistema consulta dados consentidos, executa cálculos, recupera orientações e apresenta recomendações dentro do objetivo do atendimento. Registra orçamento ou meta após aprovação específica do gerente.
-
-Não contrata crédito, não compra ativos, não transfere dinheiro e não presume elegibilidade a qualquer produto. O gerente aprova cada ação. Em produção, operações financeiras seriam jornadas separadas com autorização específica e controles do banco.
+O agente lê dados consentidos, calcula, responde perguntas e propõe ajustes. Registra plano ou meta somente após aprovação específica. Não contrata crédito, não transfere dinheiro, não presume elegibilidade a produtos e não decide quem o banco deve ou não atender.
 
 ## Pesquisa necessária
 
-Validar com gerentes reais: quanto tempo levam hoje para preparar um atendimento de perfil complexo; quais informações consultam; quais hipóteses mais frequentemente estão erradas no primeiro olhar; quando prefeririam ver o cenário antes vs. durante o atendimento; o que precisariam ajustar na interface para confiar na análise; quais limites são inaceitáveis como suposições.
-
-Entrevistas não devem coletar dados de clientes, extratos, CPF ou credenciais. Usar cenários fictícios e registrar apenas respostas anônimas permitidas pelas regras do programa.
+Validar com analistas e gerentes reais: quanto tempo leva a triagem semanal hoje; quais perguntas fazem sobre a carteira; que antecedência torna o contato útil; que informações precisam ver antes de ligar; quais respostas do agente geram desconfiança. Entrevistas não devem coletar dados de clientes, CPF ou extratos; usar a carteira sintética e registrar só respostas anônimas permitidas pelo programa.

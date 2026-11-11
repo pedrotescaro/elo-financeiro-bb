@@ -51,13 +51,30 @@ O rastreamento mostra nome de ferramenta, papel e resultado da execução. As ex
 
 ## IBM: papéis diferentes
 
-**IBM Bob:** ferramenta de desenvolvimento prevista para construir, revisar e testar a solução. Não é o agente financeiro que atende o usuário. O material fornecido exige seu uso central e evidências no repositório. Esta preparação não comprova que o Bob foi utilizado; a equipe deve realizar e documentar esse trabalho.
+**IBM Bob:** ferramenta de desenvolvimento usada pela equipe para construir, revisar e testar a solução. Não é o agente financeiro que atende o usuário. Cinco sessões reais estão registradas em `bob_sessions/`, com commits; o mapeamento está em [Uso do Bob](USO_DO_BOB.md).
 
-**IBM watsonx.ai + Granite:** o adaptador opcional autentica no IAM e solicita a seleção das ferramentas permitidas. Os valores financeiros vêm do código. O ID do modelo é configurado com base na disponibilidade real da conta; não presumimos acesso a uma versão.
+**IBM watsonx.ai + Granite:** o adaptador opcional autentica no IAM e tem dois usos: interpretar a pergunta do analista em uma consulta estruturada e selecionar as ferramentas permitidas no atendimento. Os valores financeiros vêm do código. O ID do modelo é configurado com base na disponibilidade real da conta; não presumimos acesso a uma versão.
 
 **IBM watsonx Orchestrate:** alternativa recomendada para a orquestração alvo. A equipe pode importar ferramentas e implementar os papéis no ambiente provisionado. Não há configuração Orchestrate implantada neste repositório.
 
 O guia do lab trata Bob como obrigatório e as outras tecnologias como opcionais/recomendadas; o documento de desafios também orienta o uso de watsonx para a POC. Para atender às duas orientações, o plano inclui validar watsonx/Granite e confirmar com o mentor a expectativa da trilha.
+
+## Visão do analista sobre a carteira
+
+```mermaid
+flowchart LR
+  A["Analista pergunta em português"] --> I{"Interpretação"}
+  I -->|"watsonx.ai, se configurado"| V["Consulta validada contra lista fechada"]
+  I -->|"regras locais ou contingência"| V
+  V --> C["Análise da carteira: cashflow de cada cliente com consentimento"]
+  C --> R["Resposta com números do código e tempo medido"]
+  R --> G["Gerente abre o cliente no atendimento"]
+  G --> P["Projeção, proposta e aprovação"]
+```
+
+`elo/carteira.py` carrega `data/carteira.json` (40 clientes sintéticos de uma agência fictícia, gerados de forma determinística). `analisar_carteira()` roda `cashflow` e a mesma simulação de ajuste da tela de atendimento para cada cliente com consentimento de compartilhamento, classifica o risco e mede o tempo. `responder()` transforma a pergunta em consulta (`interpretar_por_regras` ou `WatsonxPlanner.interpret`, sempre passando por `validar_consulta`) e monta a resposta com números da análise. O modelo nunca vê clientes sem consentimento e nunca produz os números.
+
+A rota `POST /api/analista` exige o mesmo token CSRF e a mesma origem das outras ações, aceita perguntas de até 300 caracteres e registra cada consulta na trilha da sessão. `POST /api/scenario` com `cliente-Cxx` abre o cliente no atendimento e recusa clientes sem consentimento.
 
 ## Contrato do planejador
 
@@ -80,7 +97,7 @@ Os testes simulam o contrato desse componente; não validam uma integração IBM
 - Eventos do mesmo dia são agregados; não há modelagem de liquidez intradiária.
 - Cada data do início ao fim do horizonte tem um fechamento, inclusive dias sem eventos. O saldo inicial é um dado separado; não cria um segundo ponto na mesma data.
 - Eventos posteriores ao horizonte ficam no cenário, mas não entram no saldo, nos recebimentos considerados ou nas reduções propostas.
-- A compra à vista é considerada hoje. No exemplo parcelado, só a primeira parcela entra no horizonte; as demais precisam de uma projeção longa antes de recomendar a contratação.
+- A compra à vista é considerada hoje. No parcelamento, todas as parcelas que caem dentro do horizonte entram na projeção; as que ficam fora são contadas e informadas na tela. Juros e tarifas não são simulados.
 - A redução completa de lazer do exemplo é uma opção ilustrativa. Em produção, o usuário ajustará o limite e o sistema poderá apresentar um resultado parcial.
 
 ## Dados e integrações
@@ -103,7 +120,7 @@ Em produção: identidade do cliente validada pelo banco, escopos e expiração 
 
 ## Recuperação local de orientações
 
-`data/knowledge.json` contém quatro trechos curados: uma paráfrase com fonte do Banco Central e três orientações próprias do protótipo. A base e seu índice são carregados uma vez, na inicialização. `elo/retrieval.py` normaliza palavras em português, expande conceitos e sinônimos revisados e ordena os documentos do tópico por similaridade TF-IDF. Sem correspondência suficiente, retorna a busca por tópico; se o tópico não existe, não inventa conteúdo substituto.
+`data/knowledge.json` contém oito trechos curados, com fonte ou indicação de que são orientações próprias do protótipo. A base e seu índice são carregados uma vez, na inicialização. `elo/retrieval.py` normaliza palavras em português, expande conceitos e sinônimos revisados e ordena os documentos do tópico por similaridade TF-IDF. Sem correspondência suficiente, retorna a busca por tópico; se o tópico não existe, não inventa conteúdo substituto.
 
 `guidance` monta a consulta com o título e os eventos do cenário, além do contexto de compra ou PIX. A resposta informa consulta, conceitos encontrados, modo de recuperação e limite da cobertura. As URLs exibidas são filtradas para HTTP(S), com host e sem credenciais. Textos recuperados são inseridos como texto na interface, sem interpretar HTML.
 

@@ -13,8 +13,17 @@ from time import monotonic
 from typing import Callable
 from urllib.parse import urlsplit
 from .core import CATALOG, ROOT, apply_saving, build_report, load_scenario, preview_saving
+from . import carteira
 
 _MAX_SESSION_NAME_LEN = 40
+_CLIENT_PREFIX = "cliente-"
+
+
+def _load(name: str) -> dict:
+    """Carrega um cenário do catálogo ou um cliente da carteira sintética (`cliente-C07`)."""
+    if isinstance(name, str) and name.startswith(_CLIENT_PREFIX):
+        return carteira.cliente_snapshot(name[len(_CLIENT_PREFIX):])
+    return load_scenario(name)
 
 
 class DemoSession:
@@ -25,7 +34,7 @@ class DemoSession:
         self.csrf = secrets.token_urlsafe(24)
         self.consent = False
         self.name = "month"
-        self.snapshot = load_scenario(self.name)
+        self.snapshot = _load(self.name)
         self.planner = planner
         self.report = build_report(self.snapshot, False)
         self.approved: dict = {}
@@ -126,7 +135,7 @@ class DemoSession:
             self.goals.clear()
             self.approved.clear()
             self.pending_adjustment = None
-            self.snapshot = load_scenario(self.name)
+            self.snapshot = _load(self.name)
             if hasattr(self.planner, "invalidate_cache"):
                 self.planner.invalidate_cache()
         self.refresh()
@@ -135,7 +144,7 @@ class DemoSession:
         """Troca o cenário ativo e reinicia o estado da sessão."""
         if not isinstance(name, str) or not name or len(name) > _MAX_SESSION_NAME_LEN:
             raise ValueError("Nome de cenário inválido.")
-        self.snapshot = load_scenario(name)  # levanta ValueError se desconhecido
+        self.snapshot = _load(name)  # levanta ValueError se desconhecido
         self.name = name
         self.approved.clear()
         self.history.clear()
@@ -462,8 +471,21 @@ class Handler(BaseHTTPRequestHandler):
             except RuntimeError:
                 self.send_json(503, {"error": "A demonstração está ocupada."})
             return
+        if path == "/api/carteira":
+            try:
+                session, new_cookie = self.get_session()
+                analise = carteira.analisar_carteira()
+                with session.lock:
+                    self.send_json(200, {**analise, "csrf": session.csrf,
+                                         "interpretador": "watsonx" if hasattr(self.server.planner, "interpret") else "regras"},
+                                   new_cookie=new_cookie)
+            except RuntimeError:
+                self.send_json(503, {"error": "A demonstração está ocupada."})
+            return
         routes = {
             "/": (ROOT / "web" / "index.html", "text/html; charset=utf-8"),
+            "/analista": (ROOT / "web" / "analista.html", "text/html; charset=utf-8"),
+            "/analista.js": (ROOT / "web" / "analista.js", "text/javascript; charset=utf-8"),
             "/app.js": (ROOT / "web" / "app.js", "text/javascript; charset=utf-8"),
             "/style.css": (ROOT / "web" / "style.css", "text/css; charset=utf-8"),
             "/assets/logo-elo-financeiro.png": (ROOT / "assets" / "logo-elo-financeiro.png", "image/png"),
@@ -538,6 +560,16 @@ class Handler(BaseHTTPRequestHandler):
                     session.discard_preview()
                 elif path == "/api/monitor":
                     session.monitor()
+                elif path == "/api/analista":
+                    pergunta = payload.get("pergunta")
+                    if not isinstance(pergunta, str) or len(pergunta) > 300:
+                        raise ValueError("Escreva uma pergunta de até 300 caracteres.")
+                    resposta = carteira.responder(pergunta, self.server.planner)
+                    session.record("analyst_query", "Pergunta do analista interpretada por "
+                                   + resposta["interpretado_por"] + "; " + str(resposta["analisados"])
+                                   + " clientes com consentimento analisados.")
+                    self.send_json(200, resposta, new_cookie=new_cookie)
+                    return
                 else:
                     self.send_json(404, {"error": "Ação não encontrada."})
                     return

@@ -12,7 +12,7 @@ No formulário da equipe, descrição, declaração tecnológica e repositório 
 
 ## 2. Problema e solução, até 500 palavras
 
-Copiar a seção "Problema e solução" de [SUBMISSAO.md](SUBMISSAO.md). Ela foi reescrita após o feedback com o gerente de relacionamento do BB como stakeholder e substitui o texto anterior, que falava apenas com o cliente final.
+Copiar a seção "Problema e solução" de [SUBMISSAO.md](SUBMISSAO.md). Ela foi reescrita após o feedback em torno da analista de negócios da agência e do gerente de relacionamento do BB, e substitui o texto anterior, que falava apenas com o cliente final.
 
 ## 3. Declaração clara das tecnologias utilizadas
 
@@ -20,11 +20,11 @@ Copiar o texto abaixo para o campo de tecnologias. Ele resume [DECLARACAO_TECNIC
 
 **IBM Bob (2.3.0, modo Agent):** ferramenta de desenvolvimento da equipe. Usado em cinco sessões por dois integrantes, entre 28/10 e 11/11/2026: projeção de parcelas no fluxo de caixa, correção de lint nos testes do adaptador IBM, redução personalizada de gastos com prévia no servidor, correção do fluxo de propostas com 30 casos de validação IBM, e diagnóstico do feedback com os documentos de resposta. Cada sessão tem registro, captura do painel e commits em `bob_sessions/`.
 
-**IBM watsonx.ai (API de geração de texto, modelo Granite configurado pela equipe):** escolhe quais ferramentas do agente rodam em cada cenário. Implementado em `elo/watsonx.py` e chamado por `build_report()` em `elo/core.py`. O modelo recebe só dados sintéticos e devolve só a lista de ferramentas; saldos, parcelas e permissões são calculados em Python. Falhas levam à contingência por regras, e um selo no topo da análise mostra quem planejou. Testado com respostas simuladas; [ATUALIZAR APÓS A EXECUÇÃO: a chamada real na conta do programa ainda não foi comprovada / foi comprovada em DATA com o modelo MODELO, evidência em docs/evidencias/watsonx/].
+**IBM watsonx.ai (API de geração de texto, modelo Granite configurado pela equipe):** dois usos. Interpreta a pergunta do analista de negócios sobre a carteira em uma consulta estruturada, validada contra uma lista fechada (`elo/watsonx.py`, método `interpret`, chamado por `elo/carteira.py`), e escolhe quais ferramentas do agente rodam para o cliente aberto no atendimento (método `plan`, chamado por `build_report()` em `elo/core.py`). O modelo recebe só dados sintéticos e nunca produz números; saldos, prazos e permissões são calculados em Python. Falhas levam à contingência por regras, e um selo no topo da análise mostra quem planejou. Testado com respostas simuladas; [ATUALIZAR APÓS A EXECUÇÃO: a chamada real na conta do programa ainda não foi comprovada / foi comprovada em DATA com o modelo MODELO, evidência em docs/evidencias/watsonx/].
 
 **IBM Cloud IAM:** autenticação antes das chamadas ao watsonx.ai, com token só em memória.
 
-**IBM watsonx Orchestrate:** não utilizado.
+**IBM watsonx Orchestrate e IBM Consulting Advantage:** não utilizados nesta versão.
 
 **Demais tecnologias:** Python 3.11 ou superior com biblioteca padrão, HTML, CSS e JavaScript; cálculos em centavos inteiros, recuperação local de orientações por conceitos e similaridade de termos, sessões temporárias em memória.
 

@@ -13,6 +13,7 @@ O código e os documentos preparados não equivalem à submissão. A chamada IBM
 
 - [x] Realizar trabalho relevante no IBM Bob da conta autorizada: cinco sessões registradas em [bob_sessions](../bob_sessions/README.md).
 - [ ] Escrever o parágrafo "Revisão do integrante na época da sessão" em cada registro; os demais campos já estão preenchidos.
+- [ ] Rodar no Bob os Prompts 11 a 13 de [USO_DO_BOB](USO_DO_BOB.md), sobre a visão do analista, e registrar cada sessão.
 - [ ] Configurar localmente projeto, modelo Granite e região disponíveis na conta da equipe, conforme o README; não presumir acesso a um modelo específico.
 - [ ] Executar o adaptador watsonx com dados sintéticos, verificar o modo exibido, as ferramentas permitidas e a contingência. Registrar modelo, região, revisão, data, casos e resultado reais, sem chave/token.
 - [ ] Executar `python -m elo.prova_watsonx` com credenciais reais e commitar o JSON gerado em `docs/evidencias/watsonx/`.

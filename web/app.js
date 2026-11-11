@@ -249,6 +249,7 @@ function render(){
   });
   $("scenario-title").textContent = state.scenario_title;
   $("scenario-period").textContent = "Cenário fictício · você controla as escolhas";
+  $("client-origin").hidden = !String(state.scenario || "").startsWith("cliente-");
   $("consent-toggle").textContent = state.consent ? "Desativar leitura" : "Autorizar leitura";
   $("consent-toggle").setAttribute("aria-label",state.consent ? "Desativar leitura e limpar planos" : "Autorizar leitura");
   $("consent-toggle").title = state.consent ? "Desativar a leitura e limpar os planos desta sessão" : "Autorizar a leitura dos dados fictícios";

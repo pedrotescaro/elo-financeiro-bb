@@ -2,15 +2,16 @@
 
 ## Reexecução em 11 de novembro de 2026
 
-Depois do selo do planejador, do script de prova do watsonx e da ampliação do vocabulário de recuperação, no mesmo ambiente local:
+Depois do selo do planejador, do script de prova do watsonx, da ampliação do vocabulário de recuperação e da visão do analista, no mesmo ambiente local:
 
 | Verificação | Resultado local |
 | --- | --- |
-| `python -m unittest discover -s tests` | 233 testes passaram |
+| `python -m unittest discover -s tests` | 258 testes passaram |
 | `python -m ruff check elo tests` | Passou |
 | `python -m compileall -q elo tests` | Passou |
-| `node --check web/app.js` | Passou |
-| `node --test tests/web_behaviors.cjs` | 36 testes passaram |
+| `node --check web/app.js` e `web/analista.js` | Passou |
+| `node --test tests/web_behaviors.cjs tests/analyst_behaviors.cjs` | 40 testes passaram |
+| Visão do analista no navegador (desktop e 375 px) | Carteira carregada, pergunta respondida, cliente aberto no atendimento com o mesmo menor saldo; sem rolagem lateral no celular |
 | `python -m elo.prova_watsonx` sem credenciais | Saiu com código 2, sem chamada e sem gravar arquivo, como esperado |
 | Chamada real ao watsonx.ai | Não executada: sem credenciais da conta do programa neste ambiente |
 
