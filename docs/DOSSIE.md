@@ -46,6 +46,7 @@ Estrutura para uma apresentação de oito a dez minutos. A ordem segue a pedida 
 
 **Conteúdo:**
 - **Visão do analista:** Carla pergunta "quem fica no vermelho nos próximos 7 dias?" ou "quem resolve com ajuste de gastos?" e recebe a lista, a falta somada para a margem e o próximo passo de cada cliente.
+- **Lista de contatos da semana:** Carla manda os clientes escolhidos para uma lista com gerente e situação, exportada em CSV. O desfecho do atendimento volta para a lista.
 - **Visão do atendimento:** Marcos abre o cliente com um clique e vê calendário diário, pior dia, hipóteses e uma proposta de ajuste com efeito calculado.
 - Só entram clientes com consentimento de compartilhamento, no modelo do Open Finance.
 - Nada é movimentado e nenhum crédito é oferecido. O cliente aprova cada ajuste; uma despesa nova invalida a aprovação antiga.
@@ -91,7 +92,7 @@ Estrutura para uma apresentação de oito a dez minutos. A ordem segue a pedida 
 - `elo/carteira.py`: carteira sintética, análise em lote e perguntas do analista.
 - `elo/core.py`: ferramentas de caixa, compra, segurança e orientação; política de aprovação.
 - `elo/watsonx.py`: interpretação de perguntas e seleção de ferramentas pelo IBM watsonx.ai, com contingência.
-- `elo/server.py`: sessões, consentimento, limites e as rotas `/api/carteira`, `/api/analista` e do atendimento.
+- `elo/server.py`: sessões, consentimento, limites, lista de contatos e as rotas `/api/carteira`, `/api/analista`, `/api/contatos` e do atendimento.
 - `web/`: visão do analista (`analista.html`) e visão do atendimento (`index.html`), sem dependências.
 - `data/`: carteira de 40 clientes sintéticos e cenários de demonstração.
 - O analista e o gerente veem o mesmo número para o mesmo cliente; um teste confere isso cliente a cliente.
@@ -106,7 +107,7 @@ Estrutura para uma apresentação de oito a dez minutos. A ordem segue a pedida 
 
 | Evidência | Estado |
 | --- | --- |
-| 258 testes Python e 40 de interface, Ruff limpo | Comprovado localmente em 2026-11-11; CI no GitHub Actions |
+| 264 testes Python e 43 de interface, Ruff limpo | Comprovado localmente em 2026-11-11; CI no GitHub Actions |
 | Visão do analista ligada ao atendimento, testada no navegador | Comprovado localmente |
 | Cinco sessões do Bob com registros, capturas e commits | Comprovado; falta o parágrafo de revisão de cada integrante |
 | Chamada real ao watsonx.ai | Pendente; script de prova pronto |

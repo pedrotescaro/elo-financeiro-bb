@@ -23,7 +23,7 @@ class Element {
 }
 
 const row = (id, risco, extra = {}) => ({
-  id, nome: "Cliente " + id.slice(1), segmento: "mei", segmento_rotulo: "Microempreendedor",
+  id, nome: "Cliente " + id.slice(1), segmento: "mei", segmento_rotulo: "Microempreendedor", gerente: "Gerente 1",
   risco, menor_saldo_cents: risco === "negativo" ? -17000 : 9000, primeiro_negativo: risco === "negativo" ? "2026-10-19" : null,
   falta_para_margem_cents: 49000, acao_sugerida: "Contato proativo.", resolve_com_flexivel: true, ...extra,
 });
@@ -31,13 +31,19 @@ const row = (id, risco, extra = {}) => ({
 const portfolio = {
   agencia: "Agência fictícia 0001", data_base: "2026-10-07", analisados: 37, sem_consentimento: 3,
   negativos: 11, abaixo_da_margem: 4, resolvem_com_flexivel: 6, falta_total_cents: 635000,
-  tempo_analise_ms: 2.5, interpretador: "regras", csrf: "token-sintetico",
+  tempo_analise_ms: 2.5, interpretador: "regras", csrf: "token-sintetico", contatos: [],
+  por_gerente: [{gerente: "Gerente 1", em_risco: 2, analisados: 3}],
   clientes: [row("C30", "negativo"), row("C07", "abaixo_da_margem"), row("C13", "ok")],
 };
 
 async function harness(responses) {
   const elements = {};
   for (const match of html.matchAll(/id="([^"]+)"/g)) elements[match[1]] = new Element();
+  const findById = (root, id) => {
+    if (root.id === id) return root;
+    for (const child of root.children || []) { const found = findById(child, id); if (found) return found; }
+    return null;
+  };
   const chips = [...html.matchAll(/class="chip" data-q="([^"]+)"/g)].map(m => {
     const chip = new Element("button"); chip.dataset.q = m[1]; return chip;
   });
@@ -58,7 +64,8 @@ async function harness(responses) {
   });
   vm.runInContext(source, context);
   await new Promise(resolve => setImmediate(resolve));
-  return {elements, chips, calls, context};
+  const button = id => Object.values(elements).map(e => findById(e, id)).find(Boolean);
+  return {elements, chips, calls, context, button};
 }
 
 test("summary shows measured analysis time and lists only clients needing contact", async () => {
@@ -101,11 +108,43 @@ test("rules fallback is labelled as contingency, never as watsonx", async () => 
 
 test("opening a client switches the attendance scenario before navigating", async () => {
   const app = await harness([portfolio, {scenario: "cliente-C30"}]);
-  const firstRow = app.elements.clients.children[0];
-  const button = firstRow.children[4].children[1];
-  assert.equal(button.id, "open-C30");
-  await button.onclick();
+  const open = app.button("open-C30");
+  assert.ok(open);
+  await open.onclick();
   assert.deepEqual(JSON.parse(app.calls[1].options.body), {name: "cliente-C30"});
   assert.equal(app.calls[1].url, "/api/scenario");
   assert.equal(vm.runInContext("window.location.href", app.context), "/");
+});
+
+test("adding a client to the contact list renders status, summary and CSV link", async () => {
+  const listed = {contatos: [{...row("C30", "negativo"), status: "pendente", status_rotulo: "Contato pendente"}]};
+  const app = await harness([portfolio, listed]);
+  assert.equal(app.elements["contacts-wrap"].hidden, true);
+  assert.equal(app.elements["contacts-csv"].hidden, true);
+  await app.button("add-C30").onclick();
+  assert.equal(app.calls[1].url, "/api/contatos");
+  assert.deepEqual(JSON.parse(app.calls[1].options.body), {acao: "adicionar", clientes: ["C30"]});
+  assert.equal(app.elements.contacts.children.length, 1);
+  assert.equal(app.elements["contacts-wrap"].hidden, false);
+  assert.equal(app.elements["contacts-csv"].hidden, false);
+  assert.match(app.elements["contacts-summary"].textContent, /1 na lista · 1 pendentes/);
+  assert.equal(app.button("add-C30").textContent, "Na lista");
+  assert.equal(app.button("add-C30").disabled, true);
+});
+
+test("add all sends only at-risk clients that are not yet listed", async () => {
+  const already = {...portfolio, contatos: [{...row("C30", "negativo"), status: "contatado", status_rotulo: "Cliente contatado"}]};
+  const app = await harness([already, {contatos: []}]);
+  assert.match(app.elements["add-all"].textContent, /Adicionar 1 à lista/);
+  await app.elements["add-all"].onclick();
+  assert.deepEqual(JSON.parse(app.calls[1].options.body), {acao: "adicionar", clientes: ["C07"]});
+});
+
+test("contacted clients can go back to pending and be removed", async () => {
+  const listed = {...portfolio, contatos: [{...row("C30", "negativo"), status: "contatado", status_rotulo: "Cliente contatado"}]};
+  const app = await harness([listed, {contatos: []}]);
+  assert.equal(app.button("toggle-C30").textContent, "Voltar a pendente");
+  await app.button("remove-C30").onclick();
+  assert.deepEqual(JSON.parse(app.calls[1].options.body), {acao: "remover", clientes: ["C30"]});
+  assert.equal(app.elements.contacts.children.length, 0);
 });

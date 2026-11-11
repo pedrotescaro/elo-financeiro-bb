@@ -7,3 +7,10 @@ __pycache__/
 .DS_Store
 output/
 *.log
+
+# Local assistant folders
+claude/
+.claude/
+
+# Machine-specific design configuration
+.impeccable/config.local.json

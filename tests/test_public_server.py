@@ -95,6 +95,26 @@ class PublicServerTests(unittest.TestCase):
         self.assertEqual(status, 200)
         self.assertTrue(json.loads(body)["consent"])
 
+    def test_public_mode_serves_analyst_view_with_rules_only(self):
+        self.start_server()
+        state, cookie = self.bootstrap()
+        status, _, _ = self.request("/analista", headers={"Cookie": cookie})
+        self.assertEqual(status, 200)
+        status, _, body = self.request("/api/carteira", headers={"Cookie": cookie})
+        self.assertEqual(status, 200)
+        self.assertEqual(json.loads(body)["interpretador"], "regras")
+        status, _, body = self.post(state, cookie, "/api/analista", {"pergunta": "Como está a carteira?"})
+        self.assertEqual(status, 200)
+        self.assertEqual(json.loads(body)["interpretado_por"], "regras")
+        status, _, _ = self.post(state, cookie, "/api/contatos", {"acao": "adicionar", "clientes": ["C06"]})
+        self.assertEqual(status, 200)
+        status, headers, body = self.request("/api/contatos.csv", headers={"Cookie": cookie})
+        self.assertEqual(status, 200)
+        self.assertIn("strict-transport-security", headers)
+        self.assertIn("C06;", body.decode("utf-8-sig"))
+        status, _, _ = self.post(state, cookie, "/api/analista", {"pergunta": "oi"}, "https://elsewhere.example")
+        self.assertEqual(status, 403)
+
     def test_host_header_cannot_change_public_cookie_policy_or_origin(self):
         self.start_server()
         for host in ["localhost", "127.0.0.1", "elo-demo.example.evil", "attacker.example"]:

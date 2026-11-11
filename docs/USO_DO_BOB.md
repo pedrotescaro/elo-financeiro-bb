@@ -16,7 +16,7 @@ Cinco sessões reais, de dois integrantes, em ordem de data. Todas usaram o IBM 
 | 2026-11-05 | Pedro | Encontrou cinco problemas no fluxo de propostas (descarte só visual, prévia sem identidade entre abas, recusa que não cancelava a prévia, entre outros), corrigiu e criou os 30 casos de validação IBM | `7c5e853`, `a121388`, `d76f00d` | [registro](../bob_sessions/2026-11-08-mvp-completion/registro.md) |
 | 2026-11-11 | Pedro | Leu o repositório, escreveu o diagnóstico do feedback por critério, comparou duas rotas e produziu os documentos de resposta (11 arquivos, sem código) | ainda não commitado | [registro](../bob_sessions/2026-11-11-resposta-ao-feedback/registro.md) |
 
-O que **não** foi feito com o Bob: a visão do analista (`elo/carteira.py`, `web/analista.html`, `web/analista.js`, `data/carteira.json` e o método `interpret` do watsonx), o selo do planejador na interface, `elo/prova_watsonx.py`, o ajuste do modo real em `tests/test_ibm_validation.py` e a ampliação do vocabulário de `elo/retrieval.py`. Esses itens foram feitos em 2026-11-11 fora do Bob e estão separados no registro daquele dia.
+O que **não** foi feito com o Bob: a visão do analista (`elo/carteira.py`, `web/analista.html`, `web/analista.js`, `data/carteira.json` e o método `interpret` do watsonx), a lista de contatos da semana, a nova apresentação dentro do app, o selo do planejador na interface, `elo/prova_watsonx.py`, o ajuste do modo real em `tests/test_ibm_validation.py` e a ampliação do vocabulário de `elo/retrieval.py`. Esses itens foram feitos em 2026-11-11 fora do Bob e estão separados no registro daquele dia.
 
 ### Onde o modo Agent aparece nessas sessões
 

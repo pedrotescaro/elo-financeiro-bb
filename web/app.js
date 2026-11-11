@@ -32,6 +32,29 @@ const parseCents = raw => {
   return cents;
 };
 
+// Aviso curto no canto da tela, com o "check" em Lottie quando o player carregou.
+let toastTimer = null;
+function showToast(text){
+  const box = $("toast");
+  if(!box) return;
+  $("toast-text").textContent = text;
+  box.hidden = false;
+  if(globalThis.EloAnim) globalThis.EloAnim.play($("toast-anim"), "check");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { box.hidden = true; }, 3600);
+}
+
+// Régua fina do indicador: largura proporcional e tom pelo significado.
+function setMeter(id, fraction, tone){
+  const meter = $(id);
+  if(!meter) return;
+  const bar = meter.firstElementChild;
+  const pct = Math.round(Math.max(0, Math.min(1, fraction)) * 100);
+  if(bar && bar.style) bar.style.width = pct + "%";
+  if(tone) meter.setAttribute("data-tone", tone); else if(meter.removeAttribute) meter.removeAttribute("data-tone");
+  meter.setAttribute("data-value", String(pct));
+}
+
 function syncControls(){
   document.querySelectorAll("button").forEach(b => b.disabled = busy);
   $("start").disabled = busy || !state;
@@ -64,6 +87,7 @@ function showPresentationSlide(index){
     $("pitch-tab-"+i).setAttribute("aria-current",i === presentationIndex ? "step" : "false");
   }
   $("pitch-position").textContent = `${presentationIndex+1} de 4`;
+  if($("pitch-progress")) $("pitch-progress").setAttribute("data-step", String(presentationIndex));
   syncPresentationControls();
 }
 
@@ -103,8 +127,13 @@ async function request(path, body){
     if(!Array.isArray(result.scenarios) || typeof result.csrf !== "string" || !result.report){
       throw new Error("A resposta está incompleta. Tente carregar o cenário novamente.");
     }
+    const previousHistory = state?.history?.length || 0;
     state = result;
     render();
+    const latest = result.history?.[result.history.length - 1];
+    if(result.history?.length > previousHistory && latest?.status === "accepted"){
+      showToast(latest.action === "budget-plan" ? "Plano aprovado. Nenhum dinheiro foi movimentado." : latest.label + ": registrado.");
+    }
     $("status").textContent = "Cenário atualizado.";
   } catch(error){
     $("error").textContent = error.name === "AbortError"
@@ -181,6 +210,12 @@ function renderChart(flow){
     return element;
   };
   const svg = svgNode("svg",{viewBox:`0 0 ${width} ${height}`,role:"img","aria-labelledby":"chart-title chart-description"});
+  // Gradiente da área sob a linha; puramente visual.
+  const defs = svgNode("defs"), gradient = svgNode("linearGradient",{id:"chart-fill",x1:0,y1:0,x2:0,y2:1});
+  gradient.append(svgNode("stop",{offset:"0%","stop-color":"#132C5C","stop-opacity":0.14}),
+    svgNode("stop",{offset:"100%","stop-color":"#132C5C","stop-opacity":0}));
+  defs.append(gradient);
+  svg.append(defs);
   svg.append(svgNode("title",{id:"chart-title"},"Saldo previsto por fechamento diário"),
     svgNode("desc",{id:"chart-description"},`Menor saldo: ${money(flow.minimum_cents)} em ${day(flow.minimum_date)}. Margem desejada: ${money(flow.buffer_cents)}. Consulte todos os valores na tabela abaixo.`));
   const line = (value,className) => svgNode("line",{x1:left,x2:right,y1:y(value),y2:y(value),class:className});
@@ -189,9 +224,10 @@ function renderChart(flow){
   [0.25,0.5,0.75].forEach(fraction => svg.append(line(low + (high-low) * fraction,"chart-grid")));
   svg.append(line(0,"chart-zero"),line(flow.buffer_cents,"chart-buffer"));
   svg.append(svgNode("text",{x:right,y:y(0)-7,"text-anchor":"end",class:"chart-label"},"zero"));
-  svg.append(svgNode("polyline",{points,class:"chart-line"}));
+  svg.append(svgNode("polyline",{points,class:"chart-line",pathLength:1}));
   flow.daily.forEach((row,index)=>{
     const isLowest = row.date === flow.minimum_date;
+    if(isLowest) svg.append(svgNode("circle",{cx:x(index),cy:y(row.balance_cents),r:13,class:"chart-low-ring"}));
     const dot = svgNode("circle",{cx:x(index),cy:y(row.balance_cents),r:isLowest ? 6 : 3,
       class:isLowest ? "chart-low-dot" : "chart-dot"});
     dot.append(svgNode("title",{},`${day(row.date)}: ${money(row.balance_cents)}${isLowest ? ", menor saldo" : ""}`));
@@ -218,16 +254,14 @@ function renderDemoProgress(){
 }
 
 function scenarioIcon(id){
-  const paths = {
-    month: "M3 20h18M5 16v-5m7 5V4m7 12V8",
-    purchase: "M5 7h14l1 14H4L5 7Zm3 0V6a4 4 0 0 1 8 0v1",
-    pix: "m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6l8-3Zm-4 9 3 3 5-6",
-  };
+  // Ícones do sprite Phosphor embutido na página.
+  const names = {month: "calendar", purchase: "bag", pix: "shield"};
   const icon = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  Object.entries({viewBox:"0 0 24 24",fill:"none",stroke:"currentColor","stroke-width":"1.6","stroke-linecap":"round","stroke-linejoin":"round","aria-hidden":"true",class:"scenario-icon"}).forEach(([key,value]) => icon.setAttribute(key,value));
-  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path.setAttribute("d", paths[id] || paths.month);
-  icon.append(path);
+  icon.setAttribute("class", "icon scenario-icon");
+  icon.setAttribute("aria-hidden", "true");
+  const use = document.createElementNS("http://www.w3.org/2000/svg", "use");
+  use.setAttribute("href", "#i-" + (names[id] || "calendar"));
+  icon.append(use);
   return icon;
 }
 
@@ -279,6 +313,9 @@ function render(){
   if(report.warning){$("notice").textContent=report.warning;$("notice").hidden=false;}
   $("minimum").textContent = money(flow.minimum_cents);
   $("minimum").className = flow.minimum_cents < 0 ? "negative" : "";
+  // Quanto da margem desejada o menor saldo cobre: vermelho abaixo de zero, âmbar abaixo da margem.
+  setMeter("minimum-meter", flow.buffer_cents > 0 ? flow.minimum_cents / flow.buffer_cents : (flow.minimum_cents >= 0 ? 1 : 0),
+    flow.minimum_cents < 0 ? "negative" : flow.minimum_cents < flow.buffer_cents ? "warn" : null);
   $("minimum-date").textContent = `${flow.minimum_cents < 0 ? "Saldo abaixo de zero · " : ""}Previsto para ${day(flow.minimum_date)}`;
   $("buffer").textContent = money(flow.buffer_cents);
   $("closing").textContent = money(flow.closing_cents);

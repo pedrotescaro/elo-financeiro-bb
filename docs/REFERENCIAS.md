@@ -24,6 +24,13 @@ O enunciado completo foi consultado, não apenas a imagem que apresenta os nomes
 
 O adaptador usa o formato REST documentado de geração de texto, com versão `2024-05-31`. Modelo e região dependem da disponibilidade da conta e precisam ser confirmados antes do teste real.
 
+## Recursos de terceiros incluídos no repositório
+
+- **Mulish** (fonte variável), via pacote `@fontsource-variable/mulish` 5.3.0. Licença SIL Open Font License 1.1, texto em `assets/fonts/OFL-Mulish.txt`.
+- **Phosphor Icons** 2.1.1, peso light, via pacote `@phosphor-icons/core`. Licença MIT. Os traçados estão embutidos no sprite SVG de `web/index.html` e `web/analista.html`.
+- **lottie-web** 5.13.0, arquivo `lottie_light.min.js`. Licença MIT, texto em `web/vendor/LICENSE-lottie-web.md`. As animações em `web/anim.js` foram feitas pela equipe.
+- **impeccable** (guia de design de Paul Bakaus, licença Apache 2.0), usado como referência de critérios visuais; nenhum arquivo dele está no repositório.
+
 ## Inferências e propostas próprias
 
 Nome, persona hipotética, margem financeira, desenho do produto, cronograma, metas de avaliação e possíveis benefícios ao banco são propostas da equipe a validar. Não são exigências textuais da IBM nem resultados comprovados.

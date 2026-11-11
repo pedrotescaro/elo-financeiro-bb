@@ -34,9 +34,11 @@ As duas personas são hipotéticas, construídas a partir do problema. Não fora
 
 1. Carla abre a visão do analista. O agente já analisou os 37 clientes da carteira sintética que deram consentimento de compartilhamento; 3 sem consentimento ficaram de fora.
 2. Ela pergunta "quem fica no vermelho nos próximos 7 dias?". O IBM watsonx.ai interpreta a pergunta (ou, sem credenciais, as regras locais) e o código calcula a resposta: quais clientes, a falta somada para a margem e o próximo passo de cada um.
-3. Ela pergunta "quem resolve com ajuste de gastos flexíveis?" e separa os casos simples (6) dos que pedem conversa mais longa.
-4. Marcos clica em "Abrir no atendimento" num desses clientes. A tela de atendimento mostra o calendário diário, o menor saldo e a proposta de ajuste com efeito calculado.
-5. Na conversa com o cliente, Marcos aprova o ajuste, ou ajusta o valor, ou registra a recusa. Nenhum dinheiro é movimentado. Se surgir uma nova despesa, a projeção é recalculada e a aprovação anterior deixa de valer.
+3. Ela pergunta "quem resolve com ajuste de gastos flexíveis?" e separa os casos simples (6) dos que pedem conversa mais longa. Pode filtrar por segmento, prazo ou gerente ("clientes do gerente 2 em risco").
+4. Ela monta a **lista de contatos da semana** com um clique ("Adicionar à lista") e baixa o CSV com cliente, gerente, situação, pior dia e próximo passo para distribuir aos gerentes.
+5. Marcos clica em "Abrir no atendimento" num desses clientes. A tela de atendimento mostra o calendário diário, o menor saldo e a proposta de ajuste com efeito calculado.
+6. Na conversa com o cliente, Marcos aprova o ajuste, ou ajusta o valor, ou registra a recusa. Nenhum dinheiro é movimentado. Se surgir uma nova despesa, a projeção é recalculada e a aprovação anterior deixa de valer.
+7. O desfecho volta para a lista da Carla: "plano aprovado" ou "proposta recusada". Contatos feitos fora da tela são marcados como "contatado". No fim da semana ela sabe quem foi atendido e quem ainda falta.
 
 ## Meta de desempenho
 
@@ -47,7 +49,8 @@ As duas personas são hipotéticas, construídas a partir do problema. Não fora
 | Clientes em risco identificados | Depende da revisão manual [SUPOSIÇÃO A VALIDAR] | 15 de 37 (11 negativos e 4 abaixo da margem), com 6 resolvíveis por ajuste | **Medido** na carteira sintética | 37 clientes com consentimento |
 | Antecedência do aviso | Contato depois do aperto [SUPOSIÇÃO A VALIDAR] | Mediana de 7 dias antes do primeiro saldo negativo (mínimo de 3) | **Medido** na carteira sintética (`dias_ate_risco`) | 11 clientes com saldo negativo |
 | Coerência entre a visão do analista e a do atendimento | Não se aplica | 100%: menor saldo, data e "resolve com ajuste" iguais nas duas telas | **Verificado** por teste automatizado cliente a cliente (`tests/test_carteira.py`) | 37 clientes |
-| Ação sem aprovação | Não se aplica | Zero | **Verificado** nos testes automatizados | 258 testes Python e 40 de interface |
+| Lista da semana pronta para os gerentes | Montada à mão [SUPOSIÇÃO A VALIDAR] | Gerada a partir das respostas, com desfecho atualizado pelo atendimento | **Verificado** por teste: aprovação e recusa no atendimento mudam o status na lista | Fluxo completo nos testes HTTP |
+| Ação sem aprovação | Não se aplica | Zero | **Verificado** nos testes automatizados | 264 testes Python e 43 de interface |
 
 As linhas marcadas como **Medido** ou **Verificado** são resultados do protótipo com dados sintéticos. As linhas com [SUPOSIÇÃO A VALIDAR] são hipóteses de trabalho, não resultados.
 
@@ -74,9 +77,52 @@ As linhas marcadas como **Medido** ou **Verificado** são resultados do protóti
 
 ## O que entra e o que fica para depois
 
-**Nesta versão:** visão do analista com perguntas em português sobre a carteira sintética, interpretação pelo IBM watsonx.ai com contingência por regras, abertura do cliente na tela de atendimento, projeção de caixa, proposta com aprovação, compra parcelada e sinais de PIX.
+**Nesta versão:** visão do analista com perguntas em português sobre a carteira sintética (por intenção, segmento, prazo e gerente), interpretação pelo IBM watsonx.ai com contingência por regras, lista de contatos da semana com exportação em CSV e desfecho vindo do atendimento, abertura do cliente na tela de atendimento, projeção de caixa, proposta com aprovação, compra parcelada e sinais de PIX.
 
 **Depois:** orquestrar os papéis do agente no IBM watsonx Orchestrate (recomendado pelo guia do programa); ampliar as perguntas do analista (por gerente, por produto, por tendência); recuperação semântica sobre normas internas; dados reais via Open Finance, só com parceria e autorização do BB.
+
+## Como funcionaria dentro do banco
+
+Este protótipo roda sozinho, com dados sintéticos. Dentro do BB, a mesma lógica dependeria de peças que não existem aqui, e que só a parceria com o banco pode fornecer:
+
+| Peça | No protótipo | Em produção (proposta, a validar com o BB) |
+| --- | --- | --- |
+| Dados da carteira | `data/carteira.json`, 40 clientes sintéticos | Saldos e compromissos dos sistemas do banco e, com consentimento, de outras instituições via Open Finance |
+| Quem pode perguntar | Qualquer sessão da demonstração | Analistas e gerentes autenticados, cada um vendo só a própria carteira |
+| Consentimento | Campo `consentimento_open_finance` por cliente | Consentimento registrado, com validade e revogação respeitadas pela análise |
+| IA | IBM watsonx.ai interpreta a pergunta; regras como contingência | O mesmo papel, com o modelo e a região aprovados pelo banco, e avaliação contínua do acerto |
+| Lista de contatos | Sessão de 30 minutos, exportada em CSV | Integrada à agenda e ao CRM do gerente, com histórico |
+| Registro | Trilha temporária da sessão | Auditoria de produção de cada pergunta, lista e decisão |
+
+## Privacidade, LGPD e uso responsável
+
+- **Finalidade definida:** a análise serve para oferecer ajuda antes do aperto. Não serve para cortar limite, negar crédito ou ranquear clientes para cobrança. O agente não oferece nenhum produto de crédito.
+- **Minimização:** o modelo recebe a pergunta do analista, não os dados dos clientes. Na tela de atendimento, recebe apenas o cenário do cliente aberto. CPF, nome real e extratos não são necessários para o cálculo.
+- **Consentimento:** clientes sem consentimento de compartilhamento não entram na análise, não aparecem nas respostas e não podem ser abertos no atendimento. Os testes cobrem os três casos.
+- **Explicação:** cada resposta mostra o que foi considerado (quem interpretou, quantos clientes, o tempo) e cada número do atendimento tem hipótese e limite visíveis.
+- **Decisão humana:** o agente sugere; o gerente conversa; o cliente aprova. Nada é executado automaticamente.
+- **Base legal e retenção** em produção precisam ser definidas com o jurídico e o encarregado de dados do banco. Este protótipo não faz essa avaliação.
+
+## Plano de piloto
+
+| Etapa | Duração estimada | O que medir | Critério para seguir |
+| --- | --- | --- | --- |
+| 1. Teste de uso com a carteira sintética | 2 semanas | Tempo da triagem com e sem o Elo; perguntas que o agente não entende; confiança nas respostas | Ganho de tempo percebido por pelo menos 4 de 5 analistas |
+| 2. Avaliação da IA | Em paralelo à etapa 1 | Acerto do IBM watsonx.ai contra o gabarito de perguntas (`docs/PERGUNTAS_ANALISTA.md`, a criar); respostas fora do contrato | Acerto acima das regras locais, com zero números inventados |
+| 3. Piloto assistido em uma agência | 8 semanas | Clientes contatados antes do primeiro saldo negativo; planos aprovados; reclamações | Aprovação do banco, jurídico e segurança antes de usar dados reais |
+
+As durações e critérios são proposta da equipe [SUPOSIÇÃO A VALIDAR].
+
+## Riscos e como tratamos
+
+| Risco | Como o protótipo trata | O que falta |
+| --- | --- | --- |
+| O modelo interpretar errado a pergunta | Consulta validada contra lista fechada; contingência por regras; a tela diz como a pergunta foi entendida | Medir o acerto com o gabarito (Prompt 13) |
+| O modelo inventar números | O modelo não produz números; respostas montadas pelo código | Manter isso em qualquer evolução |
+| Injeção de instruções na pergunta | Pergunta entre marcadores e tratada como dado; consulta validada | Testes adversariais com perguntas maliciosas |
+| Projeção errada por dado incompleto | Hipóteses e limites visíveis; recebimento e contas tratados como previsão | Dados reais e conciliação |
+| Uso para fins que prejudiquem o cliente | Finalidade declarada; sem oferta de crédito | Política do banco e auditoria |
+| Excesso de alertas | Lista priorizada por pior saldo e por "resolve com ajuste" | Preferências do cliente e frequência máxima de contato |
 
 ## Papel do Banco do Brasil e modelo de valor
 

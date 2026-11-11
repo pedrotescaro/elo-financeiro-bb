@@ -99,6 +99,18 @@ class QuestionTests(unittest.TestCase):
             with self.subTest(question=question):
                 self.assertEqual(carteira.interpretar_por_regras(question)["intencao"], intent)
 
+    def test_manager_filter_and_per_manager_totals(self):
+        analysis = carteira.analisar_carteira()
+        self.assertEqual(sum(g["analisados"] for g in analysis["por_gerente"]), analysis["analisados"])
+        query = carteira.interpretar_por_regras("clientes do gerente 2 em risco")
+        self.assertEqual(query["gerente"], "Gerente 2")
+        answer = carteira.responder("clientes do gerente 2 em risco")
+        expected = next(g["em_risco"] for g in analysis["por_gerente"] if g["gerente"] == "Gerente 2")
+        self.assertEqual(len(answer["clientes"]), expected)
+        self.assertTrue(all(r["gerente"] == "Gerente 2" for r in answer["clientes"]))
+        with self.assertRaises(ValueError):
+            carteira.validar_consulta({"intencao": "em_risco", "gerente": "Gerente 9"})
+
     def test_rules_extract_segment_days_limit_and_client(self):
         query = carteira.interpretar_por_regras("Top 3 assalariados em risco nos próximos 7 dias")
         self.assertEqual((query["segmento"], query["dias"], query["limite"]), ("assalariado", 7, 3))
@@ -246,8 +258,59 @@ class PortfolioHTTPTests(unittest.TestCase):
         self.assertEqual(error.exception.code, 400)
         error.exception.close()
 
+    def contacts(self, acao, clientes):
+        return self.post("/api/contatos", {"acao": acao, "clientes": clientes})["contatos"]
+
+    def test_contact_list_add_mark_and_remove(self):
+        risky = [r["id"] for r in self.portfolio["clientes"] if r["risco"] != "ok"][:3]
+        listed = self.contacts("adicionar", risky)
+        self.assertEqual([c["id"] for c in listed], risky)
+        self.assertTrue(all(c["status"] == "pendente" for c in listed))
+        self.assertEqual(len(self.contacts("adicionar", risky[:1])), 3)  # repetir não duplica
+        listed = self.contacts("contatado", risky[:1])
+        self.assertEqual(listed[0]["status_rotulo"], "Cliente contatado")
+        listed = self.contacts("remover", risky[1:2])
+        self.assertEqual([c["id"] for c in listed], [risky[0], risky[2]])
+        with self.client.open(self.base + "/api/carteira") as response:
+            self.assertEqual(len(json.load(response)["contatos"]), 2)
+
+    def test_contact_list_rejects_invalid_requests(self):
+        blocked = next(c["id"] for c in carteira.CARTEIRA["clientes"] if not c["consentimento_open_finance"])
+        bad = [{"acao": "apagar", "clientes": ["C01"]}, {"acao": "adicionar", "clientes": []},
+               {"acao": "adicionar", "clientes": [blocked]}, {"acao": "adicionar", "clientes": ["C99"]},
+               {"acao": "remover", "clientes": ["C01"]}, {"acao": "adicionar", "clientes": "C01"}]
+        for payload in bad:
+            with self.subTest(payload=payload):
+                with self.assertRaises(HTTPError) as error:
+                    self.post("/api/contatos", payload)
+                self.assertEqual(error.exception.code, 400)
+                error.exception.close()
+
+    def test_attendance_outcome_updates_the_contact_list(self):
+        resolvable = [r["id"] for r in self.portfolio["clientes"] if r["resolve_com_flexivel"]][:2]
+        self.contacts("adicionar", resolvable)
+        self.post("/api/scenario", {"name": "cliente-" + resolvable[0]})
+        state = self.post("/api/consent", {"enabled": True})
+        state = self.post("/api/approve", {"report_id": state["report"]["report_id"], "action_id": "budget-plan"})
+        self.post("/api/scenario", {"name": "cliente-" + resolvable[1]})
+        state = self.post("/api/consent", {"enabled": True})
+        state = self.post("/api/decline", {"report_id": state["report"]["report_id"], "action_id": "budget-plan"})
+        status = {c["id"]: c["status"] for c in state["contatos"]}
+        self.assertEqual(status, {resolvable[0]: "plano_aprovado", resolvable[1]: "proposta_recusada"})
+
+    def test_contact_list_downloads_as_csv(self):
+        risky = [r["id"] for r in self.portfolio["clientes"] if r["risco"] != "ok"][:2]
+        self.contacts("adicionar", risky)
+        with self.client.open(self.base + "/api/contatos.csv") as response:
+            self.assertEqual(response.headers["Content-Type"], "text/csv; charset=utf-8")
+            self.assertIn("contatos-da-semana.csv", response.headers["Content-Disposition"])
+            text = response.read().decode("utf-8-sig")
+        lines = text.strip().splitlines()
+        self.assertTrue(lines[0].startswith("cliente;nome;gerente"))
+        self.assertEqual([line.split(";")[0] for line in lines[1:]], risky)
+
     def test_analyst_page_is_served(self):
-        for path in ("/analista", "/analista.js"):
+        for path in ("/analista", "/analista.js", "/anim.js", "/vendor/lottie_light.min.js", "/assets/fonts/mulish.woff2"):
             with self.subTest(path=path), self.client.open(self.base + path) as response:
                 self.assertEqual(response.status, 200)
 

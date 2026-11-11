@@ -1,0 +1,573 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-11T19:25:42+00:00",
+  "title": "Design System: Elo Financeiro",
+  "extensions": {
+    "colorMeta": {
+      "marinho-de-agencia": {
+        "role": "primary",
+        "displayName": "Marinho de Agência",
+        "canonical": "oklch(30.4% 0.092 261.9)",
+        "tonalRamp": [
+          "#060B16",
+          "#182439",
+          "#2D3F60",
+          "#445D8B",
+          "#6580B2",
+          "#8FA5CD",
+          "#BBCBE8",
+          "#E5EFFF"
+        ]
+      },
+      "marinho-profundo": {
+        "role": "primary",
+        "displayName": "Marinho Profundo",
+        "canonical": "oklch(36.6% 0.110 262.6)",
+        "tonalRamp": [
+          "#050B18",
+          "#16233D",
+          "#2A3F67",
+          "#405C94",
+          "#607FBC",
+          "#8BA5D5",
+          "#B9CBED",
+          "#E4EFFF"
+        ]
+      },
+      "marinho-nevoa": {
+        "role": "primary",
+        "displayName": "Névoa Marinho",
+        "canonical": "oklch(96.0% 0.010 261.8)",
+        "tonalRamp": [
+          "#0A0B0C",
+          "#232426",
+          "#3E4043",
+          "#5B5E63",
+          "#7D8086",
+          "#A2A5A9",
+          "#C9CACE",
+          "#EDEEF0"
+        ]
+      },
+      "marinho-contorno": {
+        "role": "primary",
+        "displayName": "Contorno Marinho",
+        "canonical": "oklch(91.8% 0.020 264.5)",
+        "tonalRamp": [
+          "#0A0B0E",
+          "#222429",
+          "#3C4047",
+          "#595E68",
+          "#7B808C",
+          "#A0A5AE",
+          "#C7CBD1",
+          "#ECEEF2"
+        ]
+      },
+      "marca-texto-do-aperto": {
+        "role": "secondary",
+        "displayName": "Marca-Texto do Aperto",
+        "canonical": "oklch(85.0% 0.146 90.5)",
+        "tonalRamp": [
+          "#120A00",
+          "#312200",
+          "#533C00",
+          "#795800",
+          "#9E7B00",
+          "#BDA256",
+          "#DCC997",
+          "#F9EED1"
+        ]
+      },
+      "marca-texto-claro": {
+        "role": "secondary",
+        "displayName": "Marca-Texto Claro",
+        "canonical": "oklch(89.1% 0.122 92.6)",
+        "tonalRamp": [
+          "#100A00",
+          "#2E2300",
+          "#4F3E00",
+          "#735B00",
+          "#977E22",
+          "#B7A466",
+          "#D7CAA0",
+          "#F6EED6"
+        ]
+      },
+      "papel-de-extrato": {
+        "role": "neutral",
+        "displayName": "Papel de Extrato",
+        "canonical": "oklch(97.0% 0.006 264.5)",
+        "tonalRamp": [
+          "#0B0B0C",
+          "#232425",
+          "#3F4042",
+          "#5C5E60",
+          "#7F8083",
+          "#A3A4A7",
+          "#C9CACC",
+          "#EEEEEF"
+        ]
+      },
+      "folha": {
+        "role": "neutral",
+        "displayName": "Folha",
+        "canonical": "oklch(100.0% 0.000 89.9)",
+        "tonalRamp": [
+          "#0B0B0B",
+          "#242424",
+          "#404040",
+          "#5D5D5D",
+          "#808080",
+          "#A4A4A4",
+          "#CACACA",
+          "#EEEEEE"
+        ]
+      },
+      "linha": {
+        "role": "neutral",
+        "displayName": "Linha",
+        "canonical": "oklch(93.0% 0.010 261.8)",
+        "tonalRamp": [
+          "#0A0B0C",
+          "#232426",
+          "#3E4044",
+          "#5B5E63",
+          "#7D8086",
+          "#A2A5A9",
+          "#C9CACE",
+          "#EDEEF0"
+        ]
+      },
+      "linha-firme": {
+        "role": "neutral",
+        "displayName": "Linha Firme",
+        "canonical": "oklch(88.4% 0.016 262.7)",
+        "tonalRamp": [
+          "#0A0B0D",
+          "#222428",
+          "#3D4046",
+          "#595E66",
+          "#7B8089",
+          "#A1A5AC",
+          "#C8CBD0",
+          "#EDEEF1"
+        ]
+      },
+      "tinta": {
+        "role": "neutral",
+        "displayName": "Tinta",
+        "canonical": "oklch(26.0% 0.052 265.6)",
+        "tonalRamp": [
+          "#080B11",
+          "#1E2430",
+          "#374052",
+          "#515D78",
+          "#73809D",
+          "#9AA5BC",
+          "#C3CBDB",
+          "#EAEFF8"
+        ]
+      },
+      "tinta-suave": {
+        "role": "neutral",
+        "displayName": "Tinta Suave",
+        "canonical": "oklch(50.9% 0.038 264.2)",
+        "tonalRamp": [
+          "#090B10",
+          "#20242D",
+          "#39404D",
+          "#545E71",
+          "#768095",
+          "#9CA5B5",
+          "#C5CBD7",
+          "#EBEFF6"
+        ]
+      },
+      "legenda": {
+        "role": "neutral",
+        "displayName": "Legenda",
+        "canonical": "oklch(54.1% 0.038 265.0)",
+        "tonalRamp": [
+          "#090B10",
+          "#20242D",
+          "#39404E",
+          "#545E71",
+          "#768096",
+          "#9CA5B6",
+          "#C5CBD7",
+          "#EBEEF6"
+        ]
+      },
+      "sobre-marinho": {
+        "role": "neutral",
+        "displayName": "Sobre Marinho",
+        "canonical": "oklch(86.6% 0.031 265.3)",
+        "tonalRamp": [
+          "#090B0F",
+          "#21242B",
+          "#3A404B",
+          "#565E6D",
+          "#788092",
+          "#9EA5B3",
+          "#C6CBD4",
+          "#ECEEF4"
+        ]
+      },
+      "sobre-marinho-suave": {
+        "role": "neutral",
+        "displayName": "Sobre Marinho Suave",
+        "canonical": "oklch(75.6% 0.054 264.7)",
+        "tonalRamp": [
+          "#080B11",
+          "#1E2431",
+          "#364053",
+          "#505E79",
+          "#72809E",
+          "#99A5BD",
+          "#C2CBDC",
+          "#EAEFF9"
+        ]
+      },
+      "negativo": {
+        "role": "error",
+        "displayName": "Negativo",
+        "canonical": "oklch(51.7% 0.169 15.4)",
+        "tonalRamp": [
+          "#1A0305",
+          "#430E17",
+          "#6F1E2B",
+          "#9F2F41",
+          "#CB5261",
+          "#E4858C",
+          "#FAB6B9",
+          "#FFE3E4"
+        ]
+      },
+      "negativo-fundo": {
+        "role": "error",
+        "displayName": "Fundo Negativo",
+        "canonical": "oklch(95.7% 0.018 4.5)",
+        "tonalRamp": [
+          "#0D0A0B",
+          "#282223",
+          "#463D3F",
+          "#665A5C",
+          "#897C7F",
+          "#ACA2A3",
+          "#D0C8CA",
+          "#F1EDEE"
+        ]
+      },
+      "atencao": {
+        "role": "warning",
+        "displayName": "Atenção",
+        "canonical": "oklch(52.5% 0.113 70.6)",
+        "tonalRamp": [
+          "#130900",
+          "#341F02",
+          "#593805",
+          "#80520B",
+          "#A77533",
+          "#C49C6E",
+          "#E1C5A5",
+          "#FCECD9"
+        ]
+      },
+      "atencao-fundo": {
+        "role": "warning",
+        "displayName": "Fundo Atenção",
+        "canonical": "oklch(96.6% 0.030 85.6)",
+        "tonalRamp": [
+          "#0D0B08",
+          "#27241C",
+          "#443F34",
+          "#645D4D",
+          "#877F6E",
+          "#AAA496",
+          "#CFCAC0",
+          "#F1EEE8"
+        ]
+      },
+      "atencao-sobre-marinho": {
+        "role": "warning",
+        "displayName": "Atenção sobre Marinho",
+        "canonical": "oklch(84.2% 0.120 79.3)",
+        "tonalRamp": [
+          "#120900",
+          "#322000",
+          "#563A00",
+          "#7D5500",
+          "#A37826",
+          "#C19F67",
+          "#DFC7A1",
+          "#FBEDD7"
+        ]
+      },
+      "positivo": {
+        "role": "success",
+        "displayName": "Positivo",
+        "canonical": "oklch(51.5% 0.106 163.3)",
+        "tonalRamp": [
+          "#010F08",
+          "#062B1D",
+          "#104B35",
+          "#1B6E4F",
+          "#419270",
+          "#79B398",
+          "#AED5C1",
+          "#DEF5E9"
+        ]
+      },
+      "positivo-fundo": {
+        "role": "success",
+        "displayName": "Fundo Positivo",
+        "canonical": "oklch(95.5% 0.017 168.5)",
+        "tonalRamp": [
+          "#090C0B",
+          "#202523",
+          "#3A423F",
+          "#56605C",
+          "#78837E",
+          "#9EA7A3",
+          "#C6CCC9",
+          "#ECEFEE"
+        ]
+      },
+      "positivo-sobre-marinho": {
+        "role": "success",
+        "displayName": "Positivo sobre Marinho",
+        "canonical": "oklch(86.7% 0.073 164.4)",
+        "tonalRamp": [
+          "#040E09",
+          "#132920",
+          "#254839",
+          "#396954",
+          "#5A8D76",
+          "#88AF9C",
+          "#B7D2C5",
+          "#E3F3EB"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Títulos da apresentação."
+      },
+      "lead": {
+        "displayName": "Lead",
+        "purpose": "Título da faixa de leitura e passos da apresentação."
+      },
+      "ui": {
+        "displayName": "UI",
+        "purpose": "Botões, trilha de navegação, rótulos de campo."
+      },
+      "caption": {
+        "displayName": "Caption",
+        "purpose": "Legendas, rodapés, etiquetas de estado."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Título de cada tela."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Título de cartões e seções, com ícone."
+      },
+      "numeral": {
+        "displayName": "Numeral",
+        "purpose": "Valores dos indicadores e saldos de destaque."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Texto corrido, respostas do agente, tabelas."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "Rótulos de indicador e cabeçalhos de tabela, em caixa-alta."
+      }
+    },
+    "shadows": [
+      {
+        "name": "repouso",
+        "value": "0 1px 2px rgba(0, 0, 0, .05)",
+        "purpose": "Cartões, indicadores e painel de consentimento."
+      },
+      {
+        "name": "interacao",
+        "value": "0 6px 14px -6px rgba(0, 0, 0, .18)",
+        "purpose": "Hover de botões, chips, botões de linha e links de ação."
+      },
+      {
+        "name": "flutuante",
+        "value": "0 12px 28px -12px rgba(0, 0, 0, .28)",
+        "purpose": "Aviso curto no canto da tela."
+      },
+      {
+        "name": "palco",
+        "value": "0 24px 48px -28px rgba(0, 0, 0, .55)",
+        "purpose": "Cartões brancos sobre o marinho da apresentação."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(.16, 1, .3, 1)",
+        "purpose": "Curva de saída de todas as transições e da linha do gráfico."
+      },
+      {
+        "name": "desenho-do-saldo",
+        "value": "1.2s",
+        "purpose": "A linha do saldo se desenha uma vez ao carregar."
+      },
+      {
+        "name": "halo-do-pior-dia",
+        "value": "2.4s infinito",
+        "purpose": "Halo amarelo pulsando sobre o pior dia."
+      },
+      {
+        "name": "troca-de-tela",
+        "value": ".55s",
+        "purpose": "Entrada de cada tela da apresentação."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "celular",
+        "value": "700px"
+      },
+      {
+        "name": "tablet",
+        "value": "960px"
+      },
+      {
+        "name": "notebook",
+        "value": "1180px"
+      },
+      {
+        "name": "amplo",
+        "value": "1600px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Botão principal",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Ação principal da tela: aprovar plano, perguntar, abrir o atendimento.",
+      "html": "<button class=\"ds-btn-primary\">Perguntar</button>",
+      "css": ".ds-btn-primary { font-family: Mulish, 'Segoe UI', system-ui, sans-serif; min-height: 40px; padding: 10px 16px; border: 0; border-radius: 8px; background: var(--navy, #132C5C); color: #fff; font-size: .875rem; font-weight: 700; cursor: pointer; transition: background-color .15s ease, box-shadow .2s cubic-bezier(.16,1,.3,1); } .ds-btn-primary:hover { background: var(--navy-700, #1D3B78); box-shadow: 0 6px 14px -6px rgba(0, 0, 0, .18); } .ds-btn-primary:focus-visible { outline: 2px solid var(--navy-700, #1D3B78); outline-offset: 3px; } .ds-btn-primary:active { transform: translateY(1px); }"
+    },
+    {
+      "name": "Botão secundário",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Ações de apoio: descartar prévia, simular despesa, abrir no atendimento.",
+      "html": "<button class=\"ds-btn-secondary\">Simular nova despesa</button>",
+      "css": ".ds-btn-secondary { font-family: Mulish, 'Segoe UI', system-ui, sans-serif; min-height: 40px; padding: 10px 16px; border: 1px solid var(--line-strong, #D3D9E4); border-radius: 8px; background: #fff; color: var(--navy, #132C5C); font-size: .875rem; font-weight: 600; cursor: pointer; transition: background-color .15s ease, box-shadow .2s cubic-bezier(.16,1,.3,1); } .ds-btn-secondary:hover { background: var(--navy-50, #EEF2F9); box-shadow: 0 6px 14px -6px rgba(0, 0, 0, .18); } .ds-btn-secondary:focus-visible { outline: 2px solid var(--navy-700, #1D3B78); outline-offset: 3px; }"
+    },
+    {
+      "name": "Pergunta pronta",
+      "kind": "chip",
+      "refersTo": "chip",
+      "description": "Atalho de pergunta na visão do analista; um clique envia.",
+      "html": "<button class=\"ds-chip\">Quem resolve com ajuste?</button>",
+      "css": ".ds-chip { font-family: Mulish, 'Segoe UI', system-ui, sans-serif; min-height: 34px; padding: 6px 14px; border: 1px solid var(--line-strong, #D3D9E4); border-radius: 999px; background: #fff; color: var(--ink, #18233D); font-size: .8125rem; font-weight: 600; cursor: pointer; transition: border-color .15s ease, color .15s ease, box-shadow .2s cubic-bezier(.16,1,.3,1); } .ds-chip:hover { border-color: var(--navy, #132C5C); color: var(--navy, #132C5C); box-shadow: 0 6px 14px -6px rgba(0, 0, 0, .18); } .ds-chip:focus-visible { outline: 2px solid var(--navy-700, #1D3B78); outline-offset: 3px; }"
+    },
+    {
+      "name": "Campo de pergunta",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Entrada de texto da pergunta e do valor da redução.",
+      "html": "<input class=\"ds-input\" placeholder=\"Ex.: quem fica no vermelho nos próximos 7 dias?\">",
+      "css": ".ds-input { font-family: Mulish, 'Segoe UI', system-ui, sans-serif; width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid var(--line-strong, #D3D9E4); border-radius: 8px; background: #fff; color: var(--ink, #18233D); font-size: .875rem; caret-color: var(--navy, #132C5C); } .ds-input::placeholder { color: #637187; } .ds-input:focus { outline: none; border-color: var(--navy, #132C5C); box-shadow: 0 0 0 3px var(--navy-50, #EEF2F9); }"
+    },
+    {
+      "name": "Item de navegação ativo",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "Item da barra lateral; o ativo fica marinho e em negrito.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav-item\" href=\"#\" aria-current=\"page\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 256 256\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M166,112a6,6,0,0,1-6,6H96a6,6,0,0,1,0-12h64A6,6,0,0,1,166,112Zm-6,26H96a6,6,0,0,0,0,12h64a6,6,0,0,0,0-12Zm70-10A102,102,0,0,1,79.31,217.65L44.44,229.27a14,14,0,0,1-17.71-17.71l11.62-34.87A102,102,0,1,1,230,128Zm-12,0A90,90,0,1,0,50.08,173.06a6,6,0,0,1,.5,4.91L38.12,215.35a2,2,0,0,0,2.53,2.53L78,205.42a6.2,6.2,0,0,1,1.9-.31,6.09,6.09,0,0,1,3,.81A90,90,0,0,0,218,128Z\"/></svg><span>Analista da agência</span></a><a class=\"ds-nav-item\" href=\"#\"><svg width=\"20\" height=\"20\" viewBox=\"0 0 256 256\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M166,112a6,6,0,0,1-6,6H96a6,6,0,0,1,0-12h64A6,6,0,0,1,166,112Zm-6,26H96a6,6,0,0,0,0,12h64a6,6,0,0,0,0-12Zm70-10A102,102,0,0,1,79.31,217.65L44.44,229.27a14,14,0,0,1-17.71-17.71l11.62-34.87A102,102,0,1,1,230,128Zm-12,0A90,90,0,1,0,50.08,173.06a6,6,0,0,1,.5,4.91L38.12,215.35a2,2,0,0,0,2.53,2.53L78,205.42a6.2,6.2,0,0,1,1.9-.31,6.09,6.09,0,0,1,3,.81A90,90,0,0,0,218,128Z\"/></svg><span>Atendimento ao cliente</span></a></nav>",
+      "css": ".ds-nav { font-family: Mulish, 'Segoe UI', system-ui, sans-serif; width: 260px; padding: 6px 14px; border: 1px solid var(--line, #E4E8EF); border-radius: 12px; background: #fff; } .ds-nav-item { display: flex; align-items: center; gap: 12px; min-height: 48px; border-top: 1px solid var(--line, #E4E8EF); color: var(--ink, #18233D); font-size: .9375rem; font-weight: 550; text-decoration: none; } .ds-nav-item:first-child { border-top-color: transparent; } .ds-nav-item svg { color: var(--muted, #5B667C); } .ds-nav-item:hover, .ds-nav-item:hover svg { color: var(--navy, #132C5C); } .ds-nav-item[aria-current='page'], .ds-nav-item[aria-current='page'] svg { color: var(--navy, #132C5C); font-weight: 700; } .ds-nav-item:focus-visible { outline: 2px solid var(--navy-700, #1D3B78); outline-offset: 3px; }"
+    },
+    {
+      "name": "Etiqueta de estado",
+      "kind": "chip",
+      "refersTo": "status-negative",
+      "description": "Situação do cliente: negativo, abaixo da margem, plano aprovado.",
+      "html": "<span class=\"ds-status ds-status-neg\">Negativo em 10/10</span> <span class=\"ds-status ds-status-warn\">Abaixo da margem</span> <span class=\"ds-status ds-status-ok\">Plano aprovado</span>",
+      "css": ".ds-status { font-family: Mulish, 'Segoe UI', system-ui, sans-serif; display: inline-flex; align-items: center; gap: 6px; padding: 2px 10px; border-radius: 999px; font-size: .75rem; font-weight: 700; } .ds-status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: currentColor; } .ds-status-neg { background: #FCECEF; color: #B42F47; } .ds-status-warn { background: #FDF3DE; color: #935D00; } .ds-status-ok { background: #E6F4EE; color: #117A56; }"
+    },
+    {
+      "name": "Indicador com régua",
+      "kind": "custom",
+      "refersTo": "metric-card",
+      "description": "Assinatura do Elo: rótulo, valor, legenda, ícone e régua que mede algo real.",
+      "html": "<article class=\"ds-metric\"><span class=\"ds-metric-icon\"><svg width=\"26\" height=\"26\" viewBox=\"0 0 256 256\" fill=\"currentColor\" aria-hidden=\"true\"><path d=\"M238,128v64a6,6,0,0,1-6,6H168a6,6,0,0,1,0-12h49.52L136,104.49l-35.76,35.75a6,6,0,0,1-8.48,0l-72-72a6,6,0,0,1,8.48-8.48L96,127.51l35.76-35.75a6,6,0,0,1,8.48,0L226,177.52V128a6,6,0,0,1,12,0Z\"/></svg></span><p>Menor saldo previsto</p><strong>−R$ 120,00</strong><small>Saldo abaixo de zero · previsto para 11/10</small><span class=\"ds-meter\"><span></span></span></article>",
+      "css": ".ds-metric { font-family: Mulish, 'Segoe UI', system-ui, sans-serif; position: relative; overflow: hidden; width: 300px; padding: 20px 22px 24px; border: 1px solid var(--line, #E4E8EF); border-radius: 12px; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.05); } .ds-metric p { margin: 0; padding-right: 36px; color: var(--muted, #5B667C); font-size: .8125rem; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; } .ds-metric strong { display: block; margin-top: 8px; color: #B42F47; font-size: 1.75rem; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; } .ds-metric small { display: block; margin-top: 6px; color: var(--muted, #5B667C); font-size: .8125rem; } .ds-metric-icon { position: absolute; top: 18px; right: 18px; color: var(--navy, #132C5C); } .ds-meter { position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: var(--line, #E4E8EF); } .ds-meter span { display: block; width: 8%; height: 100%; background: #B42F47; }"
+    },
+    {
+      "name": "Faixa de leitura",
+      "kind": "card",
+      "refersTo": "reading-band",
+      "description": "Resumo da análise em marinho, com o selo de quem interpretou.",
+      "html": "<section class=\"ds-band\"><h2>Seu saldo pode ficar negativo antes do próximo recebimento</h2><p>O calendário dos compromissos faz diferença.</p><span class=\"ds-band-mode\">Planejador: regras locais</span></section>",
+      "css": ".ds-band { font-family: Mulish, 'Segoe UI', system-ui, sans-serif; padding: 22px 24px; border-radius: 12px; background: var(--navy, #132C5C); color: #fff; } .ds-band h2 { margin: 0; font-size: 1.25rem; font-weight: 650; } .ds-band p { margin: 8px 0 0; color: #C9D3E8; font-size: .875rem; } .ds-band-mode { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; padding: 4px 12px; border: 1px solid rgba(255,255,255,.22); border-radius: 999px; color: #DCE4F4; font-size: .78rem; } .ds-band-mode::before { content: ''; width: 7px; height: 7px; border-radius: 50%; background: #9AA8C6; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "O Extrato Antecipado",
+    "overview": "O Elo é a leitura limpa do que ainda vai acontecer na conta do cliente. As telas se comportam como um extrato bem impresso: papel claro levemente azulado, tinta marinho firme, números grandes e alinhados, e uma única marca amarela passada sobre a linha onde o saldo falta. Nada compete com essa marca.\n\nA densidade é a de uma ferramenta de trabalho da agência: a analista e o gerente precisam achar tudo no lugar, sem descobrir o layout a cada visita. Barra lateral com grupos, barra superior com a trilha de navegação, cartões brancos de borda fina e indicadores no padrão rótulo, valor e régua. O caráter é firme e confiável: o marinho e os números carregam o peso, a superfície fica plana em repouso e só ganha sombra quando o usuário interage.\n\nA apresentação embutida é o único lugar onde o marinho toma a tela inteira e o amarelo aparece com mais frequência, porque ali o objetivo é convencer a banca, não operar. Gradientes decorativos, efeito de vidro, manchas de cor no fundo e ladrilhos coloridos atrás de ícones foram descartados de propósito.",
+    "keyCharacteristics": [
+      "Papel claro, tinta marinho, um único amarelo de alerta.",
+      "Superfícies planas com borda de 1px; sombra só ao interagir.",
+      "Números em peso forte, algarismos tabulares.",
+      "Ícones de traço fino (Phosphor, peso light), sem fundo.",
+      "Um momento de movimento por tela."
+    ],
+    "rules": [
+      {
+        "name": "The Marca-Texto Rule",
+        "body": "O amarelo marca o aperto, e só o aperto. Na área de trabalho, se ele aparece em mais de um ponto da tela, um deles está errado.",
+        "section": "colors"
+      },
+      {
+        "name": "The State-Earns-Color Rule",
+        "body": "Vermelho, âmbar e verde aparecem apenas quando descrevem a situação de um cliente ou de uma ação. Nunca como decoração ou para diferenciar seções.",
+        "section": "colors"
+      },
+      {
+        "name": "The Nine-Steps Rule",
+        "body": "Todo tamanho de fonte sai da escala (caption, label, ui, body, title, lead, headline, numeral, display). Tamanho novo entra primeiro no DESIGN.md.",
+        "section": "typography"
+      },
+      {
+        "name": "The Uppercase-Is-A-Label Rule",
+        "body": "Caixa-alta só em rótulos de indicador, cabeçalhos de tabela e títulos de grupo da navegação. Nunca acima de um título como etiqueta ou numeração de seção.",
+        "section": "typography"
+      },
+      {
+        "name": "The Flat-Until-Touched Rule",
+        "body": "Superfícies ficam planas em repouso. A sombra de interação aparece no hover e some ao sair; nunca é estado permanente de um cartão.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** usar o Marinho de Agência (#132C5C) no botão principal, no item ativo e na faixa de leitura, e o Marca-Texto do Aperto (#F2C94C) apenas no pior dia e nos destaques da apresentação.",
+      "**Do** dar a todo indicador uma régua que meça algo verdadeiro; sem dado, sem régua.",
+      "**Do** manter superfícies planas com borda de 1px e reservar a sombra de interação (0 6px 14px -6px rgba(0, 0, 0, .18)) para o hover.",
+      "**Do** escrever números em Numeral (700, algarismos tabulares) e hierarquia por peso e tamanho.",
+      "**Do** usar ícones Phosphor no peso light, na cor do texto ou do estado, sem fundo."
+    ],
+    "donts": [
+      "**Don't** colocar etiqueta, eyebrow ou numeração acima de títulos.",
+      "**Don't** usar texto com gradiente, efeito de vidro, manchas de cor no fundo ou degradês de azul para roxo.",
+      "**Don't** colocar ícone dentro de ladrilho colorido.",
+      "**Don't** usar borda colorida grossa à esquerda de cartões ou avisos.",
+      "**Don't** repetir a mesma animação de entrada em todos os blocos.",
+      "**Don't** usar logotipos oficiais do Banco do Brasil ou da IBM."
+    ]
+  }
+}

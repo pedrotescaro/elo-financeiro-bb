@@ -6,19 +6,56 @@
   <meta name="theme-color" content="#132c5c">
   <title>Elo Financeiro · Sua próxima decisão, com mais clareza</title>
   <link rel="icon" href="/assets/logo-elo-financeiro.png" type="image/png">
+  <link rel="preload" href="/assets/fonts/mulish.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/style.css">
+  <script defer src="/vendor/lottie_light.min.js"></script>
+  <script defer src="/anim.js"></script>
   <script defer src="/app.js"></script>
 </head>
 <body>
+  <!-- Ícones: Phosphor Icons 2.1.1, peso light, licença MIT (https://phosphoricons.com). -->
+  <svg class="icon-sprite" aria-hidden="true" focusable="false">
+    <symbol id="i-arrow" viewBox="0 0 256 256"><path d="M220.24,132.24l-72,72a6,6,0,0,1-8.48-8.48L201.51,134H40a6,6,0,0,1,0-12H201.51L139.76,60.24a6,6,0,0,1,8.48-8.48l72,72A6,6,0,0,1,220.24,132.24Z"/></symbol>
+    <symbol id="i-wallet" viewBox="0 0 256 256"><path d="M216,66H56a10,10,0,0,1,0-20H192a6,6,0,0,0,0-12H56A22,22,0,0,0,34,56V184a22,22,0,0,0,22,22H216a14,14,0,0,0,14-14V80A14,14,0,0,0,216,66Zm2,126a2,2,0,0,1-2,2H56a10,10,0,0,1-10-10V75.59A21.84,21.84,0,0,0,56,78H216a2,2,0,0,1,2,2Zm-28-60a10,10,0,1,1-10-10A10,10,0,0,1,190,132Z"/></symbol>
+    <symbol id="i-target" viewBox="0 0 256 256"><path d="M220.06,84a102.06,102.06,0,1,1-24.31-32.27l24-24a6,6,0,0,1,8.48,8.49l-96,96a6,6,0,1,1-8.48-8.49l29.39-29.4a42,42,0,1,0,16.78,31.24,6,6,0,1,1,12-.68A54,54,0,1,1,161.7,85.83l25.54-25.55a89.91,89.91,0,1,0,22,28.93A6,6,0,1,1,220.06,84Z"/></symbol>
+    <symbol id="i-calendar" viewBox="0 0 256 256"><path d="M208,34H182V24a6,6,0,0,0-12,0V34H86V24a6,6,0,0,0-12,0V34H48A14,14,0,0,0,34,48V208a14,14,0,0,0,14,14H208a14,14,0,0,0,14-14V48A14,14,0,0,0,208,34ZM48,46H74V56a6,6,0,0,0,12,0V46h84V56a6,6,0,0,0,12,0V46h26a2,2,0,0,1,2,2V82H46V48A2,2,0,0,1,48,46ZM208,210H48a2,2,0,0,1-2-2V94H210V208A2,2,0,0,1,208,210Z"/></symbol>
+    <symbol id="i-down" viewBox="0 0 256 256"><path d="M238,128v64a6,6,0,0,1-6,6H168a6,6,0,0,1,0-12h49.52L136,104.49l-35.76,35.75a6,6,0,0,1-8.48,0l-72-72a6,6,0,0,1,8.48-8.48L96,127.51l35.76-35.75a6,6,0,0,1,8.48,0L226,177.52V128a6,6,0,0,1,12,0Z"/></symbol>
+    <symbol id="i-up" viewBox="0 0 256 256"><path d="M230,208a6,6,0,0,1-6,6H32a6,6,0,0,1-6-6V48a6,6,0,0,1,12,0V161.52l53.76-53.76a6,6,0,0,1,8.48,0L128,135.51,185.52,78H160a6,6,0,0,1,0-12h40a6,6,0,0,1,6,6v40a6,6,0,0,1-12,0V86.48l-61.76,61.76a6,6,0,0,1-8.48,0L96,120.49l-58,58V202H224A6,6,0,0,1,230,208Z"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 256 256"><path d="M208,42H48A14,14,0,0,0,34,56v56c0,51.94,25.12,83.4,46.2,100.64,22.73,18.6,45.27,24.89,46.22,25.15a6,6,0,0,0,3.16,0c.95-.26,23.49-6.55,46.22-25.15C196.88,195.4,222,163.94,222,112V56A14,14,0,0,0,208,42Zm2,70c0,37.76-13.94,68.39-41.44,91.06A131.17,131.17,0,0,1,128,225.72a130.94,130.94,0,0,1-40.56-22.66C59.94,180.39,46,149.76,46,112V56a2,2,0,0,1,2-2H208a2,2,0,0,1,2,2ZM172.24,99.76a6,6,0,0,1,0,8.48l-56,56a6,6,0,0,1-8.48,0l-24-24a6,6,0,0,1,8.48-8.48L112,151.51l51.76-51.75A6,6,0,0,1,172.24,99.76Z"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 256 256"><path d="M196.89,130.94,144.4,111.6,125.06,59.11a13.92,13.92,0,0,0-26.12,0L79.6,111.6,27.11,130.94a13.92,13.92,0,0,0,0,26.12L79.6,176.4l19.34,52.49a13.92,13.92,0,0,0,26.12,0L144.4,176.4l52.49-19.34a13.92,13.92,0,0,0,0-26.12Zm-4.15,14.86-55.08,20.3a6,6,0,0,0-3.56,3.56l-20.3,55.08a1.92,1.92,0,0,1-3.6,0L89.9,169.66a6,6,0,0,0-3.56-3.56L31.26,145.8a1.92,1.92,0,0,1,0-3.6l55.08-20.3a6,6,0,0,0,3.56-3.56l20.3-55.08a1.92,1.92,0,0,1,3.6,0l20.3,55.08a6,6,0,0,0,3.56,3.56l55.08,20.3a1.92,1.92,0,0,1,0,3.6ZM146,40a6,6,0,0,1,6-6h18V16a6,6,0,0,1,12,0V34h18a6,6,0,0,1,0,12H182V64a6,6,0,0,1-12,0V46H152A6,6,0,0,1,146,40ZM246,88a6,6,0,0,1-6,6H230v10a6,6,0,0,1-12,0V94H208a6,6,0,0,1,0-12h10V72a6,6,0,0,1,12,0V82h10A6,6,0,0,1,246,88Z"/></symbol>
+    <symbol id="i-users" viewBox="0 0 256 256"><path d="M243.6,148.8a6,6,0,0,1-8.4-1.2A53.58,53.58,0,0,0,192,126a6,6,0,0,1,0-12,26,26,0,1,0-25.18-32.5,6,6,0,0,1-11.62-3,38,38,0,1,1,59.91,39.63A65.69,65.69,0,0,1,244.8,140.4,6,6,0,0,1,243.6,148.8ZM189.19,213a6,6,0,0,1-2.19,8.2,5.9,5.9,0,0,1-3,.81,6,6,0,0,1-5.2-3,59,59,0,0,0-101.62,0,6,6,0,1,1-10.38-6A70.1,70.1,0,0,1,103,182.55a46,46,0,1,1,50.1,0A70.1,70.1,0,0,1,189.19,213ZM128,178a34,34,0,1,0-34-34A34,34,0,0,0,128,178ZM70,120a6,6,0,0,0-6-6A26,26,0,1,1,89.18,81.49a6,6,0,1,0,11.62-3,38,38,0,1,0-59.91,39.63A65.69,65.69,0,0,0,11.2,140.4a6,6,0,1,0,9.6,7.2A53.58,53.58,0,0,1,64,126,6,6,0,0,0,70,120Z"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 256 256"><path d="M166,112a6,6,0,0,1-6,6H96a6,6,0,0,1,0-12h64A6,6,0,0,1,166,112Zm-6,26H96a6,6,0,0,0,0,12h64a6,6,0,0,0,0-12Zm70-10A102,102,0,0,1,79.31,217.65L44.44,229.27a14,14,0,0,1-17.71-17.71l11.62-34.87A102,102,0,1,1,230,128Zm-12,0A90,90,0,1,0,50.08,173.06a6,6,0,0,1,.5,4.91L38.12,215.35a2,2,0,0,0,2.53,2.53L78,205.42a6.2,6.2,0,0,1,1.9-.31,6.09,6.09,0,0,1,3,.81A90,90,0,0,0,218,128Z"/></symbol>
+    <symbol id="i-list" viewBox="0 0 256 256"><path d="M222,128a6,6,0,0,1-6,6H128a6,6,0,0,1,0-12h88A6,6,0,0,1,222,128ZM128,70h88a6,6,0,0,0,0-12H128a6,6,0,0,0,0,12Zm88,116H128a6,6,0,0,0,0,12h88a6,6,0,0,0,0-12ZM83.76,43.76,56,71.51,44.24,59.76a6,6,0,0,0-8.48,8.48l16,16a6,6,0,0,0,8.48,0l32-32a6,6,0,0,0-8.48-8.48Zm0,64L56,135.51,44.24,123.76a6,6,0,1,0-8.48,8.48l16,16a6,6,0,0,0,8.48,0l32-32a6,6,0,0,0-8.48-8.48Zm0,64L56,199.51,44.24,187.76a6,6,0,0,0-8.48,8.48l16,16a6,6,0,0,0,8.48,0l32-32a6,6,0,0,0-8.48-8.48Z"/></symbol>
+    <symbol id="i-download" viewBox="0 0 256 256"><path d="M222,144v64a6,6,0,0,1-6,6H40a6,6,0,0,1-6-6V144a6,6,0,0,1,12,0v58H210V144a6,6,0,0,1,12,0Zm-98.24,4.24a6,6,0,0,0,8.48,0l40-40a6,6,0,0,0-8.48-8.48L134,129.51V32a6,6,0,0,0-12,0v97.51L92.24,99.76a6,6,0,0,0-8.48,8.48Z"/></symbol>
+    <symbol id="i-check" viewBox="0 0 256 256"><path d="M228.24,76.24l-128,128a6,6,0,0,1-8.48,0l-56-56a6,6,0,0,1,8.48-8.48L96,191.51,219.76,67.76a6,6,0,0,1,8.48,8.48Z"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 256 256"><path d="M128,26A102,102,0,1,0,230,128,102.12,102.12,0,0,0,128,26Zm0,192a90,90,0,1,1,90-90A90.1,90.1,0,0,1,128,218Zm62-90a6,6,0,0,1-6,6H128a6,6,0,0,1-6-6V72a6,6,0,0,1,12,0v50h50A6,6,0,0,1,190,128Z"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 256 256"><path d="M235.07,189.09,147.61,37.22h0a22.75,22.75,0,0,0-39.22,0L20.93,189.09a21.53,21.53,0,0,0,0,21.72A22.35,22.35,0,0,0,40.55,222h174.9a22.35,22.35,0,0,0,19.6-11.19A21.53,21.53,0,0,0,235.07,189.09ZM224.66,204.8a10.46,10.46,0,0,1-9.21,5.2H40.55a10.46,10.46,0,0,1-9.21-5.2,9.51,9.51,0,0,1,0-9.72L118.79,43.21a10.75,10.75,0,0,1,18.42,0l87.46,151.87A9.51,9.51,0,0,1,224.66,204.8ZM122,144V104a6,6,0,0,1,12,0v40a6,6,0,0,1-12,0Zm16,36a10,10,0,1,1-10-10A10,10,0,0,1,138,180Z"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 256 256"><path d="M229.18,173a6,6,0,0,1-2.16,8.2l-96,56a6,6,0,0,1-6,0l-96-56a6,6,0,0,1,6-10.36l93,54.23,93-54.23A6,6,0,0,1,229.18,173ZM221,122.82l-93,54.23L35,122.82a6,6,0,0,0-6,10.36l96,56a6,6,0,0,0,6,0l96-56a6,6,0,0,0-6-10.36ZM26,80a6,6,0,0,1,3-5.18l96-56a6,6,0,0,1,6,0l96,56a6,6,0,0,1,0,10.36l-96,56a6,6,0,0,1-6,0l-96-56A6,6,0,0,1,26,80Zm17.91,0L128,129.05,212.09,80,128,31Z"/></symbol>
+    <symbol id="i-code" viewBox="0 0 256 256"><path d="M67.84,92.61,25.37,128l42.47,35.39a6,6,0,1,1-7.68,9.22l-48-40a6,6,0,0,1,0-9.22l48-40a6,6,0,0,1,7.68,9.22Zm176,30.78-48-40a6,6,0,1,0-7.68,9.22L230.63,128l-42.47,35.39a6,6,0,1,0,7.68,9.22l48-40a6,6,0,0,0,0-9.22Zm-81.79-89A6,6,0,0,0,154.36,38l-64,176A6,6,0,0,0,94,221.64a6.15,6.15,0,0,0,2,.36,6,6,0,0,0,5.64-3.95l64-176A6,6,0,0,0,162.05,34.36Z"/></symbol>
+    <symbol id="i-cpu" viewBox="0 0 256 256"><path d="M152,98H104a6,6,0,0,0-6,6v48a6,6,0,0,0,6,6h48a6,6,0,0,0,6-6V104A6,6,0,0,0,152,98Zm-6,48H110V110h36Zm86,0H214V110h18a6,6,0,0,0,0-12H214V56a14,14,0,0,0-14-14H158V24a6,6,0,0,0-12,0V42H110V24a6,6,0,0,0-12,0V42H56A14,14,0,0,0,42,56V98H24a6,6,0,0,0,0,12H42v36H24a6,6,0,0,0,0,12H42v42a14,14,0,0,0,14,14H98v18a6,6,0,0,0,12,0V214h36v18a6,6,0,0,0,12,0V214h42a14,14,0,0,0,14-14V158h18a6,6,0,0,0,0-12Zm-30,54a2,2,0,0,1-2,2H56a2,2,0,0,1-2-2V56a2,2,0,0,1,2-2H200a2,2,0,0,1,2,2Z"/></symbol>
+    <symbol id="i-bank" viewBox="0 0 256 256"><path d="M24,102H50v68H32a6,6,0,0,0,0,12H224a6,6,0,0,0,0-12H206V102h26a6,6,0,0,0,3.14-11.11l-104-64a6,6,0,0,0-6.28,0l-104,64A6,6,0,0,0,24,102Zm38,0H98v68H62Zm84,0v68H110V102Zm48,68H158V102h36ZM128,39l82.8,51H45.2ZM246,208a6,6,0,0,1-6,6H16a6,6,0,0,1,0-12H240A6,6,0,0,1,246,208Z"/></symbol>
+    <symbol id="i-eye" viewBox="0 0 256 256"><path d="M245.48,125.57c-.34-.78-8.66-19.23-27.24-37.81C201,70.54,171.38,50,128,50S55,70.54,37.76,87.76c-18.58,18.58-26.9,37-27.24,37.81a6,6,0,0,0,0,4.88c.34.77,8.66,19.22,27.24,37.8C55,185.47,84.62,206,128,206s73-20.53,90.24-37.75c18.58-18.58,26.9-37,27.24-37.8A6,6,0,0,0,245.48,125.57ZM128,194c-31.38,0-58.78-11.42-81.45-33.93A134.77,134.77,0,0,1,22.69,128,134.56,134.56,0,0,1,46.55,95.94C69.22,73.42,96.62,62,128,62s58.78,11.42,81.45,33.94A134.56,134.56,0,0,1,233.31,128C226.94,140.21,195,194,128,194Zm0-112a46,46,0,1,0,46,46A46.06,46.06,0,0,0,128,82Zm0,80a34,34,0,1,1,34-34A34,34,0,0,1,128,162Z"/></symbol>
+    <symbol id="i-pulse" viewBox="0 0 256 256"><path d="M238,128a6,6,0,0,1-6,6H203.71l-38.34,76.68A6,6,0,0,1,160,214h-.3a6,6,0,0,1-5.31-3.85L95.51,55.57,61.46,130.48A6,6,0,0,1,56,134H24a6,6,0,0,1,0-12H52.14l38.4-84.48a6,6,0,0,1,11.07.34L160.74,193.1l33.89-67.78A6,6,0,0,1,200,122h32A6,6,0,0,1,238,128Z"/></symbol>
+    <symbol id="i-lock" viewBox="0 0 256 256"><path d="M208,82H174V56a46,46,0,0,0-92,0V82H48A14,14,0,0,0,34,96V208a14,14,0,0,0,14,14H208a14,14,0,0,0,14-14V96A14,14,0,0,0,208,82ZM94,56a34,34,0,0,1,68,0V82H94ZM210,208a2,2,0,0,1-2,2H48a2,2,0,0,1-2-2V96a2,2,0,0,1,2-2H208a2,2,0,0,1,2,2Z"/></symbol>
+    <symbol id="i-unlock" viewBox="0 0 256 256"><path d="M208,82H94V56a34,34,0,0,1,34-34c16.3,0,31,11.69,34.12,27.19a6,6,0,0,0,11.76-2.38C169.55,25.48,150.26,10,128,10A46.06,46.06,0,0,0,82,56V82H48A14,14,0,0,0,34,96V208a14,14,0,0,0,14,14H208a14,14,0,0,0,14-14V96A14,14,0,0,0,208,82Zm2,126a2,2,0,0,1-2,2H48a2,2,0,0,1-2-2V96a2,2,0,0,1,2-2H208a2,2,0,0,1,2,2Z"/></symbol>
+    <symbol id="i-play" viewBox="0 0 256 256"><path d="M216,42H134V24a6,6,0,0,0-12,0V42H40A14,14,0,0,0,26,56V176a14,14,0,0,0,14,14H83.52L59.31,220.25a6,6,0,0,0,9.38,7.5L98.88,190h58.24l30.19,37.75a6,6,0,0,0,9.38-7.5L172.48,190H216a14,14,0,0,0,14-14V56A14,14,0,0,0,216,42Zm2,134a2,2,0,0,1-2,2H40a2,2,0,0,1-2-2V56a2,2,0,0,1,2-2H216a2,2,0,0,1,2,2ZM102,120v24a6,6,0,0,1-12,0V120a6,6,0,0,1,12,0Zm32-16v40a6,6,0,0,1-12,0V104a6,6,0,0,1,12,0Zm32-16v56a6,6,0,0,1-12,0V88a6,6,0,0,1,12,0Z"/></symbol>
+    <symbol id="i-route" viewBox="0 0 256 256"><path d="M200,170a30.05,30.05,0,0,0-29.4,24H72a34,34,0,0,1,0-68h96a38,38,0,0,0,0-76H72a6,6,0,0,0,0,12h96a26,26,0,0,1,0,52H72a46,46,0,0,0,0,92h98.6A30,30,0,1,0,200,170Zm0,48a18,18,0,1,1,18-18A18,18,0,0,1,200,218Z"/></symbol>
+    <symbol id="i-text" viewBox="0 0 256 256"><path d="M85.43,53.45a6,6,0,0,0-10.86,0l-64,136a6,6,0,1,0,10.86,5.11L38.63,158h82.74l17.2,36.55a6,6,0,1,0,10.86-5.11ZM44.28,146,80,70.09,115.72,146ZM200,98c-12.21,0-21.71,3.28-28.23,9.74a6,6,0,0,0,8.46,8.52c4.18-4.15,10.84-6.26,19.77-6.26,14.34,0,26,9.87,26,22v7.24A40.36,40.36,0,0,0,200,130c-20.95,0-38,15.25-38,34s17.05,34,38,34a40.36,40.36,0,0,0,26-9.24V192a6,6,0,0,0,12,0V132C238,113.25,221,98,200,98Zm0,88c-14.34,0-26-9.87-26-22s11.66-22,26-22,26,9.87,26,22S214.34,186,200,186Z"/></symbol>
+    <symbol id="i-reset" viewBox="0 0 256 256"><path d="M222,128a94,94,0,0,1-92.74,94H128a93.43,93.43,0,0,1-64.5-25.65,6,6,0,1,1,8.24-8.72A82,82,0,1,0,70,70l-.19.19L39.44,98H72a6,6,0,0,1,0,12H24a6,6,0,0,1-6-6V56a6,6,0,0,1,12,0V90.34L61.63,61.4A94,94,0,0,1,222,128Z"/></symbol>
+    <symbol id="i-caret" viewBox="0 0 256 256"><path d="M180.24,132.24l-80,80a6,6,0,0,1-8.48-8.48L167.51,128,91.76,52.24a6,6,0,0,1,8.48-8.48l80,80A6,6,0,0,1,180.24,132.24Z"/></symbol>
+    <symbol id="i-bag" viewBox="0 0 256 256"><path d="M216,42H40A14,14,0,0,0,26,56V200a14,14,0,0,0,14,14H216a14,14,0,0,0,14-14V56A14,14,0,0,0,216,42Zm2,158a2,2,0,0,1-2,2H40a2,2,0,0,1-2-2V56a2,2,0,0,1,2-2H216a2,2,0,0,1,2,2ZM174,88a46,46,0,0,1-92,0,6,6,0,0,1,12,0,34,34,0,0,0,68,0,6,6,0,0,1,12,0Z"/></symbol>
+    <symbol id="i-house" viewBox="0 0 256 256"><path d="M217.9,110.1l-80-80a14,14,0,0,0-19.8,0l-80,80A13.92,13.92,0,0,0,34,120v96a6,6,0,0,0,6,6h64a6,6,0,0,0,6-6V158h36v58a6,6,0,0,0,6,6h64a6,6,0,0,0,6-6V120A13.92,13.92,0,0,0,217.9,110.1ZM210,210H158V152a6,6,0,0,0-6-6H104a6,6,0,0,0-6,6v58H46V120a2,2,0,0,1,.58-1.42l80-80a2,2,0,0,1,2.84,0l80,80A2,2,0,0,1,210,120Z"/></symbol>
+    <symbol id="i-user" viewBox="0 0 256 256"><path d="M128,26A102,102,0,1,0,230,128,102.12,102.12,0,0,0,128,26ZM71.44,198a66,66,0,0,1,113.12,0,89.8,89.8,0,0,1-113.12,0ZM94,120a34,34,0,1,1,34,34A34,34,0,0,1,94,120Zm99.51,69.64a77.53,77.53,0,0,0-40-31.38,46,46,0,1,0-51,0,77.53,77.53,0,0,0-40,31.38,90,90,0,1,1,131,0Z"/></symbol>
+    <symbol id="i-info" viewBox="0 0 256 256"><path d="M142,176a6,6,0,0,1-6,6,14,14,0,0,1-14-14V128a2,2,0,0,0-2-2,6,6,0,0,1,0-12,14,14,0,0,1,14,14v40a2,2,0,0,0,2,2A6,6,0,0,1,142,176ZM124,94a10,10,0,1,0-10-10A10,10,0,0,0,124,94Zm106,34A102,102,0,1,1,128,26,102.12,102.12,0,0,1,230,128Zm-12,0a90,90,0,1,0-90,90A90.1,90.1,0,0,0,218,128Z"/></symbol>
+  </svg>
   <a class="skip-link" href="#main">Pular para o conteúdo</a>
   <div class="shell">
     <aside class="sidebar">
       <a class="brand" href="/" aria-label="Elo Financeiro, início"><img src="/assets/logo-elo-financeiro.png" alt="Elo Financeiro" width="1774" height="887"></a>
-      <p class="side-caption">Sua próxima decisão,<br>com mais clareza.</p>
-      <nav class="view-switch" aria-label="Visões do protótipo"><h2 class="nav-heading">Visões</h2><a href="/analista">Analista da agência<span>Carteira inteira, em conversa</span></a><a href="/" aria-current="page">Atendimento ao cliente<span>Um cliente, passo a passo</span></a></nav>
-      <nav aria-label="Cenários da demonstração"><h2 class="nav-heading">Explore os cenários</h2><div id="scenarios"></div></nav>
+      <nav class="nav-group" aria-label="Visões do protótipo"><h2 class="nav-group-title">Visões<span>Duas formas de usar o Elo</span></h2><a class="nav-item" href="/analista"><svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg><span>Analista da agência</span><svg class="icon nav-caret" aria-hidden="true"><use href="#i-caret"/></svg></a><a class="nav-item" href="/" aria-current="page"><svg class="icon" aria-hidden="true"><use href="#i-users"/></svg><span>Atendimento ao cliente</span><svg class="icon nav-caret" aria-hidden="true"><use href="#i-caret"/></svg></a></nav>
+      <nav class="nav-group" aria-label="Cenários da demonstração"><h2 class="nav-group-title">Cenários<span>Clientes fictícios de exemplo</span></h2><div id="scenarios"></div></nav>
       <div class="side-note">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6l8-3Z"/><path d="m8 12 3 3 5-6"/></svg>
+        <svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg>
         <p>Você escolhe cada passo.<span>Nenhum dinheiro é movimentado nesta demonstração.</span></p>
       </div>
       <div class="side-bottom"><span class="tag">IBM SkillsBuild</span><p>Proposta acadêmica para o desafio de serviços financeiros do Banco do Brasil.</p><p>Sem vínculo oficial com o banco.</p></div>
@@ -34,16 +71,16 @@
           <section id="pitch-slide-0" class="pitch-slide" aria-labelledby="pitch-title-0">
             <div class="pitch-copy">
               <h1 id="pitch-title-0" tabindex="-1">O saldo de hoje<br>não conta <em>toda a história.</em></h1>
-              <p class="pitch-lede">Entre o dinheiro disponível e o próximo recebimento, existe um calendário de contas. O Elo mostra esse intervalo antes de você decidir.</p>
-              <p class="pitch-purpose">Nosso objetivo<strong>Preservar uma margem financeira até o próximo recebimento.</strong></p>
+              <p class="pitch-lede">Entre o dinheiro disponível e o próximo recebimento, existe um calendário de contas. Numa agência, isso acontece com dezenas de clientes ao mesmo tempo, e o banco costuma saber só depois.</p>
+              <p class="pitch-purpose">Nosso objetivo<strong>Encontrar quem vai ficar sem margem e falar com o cliente antes do aperto.</strong></p>
             </div>
             <figure class="story-figure">
               <div class="story-heading"><h2>O aperto está entre as datas.</h2><span>Exemplo fictício</span></div>
               <svg viewBox="0 0 520 310" role="img" aria-labelledby="story-title story-desc">
                 <title id="story-title">O saldo fica negativo antes do recebimento</title><desc id="story-desc">No cenário inicial, o saldo começa em 1.500 reais em 7 de outubro, chega a menos 100 reais em 13 de outubro e termina em 1.700 reais em 15 de outubro.</desc>
                 <path class="story-fill" d="M44 94 254 238 476 76V270H44Z"/>
-                <path class="story-zero" d="M36 225H484"/><text x="484" y="246" text-anchor="end" class="story-axis">Saldo zero</text><path class="story-line" d="m44 94 210 144 222-162"/>
-                <circle cx="44" cy="94" r="6" class="story-dot"/><circle cx="254" cy="238" r="8" class="story-low"/><circle cx="476" cy="76" r="6" class="story-dot"/>
+                <path class="story-zero" d="M36 225H484"/><text x="484" y="246" text-anchor="end" class="story-axis">Saldo zero</text><path class="story-line" pathLength="1" d="m44 94 210 144 222-162"/>
+                <circle cx="44" cy="94" r="6" class="story-dot"/><circle cx="254" cy="238" r="16" class="story-low-ring"/><circle cx="254" cy="238" r="8" class="story-low"/><circle cx="476" cy="76" r="6" class="story-dot"/>
                 <text x="36" y="58" class="story-value">R$ 1.500</text><text x="254" y="207" text-anchor="middle" class="story-value story-negative">−R$ 100</text><text x="484" y="40" text-anchor="end" class="story-value">R$ 1.700</text>
                 <text x="36" y="298" class="story-axis">07/10 · hoje</text><text x="254" y="298" text-anchor="middle" class="story-axis">13/10 · contas</text><text x="484" y="298" text-anchor="end" class="story-axis">15/10 · entrada</text>
               </svg>
@@ -51,46 +88,50 @@
             </figure>
           </section>
           <section id="pitch-slide-1" class="pitch-slide" aria-labelledby="pitch-title-1" hidden>
-            <div class="pitch-copy"><h1 id="pitch-title-1" tabindex="-1">Antecipar.<br>Explicar.<br><em>Você decide.</em></h1><p class="pitch-lede">O Elo combina o calendário, as ferramentas de cálculo e a sua autorização para transformar uma previsão em um próximo passo possível.</p><p class="pitch-purpose">Uma escolha informada<strong>O impacto aparece antes da aprovação.</strong></p></div>
+            <div class="pitch-copy"><h1 id="pitch-title-1" tabindex="-1">Perguntar.<br>Priorizar.<br><em>Agir antes.</em></h1><p class="pitch-lede">A analista de negócios conversa com a carteira da agência em português. O gerente de relacionamento abre cada caso já calculado. O cliente decide.</p><p class="pitch-purpose">Uma escolha informada<strong>O impacto aparece antes da aprovação.</strong></p></div>
             <ol class="solution-sequence">
-              <li><span>1</span><div><h2>Enxerga o que vem a seguir</h2><p>Projeta o saldo e encontra o ponto de menor margem.</p></div></li>
-              <li><span>2</span><div><h2>Explica uma alternativa</h2><p>Mostra os valores, as hipóteses e o efeito do ajuste.</p></div></li>
-              <li><span>3</span><div><h2>Espera a sua escolha</h2><p>Você pode aprovar, personalizar ou recusar a proposta.</p></div></li>
-              <li><span>4</span><div><h2>Reavalia quando algo muda</h2><p>Uma nova despesa muda a projeção e a recomendação.</p></div></li>
+              <li><span>1</span><div><h2><svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg>A analista pergunta</h2><p>"Quem fica no vermelho nos próximos 7 dias?" O agente analisa a carteira inteira.</p></div></li>
+              <li><span>2</span><div><h2><svg class="icon" aria-hidden="true"><use href="#i-list"/></svg>O agente prioriza</h2><p>Mostra quem, quando, quanto falta e quem se resolve com ajuste de gastos.</p></div></li>
+              <li><span>3</span><div><h2><svg class="icon" aria-hidden="true"><use href="#i-users"/></svg>O gerente abre o caso</h2><p>Calendário diário, hipóteses e uma proposta com efeito calculado.</p></div></li>
+              <li><span>4</span><div><h2><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>O cliente decide</h2><p>Aprovar, ajustar ou recusar. Uma nova despesa muda a recomendação.</p></div></li>
             </ol>
           </section>
           <section id="pitch-slide-2" class="pitch-slide" aria-labelledby="pitch-title-2" hidden>
-            <div class="pitch-copy"><h1 id="pitch-title-2" tabindex="-1">Uma mudança.<br><em>Um novo cenário.</em></h1><p class="pitch-lede">A demonstração acompanha uma decisão completa: identificar o aperto, aprovar um plano e perceber o impacto de uma nova despesa.</p><button id="pitch-demo-month" class="pitch-primary">Demonstrar na prática <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg></button><div class="pitch-other-journeys"><span>Outras jornadas</span><button id="pitch-demo-purchase">Comparar uma compra</button><button id="pitch-demo-pix">Conferir um PIX</button></div></div>
+            <div class="pitch-copy"><h1 id="pitch-title-2" tabindex="-1">Uma mudança.<br><em>Um novo cenário.</em></h1><p class="pitch-lede">A demonstração acompanha uma decisão completa: identificar o aperto, aprovar um plano e perceber o impacto de uma nova despesa.</p><button id="pitch-demo-month" class="pitch-primary">Demonstrar na prática <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M4 12h16m-6-6 6 6-6 6"/></svg></button><div class="pitch-other-journeys"><span>Outras jornadas</span><a class="pitch-analyst-link" href="/analista"><svg class="icon" aria-hidden="true"><use href="#i-chat"/></svg>Ver a carteira da agência</a><button id="pitch-demo-purchase">Comparar uma compra</button><button id="pitch-demo-pix">Conferir um PIX</button></div></div>
             <div class="outcome-story" aria-label="Jornada com dados fictícios">
-              <div><span class="outcome-label">Antes do plano</span><strong class="outcome-negative">−R$ 100</strong><p>Menor saldo previsto antes de receber.</p></div>
-              <div><span class="outcome-label">Redução de R$ 300 aprovada</span><strong>R$ 200</strong><p>A projeção preserva a margem desejada.</p></div>
-              <div><span class="outcome-label">Nova despesa de R$ 150</span><strong>R$ 50</strong><p>O contexto mudou. A análise também.</p></div>
+              <div><span class="outcome-icon" data-tone="alert"><svg class="icon" aria-hidden="true"><use href="#i-down"/></svg></span><span class="outcome-label">Antes do plano</span><strong class="outcome-negative">−R$ 100</strong><p>Menor saldo previsto antes de receber.</p></div>
+              <div><span class="outcome-icon" data-tone="good"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span><span class="outcome-label">Redução de R$ 300 aprovada</span><strong>R$ 200</strong><p>A projeção preserva a margem desejada.</p></div>
+              <div><span class="outcome-icon"><svg class="icon" aria-hidden="true"><use href="#i-pulse"/></svg></span><span class="outcome-label">Nova despesa de R$ 150</span><strong>R$ 50</strong><p>O contexto mudou. A análise também.</p></div>
               <small>Valores do cenário inicial. Nenhum dinheiro é movimentado.</small>
             </div>
           </section>
           <section id="pitch-slide-3" class="pitch-slide pitch-technology" aria-labelledby="pitch-title-3" hidden>
-            <div class="pitch-copy"><h1 id="pitch-title-3" tabindex="-1">Autonomia com<br><em>limites claros.</em></h1><p class="pitch-lede">As ferramentas calculam. O código valida permissões. A pessoa autoriza cada plano.</p><p class="pitch-purpose">Protótipo executável<strong>Python, HTML, CSS e JavaScript. Dados sintéticos e decisões rastreáveis.</strong></p><a class="pitch-repository" href="https://github.com/pedrotescaro/elo-financeiro-bb" target="_blank" rel="noopener noreferrer">Conhecer o código do projeto</a></div>
+            <div class="pitch-copy"><h1 id="pitch-title-3" tabindex="-1">Autonomia com<br><em>limites claros.</em></h1><p class="pitch-lede">O modelo entende a pergunta. As ferramentas calculam. O código valida permissões. O cliente autoriza cada plano.</p><p class="pitch-purpose">Protótipo executável<strong>Python, HTML, CSS e JavaScript. Dados sintéticos e decisões rastreáveis.</strong></p><a class="pitch-repository" href="https://github.com/pedrotescaro/elo-financeiro-bb" target="_blank" rel="noopener noreferrer">Conhecer o código do projeto</a></div>
             <dl class="technology-list">
-              <div><dt><span>Ferramentas locais</span><small>Em funcionamento</small></dt><dd>Projeção de caixa, comparação de compra, sinais ilustrativos de risco e orientações curadas. Demonstração por regras.</dd></div>
-              <div><dt><span>IBM Bob</span><small>Registro da equipe</small></dt><dd>O checkpoint relata apoio ao desenvolvimento e aos testes. Capturas e exportações originais ainda precisam ser anexadas.</dd></div>
-              <div><dt><span>IBM watsonx.ai</span><small>Adaptador opcional</small></dt><dd>Seleção limitada de ferramentas. A chamada real na conta IBM ainda não foi validada.</dd></div>
-              <div><dt><span>watsonx Orchestrate</span><small>Não integrado</small></dt><dd>O protótipo atual não utiliza a plataforma Orchestrate. A execução local não substitui esse requisito do programa.</dd></div>
+              <div><dt><span class="tech-name"><svg class="icon" aria-hidden="true"><use href="#i-code"/></svg>Ferramentas locais</span><small>Em funcionamento</small></dt><dd>Análise da carteira, projeção de caixa, comparação de compra, sinais ilustrativos de risco e orientações curadas, com dados sintéticos.</dd></div>
+              <div><dt><span class="tech-name"><svg class="icon" aria-hidden="true"><use href="#i-cpu"/></svg>IBM Bob</span><small>Em uso pela equipe</small></dt><dd>Cinco sessões em modo Agent, de dois integrantes, com registro, captura e commits em bob_sessions/.</dd></div>
+              <div><dt><span class="tech-name"><svg class="icon" aria-hidden="true"><use href="#i-spark"/></svg>IBM watsonx.ai</span><small>Implementado</small></dt><dd>Interpreta a pergunta do analista e escolhe as ferramentas do atendimento. Os números vêm sempre do código. Chamada real na conta do programa pendente de comprovação.</dd></div>
+              <div><dt><span class="tech-name"><svg class="icon" aria-hidden="true"><use href="#i-route"/></svg>watsonx Orchestrate</span><small>Próximo passo</small></dt><dd>Não utilizado nesta versão. É o caminho previsto para orquestrar os papéis do agente.</dd></div>
             </dl>
           </section>
         </div>
-        <footer class="pitch-footer"><nav aria-label="Tópicos da apresentação"><button id="pitch-tab-0" aria-current="step">O problema</button><button id="pitch-tab-1">A proposta</button><button id="pitch-tab-2">Na prática</button><button id="pitch-tab-3">A tecnologia</button></nav><div class="pitch-pagination"><span id="pitch-position" aria-live="polite">1 de 4</span><button id="pitch-previous" class="secondary" aria-label="Tópico anterior">Anterior</button><button id="pitch-next" class="primary" aria-label="Próximo tópico">Avançar</button></div></footer>
+        <footer class="pitch-footer"><div id="pitch-progress" class="pitch-progress" data-step="0" aria-hidden="true"><span></span></div><nav aria-label="Tópicos da apresentação"><button id="pitch-tab-0" aria-current="step">O problema</button><button id="pitch-tab-1">A proposta</button><button id="pitch-tab-2">Na prática</button><button id="pitch-tab-3">A tecnologia</button></nav><div class="pitch-pagination"><span id="pitch-position" aria-live="polite">1 de 4</span><button id="pitch-previous" class="secondary" aria-label="Tópico anterior">Anterior</button><button id="pitch-next" class="primary" aria-label="Próximo tópico">Avançar</button></div></footer>
       </section>
       <div id="dashboard-view">
-      <header class="page-header">
-        <div><h1>Sua visão financeira</h1><p class="subtitle">Entenda seu saldo futuro. Escolha um plano. Acompanhe o resultado.</p></div>
-        <div class="header-actions"><span class="demo-badge"><span aria-hidden="true"></span>Dados sintéticos</span><button id="presenter-launch" class="primary" aria-expanded="false" aria-controls="presentation-panel">Apresentar a ideia</button></div>
-      </header>
-      <div class="toolbar">
-        <div class="scenario-meta"><strong id="scenario-title"></strong><span id="scenario-period"></span></div>
+      <header class="topbar">
+        <nav class="crumbs" aria-label="Você está em"><a href="/analista">Agência</a><span aria-hidden="true">/</span><span aria-current="page">Atendimento ao cliente</span></nav>
+        <span class="demo-badge"><span aria-hidden="true"></span>Dados sintéticos</span>
         <div class="toolbar-actions">
           <button class="text-button" id="text-size" aria-pressed="false">Aumentar texto</button>
           <button class="text-button" id="consent-toggle">Autorizar leitura</button>
-          <button class="reset-button" id="demo-reset" title="Restaurar os dados e limpar planos deste cenário"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6"/></svg>Reiniciar cenário</button>
+          <button class="reset-button" id="demo-reset" title="Restaurar os dados e limpar planos deste cenário"><svg class="icon" aria-hidden="true"><use href="#i-reset"/></svg>Reiniciar cenário</button>
+        </div>
+      </header>
+      <div class="page-header">
+        <div><h1>Sua visão financeira</h1><p class="subtitle">Entenda o saldo futuro do cliente, escolha um plano com ele e acompanhe o resultado.</p></div>
+        <div class="header-actions">
+          <div class="scenario-meta"><svg class="icon" aria-hidden="true"><use href="#i-calendar"/></svg><span><strong id="scenario-title"></strong><span id="scenario-period"></span></span></div>
+          <button id="presenter-launch" class="primary" aria-expanded="false" aria-controls="presentation-panel"><svg class="icon" aria-hidden="true"><use href="#i-play"/></svg>Apresentar a ideia</button>
         </div>
       </div>
       <p id="client-origin" class="client-origin" hidden>Cliente aberto a partir da <a href="/analista">visão do analista</a>. Dados sintéticos da carteira da agência.</p>
@@ -105,7 +146,7 @@
       <p id="notice" class="notice" hidden></p>
       <section id="consent-panel" class="consent-panel">
         <div class="consent-intro">
-          <span class="large-icon" aria-hidden="true"><svg viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 13h26m-7-7 7 7-7 7M33 27H7m7-7-7 7 7 7"/></svg></span>
+          <span class="large-icon" aria-hidden="true"><svg class="icon" aria-hidden="true"><use href="#i-lock"/></svg></span>
           <h2>Comece com uma escolha sua.</h2>
           <p>Autorize o agente a analisar os dados fictícios deste cenário. Você pode desativar a leitura e limpar os planos desta sessão quando quiser.</p>
           <button class="primary" id="start">Autorizar dados da demonstração <span aria-hidden="true">→</span></button>
@@ -113,21 +154,21 @@
         </div>
         <div class="consent-preview" aria-label="O que você vai experimentar">
           <h3>Uma decisão de cada vez.</h3><p>Veja como o calendário das contas muda a leitura do seu saldo.</p>
-          <ul><li>Projeção de saldo, dia a dia</li><li>Alternativas antes de decidir</li><li>Reavaliação após uma nova despesa</li></ul>
+          <ul><li><svg class="icon" aria-hidden="true"><use href="#i-calendar"/></svg>Projeção de saldo, dia a dia</li><li><svg class="icon" aria-hidden="true"><use href="#i-target"/></svg>Alternativas antes de decidir</li><li><svg class="icon" aria-hidden="true"><use href="#i-pulse"/></svg>Reavaliação após uma nova despesa</li></ul>
           <span class="preview-note">Você autoriza. O Elo calcula. Você decide.</span>
         </div>
       </section>
       <div id="workspace" hidden>
         <section class="insight"><div><h2 id="report-title" tabindex="-1"></h2><p id="report-description"></p><p id="mode" class="mode" role="status"></p></div><span id="projection-state" class="projection-state"></span></section>
         <section class="metrics" aria-label="Resumo da projeção">
-          <article class="metric-primary"><p>Menor saldo previsto</p><strong id="minimum"></strong><small id="minimum-date"></small></article>
-          <article><p>Margem desejada</p><strong id="buffer"></strong><small>Referência deste cenário</small></article>
-          <article><p>Saldo no fim do período</p><strong id="closing"></strong><small id="horizon"></small></article>
+          <article class="metric-primary"><span class="metric-icon" data-tone="alert"><svg class="icon" aria-hidden="true"><use href="#i-down"/></svg></span><p>Menor saldo previsto</p><strong id="minimum"></strong><small id="minimum-date"></small><span id="minimum-meter" class="meter" aria-hidden="true"><span></span></span></article>
+          <article><span class="metric-icon"><svg class="icon" aria-hidden="true"><use href="#i-shield"/></svg></span><p>Margem desejada</p><strong id="buffer"></strong><small>Referência deste cenário</small></article>
+          <article><span class="metric-icon"><svg class="icon" aria-hidden="true"><use href="#i-calendar"/></svg></span><p>Saldo no fim do período</p><strong id="closing"></strong><small id="horizon"></small></article>
         </section>
         <section id="special" class="card special" hidden></section>
         <div class="content-grid">
           <section class="card chart-card">
-            <div class="section-head"><h2>Seu saldo, dia a dia</h2><span class="tag">Estimativa</span></div>
+            <div class="section-head"><h2><span class="title-icon"><svg class="icon" aria-hidden="true"><use href="#i-up"/></svg></span>Seu saldo, dia a dia</h2><span class="tag">Estimativa</span></div>
             <figure class="balance-figure"><div id="balance-chart"></div><figcaption id="chart-caption"></figcaption></figure>
             <p class="chart-legend"><span class="legend-balance">Saldo previsto</span><span class="legend-buffer">Margem desejada</span><span class="legend-low">Menor saldo</span></p>
             <details class="daily-details"><summary>Ver os valores de cada dia</summary>
@@ -136,7 +177,7 @@
             </details>
           </section>
           <section class="card action-card">
-            <div class="section-head"><h2>Um próximo passo possível</h2><svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M4 17 10 11l4 4 6-10M14 5h6v6"/></svg></div>
+            <div class="section-head"><h2><span class="title-icon"><svg class="icon" aria-hidden="true"><use href="#i-target"/></svg></span>Um próximo passo possível</h2></div>
             <div id="actions"></div>
             <div id="reduction-panel" hidden>
               <details class="reduction-details" id="reduction-options"><summary>Ajustar o valor da redução</summary>
@@ -155,13 +196,14 @@
           </section>
         </div>
         <div class="support-grid">
-          <details class="card explanations-panel" aria-labelledby="explanations-title"><summary id="explanations-title">Por que o Elo sugeriu isso</summary><p>Confira os valores, as hipóteses e os limites de cada decisão.</p><div id="explanations"></div></details>
-          <details class="card trace"><summary id="trace-title">Ferramentas e orientações consultadas</summary><div aria-labelledby="trace-title"><p id="trace-description"></p><ol id="trace"></ol><div id="sources"></div></div></details>
+          <details class="card explanations-panel" aria-labelledby="explanations-title"><summary id="explanations-title"><svg class="icon" aria-hidden="true"><use href="#i-eye"/></svg>Por que o Elo sugeriu isso</summary><p>Confira os valores, as hipóteses e os limites de cada decisão.</p><div id="explanations"></div></details>
+          <details class="card trace"><summary id="trace-title"><svg class="icon" aria-hidden="true"><use href="#i-layers"/></svg>Ferramentas e orientações consultadas</summary><div aria-labelledby="trace-title"><p id="trace-description"></p><ol id="trace"></ol><div id="sources"></div></div></details>
         </div>
         <section id="history-panel" class="card session-panel" hidden><h2>Suas escolhas nesta sessão</h2><ul id="history"></ul></section>
         <section id="goals-panel" class="card session-panel" hidden aria-labelledby="goals-title"><h2 id="goals-title">Metas desta sessão</h2><p class="footnote">Registros de intenção. Nenhum dinheiro foi reservado ou movimentado.</p><ul id="goals"></ul></section>
       </div>
-      <details id="audit-panel" class="card audit-panel" aria-labelledby="audit-title" hidden><summary id="audit-title">O que aconteceu nesta sessão</summary><p>Consultas, autorizações e revogações. Registros temporários, apagados ao encerrar a sessão no servidor.</p><ol id="audit"></ol></details>
+      <details id="audit-panel" class="card audit-panel" aria-labelledby="audit-title" hidden><summary id="audit-title"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg>O que aconteceu nesta sessão</summary><p>Consultas, autorizações e revogações. Registros temporários, apagados ao encerrar a sessão no servidor.</p><ol id="audit"></ol></details>
+      <div id="toast" class="toast" role="status" aria-live="polite" hidden><span id="toast-anim" class="toast-anim" aria-hidden="true"></span><span id="toast-text"></span></div>
       <footer><span>Elo Financeiro</span><span>Protótipo educacional · Valores e cenários fictícios · Projeções não garantem resultados futuros</span></footer>
       </div>
     </main>

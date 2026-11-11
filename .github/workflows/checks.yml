@@ -22,6 +22,6 @@ jobs:
       - name: Testes
         run: python -m unittest discover -s tests -v
       - name: Sintaxe JavaScript
-        run: node --check web/app.js && node --check web/analista.js
+        run: node --check web/app.js && node --check web/analista.js && node --check web/anim.js
       - name: Comportamentos da interface
         run: node --test tests/web_behaviors.cjs tests/analyst_behaviors.cjs

@@ -9,6 +9,7 @@
    "id": "C01",
    "nome": "Cliente 01",
    "segmento": "assalariado",
+   "gerente": "Gerente 1",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 01",
@@ -66,6 +67,7 @@
    "id": "C02",
    "nome": "Cliente 02",
    "segmento": "renda-variavel",
+   "gerente": "Gerente 2",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 02",
@@ -123,6 +125,7 @@
    "id": "C03",
    "nome": "Cliente 03",
    "segmento": "aposentado",
+   "gerente": "Gerente 3",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 03",
@@ -196,6 +199,7 @@
    "id": "C04",
    "nome": "Cliente 04",
    "segmento": "estudante",
+   "gerente": "Gerente 1",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 04",
@@ -245,6 +249,7 @@
    "id": "C05",
    "nome": "Cliente 05",
    "segmento": "mei",
+   "gerente": "Gerente 2",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 05",
@@ -318,6 +323,7 @@
    "id": "C06",
    "nome": "Cliente 06",
    "segmento": "assalariado",
+   "gerente": "Gerente 3",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 06",
@@ -383,6 +389,7 @@
    "id": "C07",
    "nome": "Cliente 07",
    "segmento": "mei",
+   "gerente": "Gerente 1",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 07",
@@ -440,6 +447,7 @@
    "id": "C08",
    "nome": "Cliente 08",
    "segmento": "aposentado",
+   "gerente": "Gerente 2",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 08",
@@ -505,6 +513,7 @@
    "id": "C09",
    "nome": "Cliente 09",
    "segmento": "mei",
+   "gerente": "Gerente 3",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 09",
@@ -570,6 +579,7 @@
    "id": "C10",
    "nome": "Cliente 10",
    "segmento": "assalariado",
+   "gerente": "Gerente 1",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 10",
@@ -627,6 +637,7 @@
    "id": "C11",
    "nome": "Cliente 11",
    "segmento": "estudante",
+   "gerente": "Gerente 2",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 11",
@@ -676,6 +687,7 @@
    "id": "C12",
    "nome": "Cliente 12",
    "segmento": "renda-variavel",
+   "gerente": "Gerente 3",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 12",
@@ -725,6 +737,7 @@
    "id": "C13",
    "nome": "Cliente 13",
    "segmento": "mei",
+   "gerente": "Gerente 1",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 13",
@@ -790,6 +803,7 @@
    "id": "C14",
    "nome": "Cliente 14",
    "segmento": "aposentado",
+   "gerente": "Gerente 2",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 14",
@@ -839,6 +853,7 @@
    "id": "C15",
    "nome": "Cliente 15",
    "segmento": "mei",
+   "gerente": "Gerente 3",
    "consentimento_open_finance": false,
    "snapshot": {
     "title": "Atendimento do Cliente 15",
@@ -904,6 +919,7 @@
    "id": "C16",
    "nome": "Cliente 16",
    "segmento": "renda-variavel",
+   "gerente": "Gerente 1",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 16",
@@ -969,6 +985,7 @@
    "id": "C17",
    "nome": "Cliente 17",
    "segmento": "assalariado",
+   "gerente": "Gerente 2",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 17",
@@ -1034,6 +1051,7 @@
    "id": "C18",
    "nome": "Cliente 18",
    "segmento": "renda-variavel",
+   "gerente": "Gerente 3",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 18",
@@ -1107,6 +1125,7 @@
    "id": "C19",
    "nome": "Cliente 19",
    "segmento": "estudante",
+   "gerente": "Gerente 1",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 19",
@@ -1172,6 +1191,7 @@
    "id": "C20",
    "nome": "Cliente 20",
    "segmento": "mei",
+   "gerente": "Gerente 2",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 20",
@@ -1245,6 +1265,7 @@
    "id": "C21",
    "nome": "Cliente 21",
    "segmento": "estudante",
+   "gerente": "Gerente 3",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 21",
@@ -1302,6 +1323,7 @@
    "id": "C22",
    "nome": "Cliente 22",
    "segmento": "mei",
+   "gerente": "Gerente 1",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 22",
@@ -1367,6 +1389,7 @@
    "id": "C23",
    "nome": "Cliente 23",
    "segmento": "renda-variavel",
+   "gerente": "Gerente 2",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 23",
@@ -1424,6 +1447,7 @@
    "id": "C24",
    "nome": "Cliente 24",
    "segmento": "assalariado",
+   "gerente": "Gerente 3",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 24",
@@ -1473,6 +1497,7 @@
    "id": "C25",
    "nome": "Cliente 25",
    "segmento": "assalariado",
+   "gerente": "Gerente 1",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 25",
@@ -1522,6 +1547,7 @@
    "id": "C26",
    "nome": "Cliente 26",
    "segmento": "aposentado",
+   "gerente": "Gerente 2",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 26",
@@ -1603,6 +1629,7 @@
    "id": "C27",
    "nome": "Cliente 27",
    "segmento": "assalariado",
+   "gerente": "Gerente 3",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 27",
@@ -1668,6 +1695,7 @@
    "id": "C28",
    "nome": "Cliente 28",
    "segmento": "aposentado",
+   "gerente": "Gerente 1",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 28",
@@ -1733,6 +1761,7 @@
    "id": "C29",
    "nome": "Cliente 29",
    "segmento": "aposentado",
+   "gerente": "Gerente 2",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 29",
@@ -1798,6 +1827,7 @@
    "id": "C30",
    "nome": "Cliente 30",
    "segmento": "estudante",
+   "gerente": "Gerente 3",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 30",
@@ -1863,6 +1893,7 @@
    "id": "C31",
    "nome": "Cliente 31",
    "segmento": "assalariado",
+   "gerente": "Gerente 1",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 31",
@@ -1928,6 +1959,7 @@
    "id": "C32",
    "nome": "Cliente 32",
    "segmento": "mei",
+   "gerente": "Gerente 2",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 32",
@@ -2001,6 +2033,7 @@
    "id": "C33",
    "nome": "Cliente 33",
    "segmento": "renda-variavel",
+   "gerente": "Gerente 3",
    "consentimento_open_finance": false,
    "snapshot": {
     "title": "Atendimento do Cliente 33",
@@ -2066,6 +2099,7 @@
    "id": "C34",
    "nome": "Cliente 34",
    "segmento": "renda-variavel",
+   "gerente": "Gerente 1",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 34",
@@ -2139,6 +2173,7 @@
    "id": "C35",
    "nome": "Cliente 35",
    "segmento": "aposentado",
+   "gerente": "Gerente 2",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 35",
@@ -2196,6 +2231,7 @@
    "id": "C36",
    "nome": "Cliente 36",
    "segmento": "assalariado",
+   "gerente": "Gerente 3",
    "consentimento_open_finance": false,
    "snapshot": {
     "title": "Atendimento do Cliente 36",
@@ -2261,6 +2297,7 @@
    "id": "C37",
    "nome": "Cliente 37",
    "segmento": "renda-variavel",
+   "gerente": "Gerente 1",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 37",
@@ -2342,6 +2379,7 @@
    "id": "C38",
    "nome": "Cliente 38",
    "segmento": "assalariado",
+   "gerente": "Gerente 2",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 38",
@@ -2399,6 +2437,7 @@
    "id": "C39",
    "nome": "Cliente 39",
    "segmento": "estudante",
+   "gerente": "Gerente 3",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 39",
@@ -2464,6 +2503,7 @@
    "id": "C40",
    "nome": "Cliente 40",
    "segmento": "estudante",
+   "gerente": "Gerente 1",
    "consentimento_open_finance": true,
    "snapshot": {
     "title": "Atendimento do Cliente 40",

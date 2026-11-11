@@ -76,6 +76,8 @@ flowchart LR
 
 A rota `POST /api/analista` exige o mesmo token CSRF e a mesma origem das outras ações, aceita perguntas de até 300 caracteres e registra cada consulta na trilha da sessão. `POST /api/scenario` com `cliente-Cxx` abre o cliente no atendimento e recusa clientes sem consentimento.
 
+A lista de contatos da semana fica na sessão (`DemoSession.contatos`). `POST /api/contatos` inclui, marca ou remove clientes analisados; `GET /api/contatos.csv` exporta a lista em CSV com separador ponto e vírgula e BOM para abrir no Excel. Quando o cliente aberto no atendimento está na lista, aprovar o plano marca "plano aprovado" e recusar marca "proposta recusada". A lista some quando a sessão expira; em produção ela iria para a agenda ou o CRM do gerente.
+
 ## Contrato do planejador
 
 Entrada: objetivo representado pelo cenário sintético, datas, compromissos e presença de compra ou intenção de PIX. Saída esperada:

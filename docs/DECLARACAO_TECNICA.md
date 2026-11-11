@@ -32,7 +32,7 @@ Não há outros serviços IBM neste projeto.
 
 Cada pasta em `bob_sessions/` tem `registro.md` e `resumo-sessao.png`. Os registros foram conferidos com `git log` em 2026-11-11; datas e commits de partida que estavam errados foram corrigidos, e a correção está anotada no próprio registro.
 
-**O que não foi feito com o Bob:** a visão do analista (`elo/carteira.py`, `web/analista.*`, `data/carteira.json`, o método `interpret`), o selo do planejador na interface, o script `elo/prova_watsonx.py`, o ajuste do modo real em `tests/test_ibm_validation.py` e a ampliação do vocabulário em `elo/retrieval.py` foram feitos em 2026-11-11 fora do Bob. Esses itens estão listados no registro de 2026-11-11 e não são apresentados como uso do Bob.
+**O que não foi feito com o Bob:** a visão do analista (`elo/carteira.py`, `web/analista.*`, `data/carteira.json`, o método `interpret`), a lista de contatos da semana, a nova apresentação dentro do app, o selo do planejador na interface, o script `elo/prova_watsonx.py`, o ajuste do modo real em `tests/test_ibm_validation.py` e a ampliação do vocabulário em `elo/retrieval.py` foram feitos em 2026-11-11 fora do Bob. Esses itens estão listados no registro de 2026-11-11 e não são apresentados como uso do Bob.
 
 ## IBM watsonx.ai
 

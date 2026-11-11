@@ -39,6 +39,8 @@ Os valores medidos vêm de dados sintéticos e não representam resultado com cl
 | RF18 | Analisar a carteira da agência | Mesmo cálculo do atendimento para cada cliente; clientes sem consentimento ficam fora | Implementado/testado |
 | RF19 | Responder perguntas do analista em português | Consulta estruturada validada; resposta com números do código e tempo medido | Implementado/testado; interpretação por regras e pelo IBM watsonx.ai com contingência |
 | RF20 | Abrir um cliente da carteira no atendimento | Mesmo menor saldo e mesma proposta nas duas visões; recusa para cliente sem consentimento | Implementado/testado |
+| RF21 | Montar a lista de contatos da semana | Incluir, marcar e remover clientes analisados; exportar CSV; aprovação ou recusa no atendimento atualiza o status | Implementado/testado |
+| RF22 | Filtrar por gerente | Perguntas como "clientes do gerente 2 em risco" respondem só com a carteira daquele gerente | Implementado/testado |
 
 ## Requisitos de qualidade
 

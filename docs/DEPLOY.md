@@ -11,9 +11,9 @@ docker build -t elo-financeiro-demo .
 docker run --rm --read-only --cap-drop=ALL --security-opt=no-new-privileges -p 127.0.0.1:8000:8000 elo-financeiro-demo
 ```
 
-Abrir `http://127.0.0.1:8000`, autorizar, aprovar o plano, simular a despesa e revogar. Em outro terminal, consultar `http://127.0.0.1:8000/healthz`. A imagem usa Python 3.14, usuário sem privilégios e apenas biblioteca padrão. `PORT` define a porta; o padrão é 8000.
+Abrir `http://127.0.0.1:8000/analista`, fazer uma pergunta, adicionar clientes à lista e baixar o CSV. Abrir um cliente no atendimento, autorizar, aprovar o plano, simular a despesa e revogar. Em outro terminal, consultar `http://127.0.0.1:8000/healthz`. A imagem usa Python 3.14, usuário sem privilégios e apenas biblioteca padrão. `PORT` define a porta; o padrão é 8000.
 
-Na preparação de 21/10/2026, o Docker CLI estava disponível, mas o daemon local não estava ativo. Portanto, a execução desta imagem continua pendente.
+Em 21/10 e de novo em 11/11/2026, o Docker CLI estava disponível, mas o daemon local não estava ativo. Portanto, a execução desta imagem continua pendente.
 
 ## Render: passos manuais
 
@@ -22,7 +22,7 @@ Na preparação de 21/10/2026, o Docker CLI estava disponível, mas o daemon loc
 3. Em **Environment**, configurar `ELO_PUBLIC_ORIGIN=https://pendente.invalid` como domínio provisório. Não adicionar `ELO_PLANNER=watsonx` nem credenciais IBM. Em **Health Checks**, definir `/healthz`.
 4. Criar o serviço e copiar a URL HTTPS atribuída pela Render. Substituir imediatamente a origem provisória pela URL exata, sem barra final ou caminho, por exemplo `https://nome-atribuido.onrender.com`. Salvar e executar um novo deploy. Enquanto a origem divergir da URL, a interface e a API serão rejeitadas. `/healthz` continua respondendo 200, sem criar sessão nem consumir o limite de requisições.
 5. Conferir o commit em **Deploys**, aguardar o health check passar e abrir a URL em janela anônima. Se alterar o domínio, atualizar também `ELO_PUBLIC_ORIGIN`. Não copiar um endereço de exemplo como se fosse a URL publicada.
-6. Conferir a jornada completa em dois navegadores: consentimento e planos devem permanecer separados. Após expiração ou reinício, atualizar a página para iniciar outra sessão. Registrar URL, commit, data e resultado reais em `docs/VERIFICACAO.md`.
+6. Conferir as duas visões em dois navegadores: em `/analista`, pergunta, lista de contatos e CSV; no atendimento, consentimento e planos. As sessões devem permanecer separadas. No modo público, o selo do analista deve dizer "regras locais". Após expiração ou reinício, atualizar a página para iniciar outra sessão. Registrar URL, commit, data e resultado reais em `docs/VERIFICACAO.md`.
 
 A Render documenta [deploy com Docker](https://render.com/docs/docker), [configuração de serviços e porta](https://render.com/docs/web-services), [health checks](https://render.com/docs/health-checks) e [TLS gerenciado](https://render.com/docs/tls). O HTTPS termina na borda da plataforma; o processo recebe HTTP interno. Não expor diretamente a porta do contêiner na internet.
 

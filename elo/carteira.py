@@ -25,6 +25,9 @@ HORIZON_DAYS = 14
 SEED = 17
 SIZE = 40
 
+# Três gerentes fictícios dividem a carteira; atribuição fixa pela posição do cliente.
+GERENTES = ("Gerente 1", "Gerente 2", "Gerente 3")
+
 SEGMENTOS = {
     "assalariado": "Assalariado com salário mensal",
     "renda-variavel": "Autônomo com renda variável",
@@ -74,6 +77,7 @@ def gerar(seed: int = SEED, size: int = SIZE) -> dict:
             "id": f"C{n:02d}",
             "nome": f"Cliente {n:02d}",
             "segmento": segmento,
+            "gerente": GERENTES[(n - 1) % len(GERENTES)],
             "consentimento_open_finance": rng.random() > 0.12,
             "snapshot": {
                 "title": f"Atendimento do Cliente {n:02d}",
@@ -143,7 +147,7 @@ def analisar_cliente(client: dict) -> dict:
     else:
         acao = "Contato proativo: gastos flexíveis não cobrem a falta; revisar o calendário com o cliente."
     return {
-        "id": client["id"], "nome": client["nome"], "segmento": client["segmento"],
+        "id": client["id"], "nome": client["nome"], "segmento": client["segmento"], "gerente": client["gerente"],
         "segmento_rotulo": SEGMENTOS[client["segmento"]],
         "risco": risco,
         "menor_saldo_cents": flow["minimum_cents"], "data_menor_saldo": flow["minimum_date"],
@@ -177,6 +181,9 @@ def analisar_carteira(carteira: dict | None = None) -> dict:
         "resolvem_com_flexivel": sum(r["resolve_com_flexivel"] for r in rows),
         "falta_total_cents": sum(r["falta_para_margem_cents"] for r in em_risco),
         "tempo_analise_ms": round(elapsed_ms, 2),
+        "por_gerente": [{"gerente": g,
+                         "em_risco": sum(r["gerente"] == g and r["risco"] != "ok" for r in rows),
+                         "analisados": sum(r["gerente"] == g for r in rows)} for g in GERENTES],
         "clientes": rows,
     }
 
@@ -196,7 +203,8 @@ def _plain(text: str) -> str:
 def interpretar_por_regras(pergunta: str) -> dict:
     """Traduz a pergunta em consulta estruturada usando palavras-chave revisadas."""
     q = _plain(pergunta)
-    consulta: dict = {"intencao": "em_risco", "segmento": None, "dias": None, "limite": _LIMITE_PADRAO, "cliente": None}
+    consulta: dict = {"intencao": "em_risco", "segmento": None, "dias": None, "limite": _LIMITE_PADRAO,
+                      "cliente": None, "gerente": None}
     m = re.search(r"\bc\s?(\d{1,2})\b|cliente\s+(\d{1,2})\b", q)
     if m:
         consulta.update(intencao="cliente", cliente=f"C{int(m.group(1) or m.group(2)):02d}")
@@ -207,6 +215,9 @@ def interpretar_por_regras(pergunta: str) -> dict:
                   "assalariado": ("assalariad", "salario fixo", "clt")}[seg]
         if any(t in q for t in tokens):
             consulta["segmento"] = seg
+    g = re.search(r"gerente\s*([1-9])\b", q)
+    if g and f"Gerente {g.group(1)}" in GERENTES:
+        consulta["gerente"] = f"Gerente {g.group(1)}"
     d = re.search(r"(\d{1,2})\s*dias?", q)
     if d:
         consulta["dias"] = max(1, min(HORIZON_DAYS, int(d.group(1))))
@@ -231,6 +242,9 @@ def validar_consulta(raw: object) -> dict:
     if not isinstance(raw, dict) or raw.get("intencao") not in INTENCOES:
         raise ValueError("Consulta fora do contrato.")
     seg, dias, limite, cliente = raw.get("segmento"), raw.get("dias"), raw.get("limite", _LIMITE_PADRAO), raw.get("cliente")
+    gerente = raw.get("gerente")
+    if gerente is not None and gerente not in GERENTES:
+        raise ValueError("Gerente desconhecido.")
     if seg is not None and seg not in SEGMENTOS:
         raise ValueError("Segmento desconhecido.")
     if dias is not None and (type(dias) is not int or not 1 <= dias <= HORIZON_DAYS):
@@ -240,7 +254,7 @@ def validar_consulta(raw: object) -> dict:
     if raw["intencao"] == "cliente" and not (isinstance(cliente, str) and re.fullmatch(r"C\d{2}", cliente)):
         raise ValueError("Cliente inválido.")
     return {"intencao": raw["intencao"], "segmento": seg, "dias": dias, "limite": limite,
-            "cliente": cliente if raw["intencao"] == "cliente" else None}
+            "cliente": cliente if raw["intencao"] == "cliente" else None, "gerente": gerente}
 
 
 def _brl(cents: int) -> str:
@@ -289,6 +303,8 @@ def executar(consulta: dict, analise: dict) -> dict:
     found = [r for r in rows if filtros[consulta["intencao"]](r)]
     if consulta["segmento"]:
         found = [r for r in found if r["segmento"] == consulta["segmento"]]
+    if consulta.get("gerente"):
+        found = [r for r in found if r["gerente"] == consulta["gerente"]]
     if consulta["dias"] is not None:
         found = [r for r in found if r["dias_ate_risco"] is not None and r["dias_ate_risco"] <= consulta["dias"]]
     descricao = {
@@ -301,6 +317,8 @@ def executar(consulta: dict, analise: dict) -> dict:
     recorte = []
     if consulta["segmento"]:
         recorte.append("segmento " + SEGMENTOS[consulta["segmento"]].lower())
+    if consulta.get("gerente"):
+        recorte.append("carteira do " + consulta["gerente"])
     if consulta["dias"] is not None and consulta["intencao"] == "negativos":
         descricao = f"saldo negativo nos próximos {consulta['dias']} dias"
     elif consulta["dias"] is not None:

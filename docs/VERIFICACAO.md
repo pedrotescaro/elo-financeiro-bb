@@ -6,11 +6,13 @@ Depois do selo do planejador, do script de prova do watsonx, da ampliação do v
 
 | Verificação | Resultado local |
 | --- | --- |
-| `python -m unittest discover -s tests` | 258 testes passaram |
+| `python -m unittest discover -s tests` | 264 testes passaram |
 | `python -m ruff check elo tests` | Passou |
 | `python -m compileall -q elo tests` | Passou |
 | `node --check web/app.js` e `web/analista.js` | Passou |
-| `node --test tests/web_behaviors.cjs tests/analyst_behaviors.cjs` | 40 testes passaram |
+| `node --test tests/web_behaviors.cjs tests/analyst_behaviors.cjs` | 43 testes passaram |
+| Lista de contatos no navegador | Inclusão a partir da resposta, CSV baixado, plano aprovado no atendimento refletido na lista |
+| Docker | Daemon local inativo em 11/11/2026; imagem não executada |
 | Visão do analista no navegador (desktop e 375 px) | Carteira carregada, pergunta respondida, cliente aberto no atendimento com o mesmo menor saldo; sem rolagem lateral no celular |
 | `python -m elo.prova_watsonx` sem credenciais | Saiu com código 2, sem chamada e sem gravar arquivo, como esperado |
 | Chamada real ao watsonx.ai | Não executada: sem credenciais da conta do programa neste ambiente |

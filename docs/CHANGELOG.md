@@ -2,6 +2,31 @@
 
 ## [Unreleased]
 
+### Novo sistema visual, 11 de novembro de 2026
+
+Feito fora do IBM Bob. Inspirado em capturas de painéis escolhidas pela equipe e nos critérios do guia impeccable.
+
+- Paleta tirada do logo (marinho `#132C5C`, amarelo `#F2C94C`) sobre neutros azulados; superfícies planas com borda de 1px.
+- Fonte Mulish servida pelo próprio site; ícones Phosphor (light) em sprite SVG.
+- Barra lateral com grupos, barra superior com trilha de navegação, indicadores com régua que mede algo real.
+- Removidos: etiquetas numeradas acima de títulos, texto com gradiente, vidro, manchas de fundo, ladrilhos de ícone e entrada animada repetida.
+- Micro-interações em Lottie feitas pela equipe (confirmação e "analisando"), com player `lottie_light`.
+- Sistema documentado em `DESIGN.md` (formato DESIGN.md, com tokens) e `.impeccable/design.json`; registro do produto em `PRODUCT.md`.
+- Números dos indicadores em peso 700 e sombra leve só ao interagir, conforme decisões da equipe no `document` do impeccable.
+- `web/style.css` reescrito como folha única com tokens: todo tamanho, cor e canto vem de `:root` e está no `DESIGN.md`. O detector do impeccable passou de 151 notas de deriva para zero, e as páginas renderizadas passam sem antipadrões nem texto abaixo de 12px.
+- Contraste ajustado para WCAG AA: texto secundário, legenda e as três cores de estado; sombras neutras em vez de tingidas.
+
+### Visão do analista, lista de contatos e resposta ao feedback, 11 de novembro de 2026
+
+Feito fora do IBM Bob, depois da sessão do Bob de 2026-11-11 (ver `bob_sessions/2026-11-11-resposta-ao-feedback/registro.md`).
+
+- Visão do analista (`/analista`): carteira sintética de 40 clientes, perguntas em português por intenção, segmento, prazo, gerente e cliente; interpretação pelo IBM watsonx.ai (`WatsonxPlanner.interpret`) com contingência por regras; números sempre do código e tempo medido.
+- Lista de contatos da semana: inclusão a partir das respostas, status (pendente, contatado, plano aprovado, proposta recusada), exportação em CSV e desfecho atualizado pela aprovação ou recusa no atendimento.
+- Cliente da carteira abre direto no atendimento; clientes sem consentimento são recusados.
+- Selo do planejador no atendimento; `python -m elo.prova_watsonx` para comprovar a chamada real; modo real dos 30 casos só conta acerto do modelo.
+- Apresentação dentro do app atualizada para a narrativa do analista e do gerente.
+- 264 testes Python e 43 de interface.
+
 ### Correção do contrato de aprovação — 5 de novembro de 2026
 
 - Aprovação sem `preview_id` aplica exclusivamente a proposta padrão; ajustes personalizados exigem a identidade exata da prévia revisada.

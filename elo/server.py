@@ -1,5 +1,7 @@
 """Demonstração sintética limitada; modo público requer proxy HTTPS configurado."""
 import argparse
+import csv
+import io
 from copy import deepcopy
 from datetime import datetime, timezone
 from http.cookies import SimpleCookie
@@ -17,6 +19,12 @@ from . import carteira
 
 _MAX_SESSION_NAME_LEN = 40
 _CLIENT_PREFIX = "cliente-"
+_CONTACT_STATUS = {
+    "pendente": "Contato pendente",
+    "contatado": "Cliente contatado",
+    "plano_aprovado": "Plano aprovado no atendimento",
+    "proposta_recusada": "Proposta recusada no atendimento",
+}
 
 
 def _load(name: str) -> dict:
@@ -44,6 +52,7 @@ class DemoSession:
         self.audit_sequence = 0
         self.pending_adjustment: dict | None = None
         self._preview_seq: int = 0  # monotonico; detecta prévias geradas por outra aba
+        self.contatos: dict = {}  # lista de contatos da semana montada pelo analista
         self.last_seen = monotonic()
         self.record("session_started", "Sessão demonstrativa iniciada, sem leitura autorizada.")
 
@@ -120,7 +129,7 @@ class DemoSession:
                 "history": deepcopy(self.history), "goals": deepcopy(self.goals), "audit": deepcopy(self.audit),
                 "synthetic": True, "monitoring": "Simulado por evento acionado na interface",
                 "monitor_done": any(e["id"] == "new-spend" for e in self.snapshot["events"]),
-                "pending_adjustment": pending}
+                "pending_adjustment": pending, "contatos": self.contatos_publicos()}
 
     def set_consent(self, enabled: bool) -> None:
         """Ativa ou revoga o consentimento demonstrativo."""
@@ -214,6 +223,8 @@ class DemoSession:
                   "preview_id": applied_preview_id}
         self.history.append(record)
         self.approved[key] = record
+        if action_id == "budget-plan":
+            self._status_do_atendimento("plano_aprovado")
         self.record("action_approved", "Ação autorizada: " + action["label"] + ".")
         self.refresh()
         return record
@@ -247,8 +258,74 @@ class DemoSession:
                   "status": "declined", "effect": "Proposta recusada; nenhuma alteração foi feita.",
                   "kind": "declined", "applied_cents": None, "preview_id": None}
         self.history.append(record)
+        if action_id == "budget-plan":
+            self._status_do_atendimento("proposta_recusada")
         self.record("action_declined", "Proposta recusada pelo usuário: " + action["label"] + ".")
         return record
+
+    def contatos_publicos(self) -> list:
+        """Lista de contatos em ordem de inclusão, com rótulo legível da situação."""
+        return [{**deepcopy(c), "status_rotulo": _CONTACT_STATUS[c["status"]]} for c in self.contatos.values()]
+
+    def atualizar_contatos(self, acao: object, clientes: object) -> list:
+        """Adiciona, remove ou marca clientes da carteira na lista de contatos da semana."""
+        if acao not in ("adicionar", "remover", "contatado", "pendente"):
+            raise ValueError("Ação da lista de contatos inválida.")
+        if (not isinstance(clientes, list) or not 1 <= len(clientes) <= 40
+                or any(not isinstance(c, str) or len(c) != 3 for c in clientes)):
+            raise ValueError("Informe de 1 a 40 clientes da carteira.")
+        if acao == "adicionar":
+            linhas = {r["id"]: r for r in carteira.analisar_carteira()["clientes"]}
+            for cid in clientes:
+                if cid not in linhas:
+                    raise ValueError(f"{cid} não está entre os clientes analisados (sem consentimento ou inexistente).")
+            for cid in clientes:
+                if cid in self.contatos:
+                    continue
+                r = linhas[cid]
+                self.contatos[cid] = {
+                    "id": cid, "nome": r["nome"], "gerente": r["gerente"], "segmento": r["segmento"],
+                    "risco": r["risco"], "primeiro_negativo": r["primeiro_negativo"],
+                    "menor_saldo_cents": r["menor_saldo_cents"],
+                    "falta_para_margem_cents": r["falta_para_margem_cents"],
+                    "resolve_com_flexivel": r["resolve_com_flexivel"],
+                    "acao_sugerida": r["acao_sugerida"], "status": "pendente",
+                }
+            self.record("contacts_added", f"{len(clientes)} cliente(s) incluído(s) na lista de contatos da semana.")
+        else:
+            for cid in clientes:
+                if cid not in self.contatos:
+                    raise ValueError(f"{cid} não está na lista de contatos.")
+            for cid in clientes:
+                if acao == "remover":
+                    del self.contatos[cid]
+                else:
+                    self.contatos[cid]["status"] = acao
+            self.record("contacts_updated", f"Lista de contatos atualizada ({acao}): {', '.join(clientes)}.")
+        return self.contatos_publicos()
+
+    def _status_do_atendimento(self, status: str) -> None:
+        """Quando o cliente aberto no atendimento está na lista, registra o desfecho nela."""
+        if self.name.startswith(_CLIENT_PREFIX):
+            cid = self.name[len(_CLIENT_PREFIX):]
+            if cid in self.contatos:
+                self.contatos[cid]["status"] = status
+
+    def contatos_csv(self) -> bytes:
+        """Exporta a lista de contatos para o gerente, sem dados além dos sintéticos."""
+        buffer = io.StringIO()
+        writer = csv.writer(buffer, delimiter=";")
+        writer.writerow(["cliente", "nome", "gerente", "segmento", "situacao", "primeiro_dia_negativo",
+                         "menor_saldo_reais", "falta_para_margem_reais", "resolve_com_ajuste",
+                         "proximo_passo", "status"])
+        for c in self.contatos.values():
+            writer.writerow([c["id"], c["nome"], c["gerente"], c["segmento"], c["risco"], c["primeiro_negativo"] or "",
+                             f"{c['menor_saldo_cents'] / 100:.2f}".replace(".", ","),
+                             f"{c['falta_para_margem_cents'] / 100:.2f}".replace(".", ","),
+                             "sim" if c["resolve_com_flexivel"] else "nao", c["acao_sugerida"],
+                             _CONTACT_STATUS[c["status"]]])
+        # BOM para o Excel reconhecer UTF-8.
+        return ("\ufeff" + buffer.getvalue()).encode("utf-8")
 
     def monitor(self) -> None:
         """Simula uma nova despesa e reavalia a projeção."""
@@ -416,10 +493,12 @@ class Handler(BaseHTTPRequestHandler):
         return new_session, new_key
 
     def send_bytes(self, status: int, content: bytes, content_type: str,
-                   new_cookie: "str | None" = None) -> None:
+                   new_cookie: "str | None" = None, filename: "str | None" = None) -> None:
         """Envia uma resposta com cabeçalhos de segurança padrão."""
         self.send_response(status)
         self.send_header("Content-Type", content_type)
+        if filename:
+            self.send_header("Content-Disposition", f'attachment; filename="{filename}"')
         self.send_header("Content-Length", str(len(content)))
         self.send_header("Cache-Control", "no-store")
         self.send_header("Vary", "Origin")
@@ -476,9 +555,19 @@ class Handler(BaseHTTPRequestHandler):
                 session, new_cookie = self.get_session()
                 analise = carteira.analisar_carteira()
                 with session.lock:
-                    self.send_json(200, {**analise, "csrf": session.csrf,
+                    self.send_json(200, {**analise, "csrf": session.csrf, "contatos": session.contatos_publicos(),
                                          "interpretador": "watsonx" if hasattr(self.server.planner, "interpret") else "regras"},
                                    new_cookie=new_cookie)
+            except RuntimeError:
+                self.send_json(503, {"error": "A demonstração está ocupada."})
+            return
+        if path == "/api/contatos.csv":
+            try:
+                session, new_cookie = self.get_session()
+                with session.lock:
+                    content = session.contatos_csv()
+                self.send_bytes(200, content, "text/csv; charset=utf-8", new_cookie=new_cookie,
+                                filename="contatos-da-semana.csv")
             except RuntimeError:
                 self.send_json(503, {"error": "A demonstração está ocupada."})
             return
@@ -489,6 +578,9 @@ class Handler(BaseHTTPRequestHandler):
             "/app.js": (ROOT / "web" / "app.js", "text/javascript; charset=utf-8"),
             "/style.css": (ROOT / "web" / "style.css", "text/css; charset=utf-8"),
             "/assets/logo-elo-financeiro.png": (ROOT / "assets" / "logo-elo-financeiro.png", "image/png"),
+            "/assets/fonts/mulish.woff2": (ROOT / "assets" / "fonts" / "mulish-latin-wght-normal.woff2", "font/woff2"),
+            "/anim.js": (ROOT / "web" / "anim.js", "text/javascript; charset=utf-8"),
+            "/vendor/lottie_light.min.js": (ROOT / "web" / "vendor" / "lottie_light.min.js", "text/javascript; charset=utf-8"),
         }
         if path not in routes:
             self.send_json(404, {"error": "Recurso não encontrado."})
@@ -560,6 +652,10 @@ class Handler(BaseHTTPRequestHandler):
                     session.discard_preview()
                 elif path == "/api/monitor":
                     session.monitor()
+                elif path == "/api/contatos":
+                    contatos = session.atualizar_contatos(payload.get("acao"), payload.get("clientes"))
+                    self.send_json(200, {"contatos": contatos}, new_cookie=new_cookie)
+                    return
                 elif path == "/api/analista":
                     pergunta = payload.get("pergunta")
                     if not isinstance(pergunta, str) or len(pergunta) > 300:

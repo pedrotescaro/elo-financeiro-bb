@@ -35,6 +35,7 @@ Para não misturar evidências: no mesmo dia, depois desta sessão, o integrante
 - Correção de datas, commits de partida e links nos quatro registros anteriores, conferidos com `git log`.
 - Revisão de texto dos documentos criados nesta sessão.
 - Visão do analista sobre a carteira da agência: `elo/carteira.py`, `data/carteira.json`, `web/analista.html`, `web/analista.js`, o método `interpret` em `elo/watsonx.py`, as rotas novas em `elo/server.py` e os testes `tests/test_carteira.py` e `tests/analyst_behaviors.cjs`. A narrativa dos documentos foi refeita em torno da analista de negócios.
+- Lista de contatos da semana (rotas `/api/contatos` e `/api/contatos.csv`, gerente por cliente, desfecho vindo do atendimento), histórico de perguntas na visão do analista e nova apresentação dentro do app.
 
 ## O que eu revisei
 

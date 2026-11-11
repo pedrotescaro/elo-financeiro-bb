@@ -1,47 +1,47 @@
-# Plano até a entrega
+# Roadmap
 
-Revisão de 21 de outubro de 2026. A referência fornecida nos materiais é **8 de novembro de 2026**; o prazo não foi verificado na plataforma nesta revisão. Confirmar data, horário, requisitos e eventuais atualizações antes de organizar a entrega.
+Revisão de 11 de novembro de 2026. Confirmar na plataforma do programa o prazo de reenvio antes de distribuir as tarefas.
 
-## Estado implementado
+## Estado atual
 
-O repositório tem cálculos em centavos, consentimento e aprovação vinculada aos dados, contingência do planejador, recuperação local por conceitos/TF-IDF, explicações, trilha temporária, gráfico diário e recursos de teclado/leitura. Há testes e lint no CI, controles de exposição demonstrativa, Dockerfile e guia de deploy.
+| Frente | Situação |
+| --- | --- |
+| Visão do analista (carteira, perguntas, lista de contatos, CSV) | Pronta e testada |
+| Atendimento ao cliente (projeção, proposta, aprovação, reavaliação, compra, PIX) | Pronto e testado |
+| IBM watsonx.ai (interpretar perguntas e escolher ferramentas) | Implementado com contingência; chamada real pendente |
+| IBM Bob | Cinco sessões registradas; sessões sobre a visão do analista pendentes |
+| Documentação para o reenvio | Pronta; ver `RESPOSTA_AO_FEEDBACK.md` |
+| Testes e CI | 264 testes Python e 43 de interface; lint limpo |
+| Publicação | Pendente; Docker não estava ativo nesta máquina |
+| Vídeo | Pendente; roteiro pronto |
 
-Isso não comprova uso do Bob, chamada IBM real, pesquisa com usuários, execução da imagem Docker, hospedagem pública ou submissão. A evidência técnica efetiva fica em [Verificação](VERIFICACAO.md).
+## Antes do reenvio (P0)
 
-## Próximas etapas propostas
+| Ordem | Tarefa | Quem | Evidência de conclusão |
+| --- | --- | --- | --- |
+| 1 | Rodar no Bob os Prompts 11, 12 e 13 de `USO_DO_BOB.md`, gravando a tela | Equipe | Três pastas novas em `bob_sessions/` |
+| 2 | Chamada real ao watsonx.ai (`python -m elo.prova_watsonx`) | Quem tiver as credenciais | JSON em `docs/evidencias/watsonx/` com `chamada_real_comprovada: true` |
+| 3 | Parágrafo de revisão nos cinco registros do Bob | Pedro (3) e Guilherme (2) | Nenhum `[...]` restante nos registros |
+| 4 | Publicar a demonstração (Render, plano gratuito) | Equipe | URL HTTPS testada em janela anônima, registrada em `VERIFICACAO.md` |
+| 5 | Gravar e publicar o vídeo com `DEMO.md` | Equipe | Link aberto sem login |
+| 6 | Atualizar números reais na declaração e no formulário e reenviar todos os entregáveis | Equipe | Confirmação de envio da plataforma |
 
-| Período | Objetivo | Evidência de conclusão |
-| --- | --- | --- |
-| 21–25/out | Realizar trabalho no Bob, validar IBM localmente e avaliar a jornada | Sessões reais, chamadas/casos inéditos e observações anônimas |
-| 26/out–1/nov | Executar Docker, hospedar a demo e corrigir falhas observadas | URL HTTPS testada externamente, commit e evidências organizadas |
-| 2–6/nov | Gravar vídeo e revisar declarações | Vídeo ≤180 s, ≥90 s de demonstração, evidência Bob visível |
-| 7–8/nov | Conferir acesso e submeter na plataforma | Última revisão dos links e todos os campos obrigatórios |
+## Depois do reenvio (P1)
 
-## Prioridade de implementação
+- Cronometrar a triagem com 5 analistas voluntários, com a mesma carteira sintética, e substituir as suposições de tempo por medição.
+- Ampliar o vocabulário das regras com as perguntas que falharam no gabarito do Prompt 11.
+- Expor as funções do agente como ferramentas no IBM watsonx Orchestrate.
+- Avaliar a interface com leitores de tela.
 
-**P0, antes da submissão:** uso central do Bob com evidências reais; integração IBM validada localmente; avaliação em casos inéditos; execução e verificação da hospedagem sintética; pesquisa exploratória; vídeo e declarações finais honestas. Confirmar com o mentor a expectativa sobre demonstração da tecnologia IBM, já que a hospedagem pública permanece por regras.
+## Evolução do produto (P2)
 
-**P1, se houver capacidade:** ~~edição e recusa explícita de planos~~ ✅ implementado (Bob, `feature/ajuste-reducao-gastos-flexiveis`); ~~descarte persistente, versionamento de prévia, histórico com kind/valor~~ ✅ implementado (Bob, `fix/proposal-flow-mvp-completion`); ~~validação IBM com 30 casos~~ ✅ implementado (Bot, `fix/proposal-flow-mvp-completion`); horizonte de parcelas completo; avaliação e ampliação da base de recuperação; preferências de alertas; correções apontadas por leitores de tela e participantes. Não ampliar o escopo antes de concluir as evidências P0.
+- Perguntas por tendência e por produto; histórico de semanas anteriores.
+- Recuperação semântica sobre normas internas, com fontes controladas.
+- Dados reais via sistemas do banco e Open Finance, só com parceria, autorização e avaliação de LGPD.
+- Integração da lista de contatos com a agenda e o CRM do gerente.
 
-**P2, expansão posterior:** conectores reais BB/Open Finance, operação financeira, crédito, FGTS, investimentos, múltiplos canais e arquitetura distribuída. Não dependem deles para demonstrar o problema central.
+## O que não fazer
 
-## Distribuição sugerida de trabalho
-
-| Frente | Responsabilidade | Entrega |
-| --- | --- | --- |
-| Produto/pesquisa | Hipóteses, entrevistas e narrativa | Problema validado e resultados anônimos |
-| Agente/IBM | Modelo, ferramentas, avaliação e Bob | Jornada real e evidências |
-| Experiência | Interface, acessibilidade e teste | Jornada compreensível |
-| Qualidade/entrega | Testes, hospedagem, vídeo e documentação | Links e submissão conferidos |
-
-Adaptar às pessoas já cadastradas na equipe. Nenhum nome ou papel foi atribuído automaticamente.
-
-## Antes de expor o protótipo à internet
-
-O servidor embutido contém controles para uma demonstração limitada, sem identidade ou persistência de produção. Usar proxy HTTPS e a origem exata em `ELO_PUBLIC_ORIGIN`, conforme [Deploy](DEPLOY.md). Os limites de sessões, requisições e workers não são uma defesa medida contra abuso na internet; verificar também os limites e custos da plataforma.
-
-O modo público recusa o planejador externo; não configurar credenciais IBM na hospedagem. Validar permissões do programa, executar a imagem, testar a URL em janela anônima e em duas sessões independentes e manter o vídeo acessível mesmo se o serviço do lab for encerrado.
-
-## Checklist de entrega do programa
-
-Usar [Entrega: pendências da equipe](ENTREGA.md) para registrar os itens manuais. Não marcar como concluídos porque existe uma pasta, um adaptador, um Dockerfile ou um comando de teste. Os documentos do programa fornecidos fundamentam o roteiro; a equipe deve confirmar as regras vigentes na plataforma.
+- Não declarar uso de watsonx Orchestrate ou Consulting Advantage sem uma integração real.
+- Não apresentar [SUPOSIÇÃO A VALIDAR] como resultado.
+- Não atribuir ao Bob trabalho que não foi feito em uma sessão registrada.
