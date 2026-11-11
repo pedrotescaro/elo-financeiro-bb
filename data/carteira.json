@@ -1,0 +1,2529 @@
+{
+ "agencia": "Agência fictícia 0001",
+ "descricao": "Carteira sintética para demonstração. Nenhum registro corresponde a pessoa ou cliente real.",
+ "synthetic": true,
+ "seed": 17,
+ "gerada_para": "2026-10-07",
+ "clientes": [
+  {
+   "id": "C01",
+   "nome": "Cliente 01",
+   "segmento": "assalariado",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 01",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 202000,
+    "buffer_cents": 18000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "x0",
+      "date": "2026-10-11",
+      "label": "Lazer previsto",
+      "amount_cents": 34000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f2",
+      "date": "2026-10-18",
+      "label": "Energia e água",
+      "amount_cents": 23000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "income",
+      "date": "2026-10-18",
+      "label": "Recebimento esperado",
+      "amount_cents": 487000,
+      "direction": "in",
+      "flexible": false
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-19",
+      "label": "Parcela de financiamento",
+      "amount_cents": 99000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-20",
+      "label": "Fatura já comprometida",
+      "amount_cents": 115000,
+      "direction": "out",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C02",
+   "nome": "Cliente 02",
+   "segmento": "renda-variavel",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 02",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 152000,
+    "buffer_cents": 30000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "f1",
+      "date": "2026-10-10",
+      "label": "Escola ou curso",
+      "amount_cents": 82000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-13",
+      "label": "Compras não essenciais",
+      "amount_cents": 42000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-16",
+      "label": "Parcela de financiamento",
+      "amount_cents": 37000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f2",
+      "date": "2026-10-20",
+      "label": "Energia e água",
+      "amount_cents": 21000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "income",
+      "date": "2026-10-20",
+      "label": "Recebimento esperado",
+      "amount_cents": 590000,
+      "direction": "in",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C03",
+   "nome": "Cliente 03",
+   "segmento": "aposentado",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 03",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 167000,
+    "buffer_cents": 34000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "f1",
+      "date": "2026-10-10",
+      "label": "Plano de saúde",
+      "amount_cents": 63000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-13",
+      "label": "Restaurantes e delivery",
+      "amount_cents": 11000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "x2",
+      "date": "2026-10-13",
+      "label": "Compras não essenciais",
+      "amount_cents": 11000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "income",
+      "date": "2026-10-16",
+      "label": "Recebimento esperado",
+      "amount_cents": 197000,
+      "direction": "in",
+      "flexible": false
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-18",
+      "label": "Moradia",
+      "amount_cents": 136000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f2",
+      "date": "2026-10-20",
+      "label": "Escola ou curso",
+      "amount_cents": 56000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x1",
+      "date": "2026-10-20",
+      "label": "Lazer previsto",
+      "amount_cents": 57000,
+      "direction": "out",
+      "flexible": true
+     }
+    ]
+   }
+  },
+  {
+   "id": "C04",
+   "nome": "Cliente 04",
+   "segmento": "estudante",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 04",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 168000,
+    "buffer_cents": 36000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "x0",
+      "date": "2026-10-09",
+      "label": "Restaurantes e delivery",
+      "amount_cents": 25000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-11",
+      "label": "Moradia",
+      "amount_cents": 91000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-16",
+      "label": "Plano de saúde",
+      "amount_cents": 43000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "income",
+      "date": "2026-10-18",
+      "label": "Recebimento esperado",
+      "amount_cents": 80000,
+      "direction": "in",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C05",
+   "nome": "Cliente 05",
+   "segmento": "mei",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 05",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 274000,
+    "buffer_cents": 30000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "x1",
+      "date": "2026-10-08",
+      "label": "Assinaturas",
+      "amount_cents": 10000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-13",
+      "label": "Energia e água",
+      "amount_cents": 20000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-13",
+      "label": "Fatura já comprometida",
+      "amount_cents": 37000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f2",
+      "date": "2026-10-17",
+      "label": "Plano de saúde",
+      "amount_cents": 57000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f3",
+      "date": "2026-10-20",
+      "label": "Parcela de financiamento",
+      "amount_cents": 64000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "income",
+      "date": "2026-10-20",
+      "label": "Recebimento esperado",
+      "amount_cents": 484000,
+      "direction": "in",
+      "flexible": false
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-20",
+      "label": "Lazer previsto",
+      "amount_cents": 32000,
+      "direction": "out",
+      "flexible": true
+     }
+    ]
+   }
+  },
+  {
+   "id": "C06",
+   "nome": "Cliente 06",
+   "segmento": "assalariado",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 06",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 129000,
+    "buffer_cents": 11000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "f2",
+      "date": "2026-10-10",
+      "label": "Parcela de financiamento",
+      "amount_cents": 81000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x1",
+      "date": "2026-10-10",
+      "label": "Lazer previsto",
+      "amount_cents": 53000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-11",
+      "label": "Assinaturas",
+      "amount_cents": 7000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-16",
+      "label": "Escola ou curso",
+      "amount_cents": 73000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "income",
+      "date": "2026-10-16",
+      "label": "Recebimento esperado",
+      "amount_cents": 321000,
+      "direction": "in",
+      "flexible": false
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-17",
+      "label": "Moradia",
+      "amount_cents": 132000,
+      "direction": "out",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C07",
+   "nome": "Cliente 07",
+   "segmento": "mei",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 07",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 266000,
+    "buffer_cents": 40000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "f0",
+      "date": "2026-10-09",
+      "label": "Moradia",
+      "amount_cents": 99000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-12",
+      "label": "Energia e água",
+      "amount_cents": 36000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f2",
+      "date": "2026-10-14",
+      "label": "Escola ou curso",
+      "amount_cents": 60000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-16",
+      "label": "Lazer previsto",
+      "amount_cents": 50000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "income",
+      "date": "2026-10-17",
+      "label": "Recebimento esperado",
+      "amount_cents": 356000,
+      "direction": "in",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C08",
+   "nome": "Cliente 08",
+   "segmento": "aposentado",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 08",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 79000,
+    "buffer_cents": 21000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "x1",
+      "date": "2026-10-11",
+      "label": "Compras não essenciais",
+      "amount_cents": 38000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "income",
+      "date": "2026-10-14",
+      "label": "Recebimento esperado",
+      "amount_cents": 327000,
+      "direction": "in",
+      "flexible": false
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-15",
+      "label": "Moradia",
+      "amount_cents": 88000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-16",
+      "label": "Escola ou curso",
+      "amount_cents": 56000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f2",
+      "date": "2026-10-16",
+      "label": "Plano de saúde",
+      "amount_cents": 60000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-20",
+      "label": "Lazer previsto",
+      "amount_cents": 23000,
+      "direction": "out",
+      "flexible": true
+     }
+    ]
+   }
+  },
+  {
+   "id": "C09",
+   "nome": "Cliente 09",
+   "segmento": "mei",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 09",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 298000,
+    "buffer_cents": 26000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "f3",
+      "date": "2026-10-13",
+      "label": "Energia e água",
+      "amount_cents": 20000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-14",
+      "label": "Restaurantes e delivery",
+      "amount_cents": 30000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-16",
+      "label": "Escola ou curso",
+      "amount_cents": 44000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-17",
+      "label": "Plano de saúde",
+      "amount_cents": 30000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f2",
+      "date": "2026-10-17",
+      "label": "Moradia",
+      "amount_cents": 100000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "income",
+      "date": "2026-10-21",
+      "label": "Recebimento esperado",
+      "amount_cents": 214000,
+      "direction": "in",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C10",
+   "nome": "Cliente 10",
+   "segmento": "assalariado",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 10",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 35000,
+    "buffer_cents": 10000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "income",
+      "date": "2026-10-12",
+      "label": "Recebimento esperado",
+      "amount_cents": 487000,
+      "direction": "in",
+      "flexible": false
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-15",
+      "label": "Parcela de financiamento",
+      "amount_cents": 89000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x1",
+      "date": "2026-10-15",
+      "label": "Restaurantes e delivery",
+      "amount_cents": 8000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-16",
+      "label": "Compras não essenciais",
+      "amount_cents": 38000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-20",
+      "label": "Plano de saúde",
+      "amount_cents": 31000,
+      "direction": "out",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C11",
+   "nome": "Cliente 11",
+   "segmento": "estudante",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 11",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 307000,
+    "buffer_cents": 29000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "f0",
+      "date": "2026-10-09",
+      "label": "Moradia",
+      "amount_cents": 126000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-09",
+      "label": "Lazer previsto",
+      "amount_cents": 40000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "income",
+      "date": "2026-10-17",
+      "label": "Recebimento esperado",
+      "amount_cents": 123000,
+      "direction": "in",
+      "flexible": false
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-18",
+      "label": "Fatura já comprometida",
+      "amount_cents": 114000,
+      "direction": "out",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C12",
+   "nome": "Cliente 12",
+   "segmento": "renda-variavel",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 12",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 130000,
+    "buffer_cents": 33000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "f1",
+      "date": "2026-10-11",
+      "label": "Plano de saúde",
+      "amount_cents": 61000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "income",
+      "date": "2026-10-13",
+      "label": "Recebimento esperado",
+      "amount_cents": 549000,
+      "direction": "in",
+      "flexible": false
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-20",
+      "label": "Escola ou curso",
+      "amount_cents": 89000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-20",
+      "label": "Assinaturas",
+      "amount_cents": 4000,
+      "direction": "out",
+      "flexible": true
+     }
+    ]
+   }
+  },
+  {
+   "id": "C13",
+   "nome": "Cliente 13",
+   "segmento": "mei",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 13",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 166000,
+    "buffer_cents": 13000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "f2",
+      "date": "2026-10-08",
+      "label": "Plano de saúde",
+      "amount_cents": 53000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-14",
+      "label": "Parcela de financiamento",
+      "amount_cents": 81000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "income",
+      "date": "2026-10-15",
+      "label": "Recebimento esperado",
+      "amount_cents": 230000,
+      "direction": "in",
+      "flexible": false
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-16",
+      "label": "Fatura já comprometida",
+      "amount_cents": 99000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-18",
+      "label": "Lazer previsto",
+      "amount_cents": 56000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f3",
+      "date": "2026-10-20",
+      "label": "Energia e água",
+      "amount_cents": 25000,
+      "direction": "out",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C14",
+   "nome": "Cliente 14",
+   "segmento": "aposentado",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 14",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 182000,
+    "buffer_cents": 16000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "f1",
+      "date": "2026-10-12",
+      "label": "Fatura já comprometida",
+      "amount_cents": 56000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-12",
+      "label": "Assinaturas",
+      "amount_cents": 6000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-15",
+      "label": "Escola ou curso",
+      "amount_cents": 37000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "income",
+      "date": "2026-10-20",
+      "label": "Recebimento esperado",
+      "amount_cents": 212000,
+      "direction": "in",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C15",
+   "nome": "Cliente 15",
+   "segmento": "mei",
+   "consentimento_open_finance": false,
+   "snapshot": {
+    "title": "Atendimento do Cliente 15",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 355000,
+    "buffer_cents": 17000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "x0",
+      "date": "2026-10-10",
+      "label": "Compras não essenciais",
+      "amount_cents": 45000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-14",
+      "label": "Fatura já comprometida",
+      "amount_cents": 81000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x2",
+      "date": "2026-10-15",
+      "label": "Lazer previsto",
+      "amount_cents": 28000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-16",
+      "label": "Moradia",
+      "amount_cents": 109000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x1",
+      "date": "2026-10-16",
+      "label": "Restaurantes e delivery",
+      "amount_cents": 28000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "income",
+      "date": "2026-10-21",
+      "label": "Recebimento esperado",
+      "amount_cents": 603000,
+      "direction": "in",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C16",
+   "nome": "Cliente 16",
+   "segmento": "renda-variavel",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 16",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 196000,
+    "buffer_cents": 25000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "f0",
+      "date": "2026-10-13",
+      "label": "Escola ou curso",
+      "amount_cents": 64000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x2",
+      "date": "2026-10-13",
+      "label": "Lazer previsto",
+      "amount_cents": 10000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "income",
+      "date": "2026-10-14",
+      "label": "Recebimento esperado",
+      "amount_cents": 514000,
+      "direction": "in",
+      "flexible": false
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-15",
+      "label": "Compras não essenciais",
+      "amount_cents": 24000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "x1",
+      "date": "2026-10-16",
+      "label": "Assinaturas",
+      "amount_cents": 6000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-20",
+      "label": "Plano de saúde",
+      "amount_cents": 48000,
+      "direction": "out",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C17",
+   "nome": "Cliente 17",
+   "segmento": "assalariado",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 17",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 134000,
+    "buffer_cents": 26000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "f0",
+      "date": "2026-10-12",
+      "label": "Escola ou curso",
+      "amount_cents": 34000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-12",
+      "label": "Energia e água",
+      "amount_cents": 25000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-12",
+      "label": "Restaurantes e delivery",
+      "amount_cents": 32000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f3",
+      "date": "2026-10-13",
+      "label": "Moradia",
+      "amount_cents": 79000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "income",
+      "date": "2026-10-13",
+      "label": "Recebimento esperado",
+      "amount_cents": 440000,
+      "direction": "in",
+      "flexible": false
+     },
+     {
+      "id": "f2",
+      "date": "2026-10-20",
+      "label": "Plano de saúde",
+      "amount_cents": 49000,
+      "direction": "out",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C18",
+   "nome": "Cliente 18",
+   "segmento": "renda-variavel",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 18",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 292000,
+    "buffer_cents": 21000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "x1",
+      "date": "2026-10-08",
+      "label": "Restaurantes e delivery",
+      "amount_cents": 10000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-11",
+      "label": "Parcela de financiamento",
+      "amount_cents": 99000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-11",
+      "label": "Assinaturas",
+      "amount_cents": 8000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f3",
+      "date": "2026-10-12",
+      "label": "Moradia",
+      "amount_cents": 70000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-13",
+      "label": "Fatura já comprometida",
+      "amount_cents": 118000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "income",
+      "date": "2026-10-13",
+      "label": "Recebimento esperado",
+      "amount_cents": 373000,
+      "direction": "in",
+      "flexible": false
+     },
+     {
+      "id": "f2",
+      "date": "2026-10-14",
+      "label": "Energia e água",
+      "amount_cents": 27000,
+      "direction": "out",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C19",
+   "nome": "Cliente 19",
+   "segmento": "estudante",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 19",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 361000,
+    "buffer_cents": 33000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "x0",
+      "date": "2026-10-09",
+      "label": "Assinaturas",
+      "amount_cents": 10000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-11",
+      "label": "Parcela de financiamento",
+      "amount_cents": 54000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f2",
+      "date": "2026-10-11",
+      "label": "Escola ou curso",
+      "amount_cents": 84000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f3",
+      "date": "2026-10-13",
+      "label": "Moradia",
+      "amount_cents": 85000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "income",
+      "date": "2026-10-18",
+      "label": "Recebimento esperado",
+      "amount_cents": 131000,
+      "direction": "in",
+      "flexible": false
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-20",
+      "label": "Fatura já comprometida",
+      "amount_cents": 78000,
+      "direction": "out",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C20",
+   "nome": "Cliente 20",
+   "segmento": "mei",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 20",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 169000,
+    "buffer_cents": 23000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "x1",
+      "date": "2026-10-10",
+      "label": "Assinaturas",
+      "amount_cents": 10000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-11",
+      "label": "Escola ou curso",
+      "amount_cents": 86000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f2",
+      "date": "2026-10-11",
+      "label": "Moradia",
+      "amount_cents": 111000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-14",
+      "label": "Parcela de financiamento",
+      "amount_cents": 80000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f3",
+      "date": "2026-10-14",
+      "label": "Plano de saúde",
+      "amount_cents": 51000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "income",
+      "date": "2026-10-14",
+      "label": "Recebimento esperado",
+      "amount_cents": 600000,
+      "direction": "in",
+      "flexible": false
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-14",
+      "label": "Compras não essenciais",
+      "amount_cents": 21000,
+      "direction": "out",
+      "flexible": true
+     }
+    ]
+   }
+  },
+  {
+   "id": "C21",
+   "nome": "Cliente 21",
+   "segmento": "estudante",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 21",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 156000,
+    "buffer_cents": 37000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "f0",
+      "date": "2026-10-10",
+      "label": "Moradia",
+      "amount_cents": 85000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-10",
+      "label": "Fatura já comprometida",
+      "amount_cents": 57000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f2",
+      "date": "2026-10-10",
+      "label": "Escola ou curso",
+      "amount_cents": 32000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "income",
+      "date": "2026-10-14",
+      "label": "Recebimento esperado",
+      "amount_cents": 92000,
+      "direction": "in",
+      "flexible": false
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-15",
+      "label": "Restaurantes e delivery",
+      "amount_cents": 11000,
+      "direction": "out",
+      "flexible": true
+     }
+    ]
+   }
+  },
+  {
+   "id": "C22",
+   "nome": "Cliente 22",
+   "segmento": "mei",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 22",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 327000,
+    "buffer_cents": 25000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "f0",
+      "date": "2026-10-08",
+      "label": "Fatura já comprometida",
+      "amount_cents": 107000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-08",
+      "label": "Escola ou curso",
+      "amount_cents": 75000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-12",
+      "label": "Lazer previsto",
+      "amount_cents": 28000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f2",
+      "date": "2026-10-16",
+      "label": "Parcela de financiamento",
+      "amount_cents": 66000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f3",
+      "date": "2026-10-16",
+      "label": "Plano de saúde",
+      "amount_cents": 59000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "income",
+      "date": "2026-10-16",
+      "label": "Recebimento esperado",
+      "amount_cents": 530000,
+      "direction": "in",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C23",
+   "nome": "Cliente 23",
+   "segmento": "renda-variavel",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 23",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 407000,
+    "buffer_cents": 22000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "x0",
+      "date": "2026-10-08",
+      "label": "Restaurantes e delivery",
+      "amount_cents": 15000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-13",
+      "label": "Moradia",
+      "amount_cents": 121000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x1",
+      "date": "2026-10-13",
+      "label": "Lazer previsto",
+      "amount_cents": 43000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-15",
+      "label": "Fatura já comprometida",
+      "amount_cents": 67000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "income",
+      "date": "2026-10-20",
+      "label": "Recebimento esperado",
+      "amount_cents": 542000,
+      "direction": "in",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C24",
+   "nome": "Cliente 24",
+   "segmento": "assalariado",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 24",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 131000,
+    "buffer_cents": 13000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "x0",
+      "date": "2026-10-08",
+      "label": "Assinaturas",
+      "amount_cents": 7000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-09",
+      "label": "Parcela de financiamento",
+      "amount_cents": 89000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-10",
+      "label": "Escola ou curso",
+      "amount_cents": 71000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "income",
+      "date": "2026-10-13",
+      "label": "Recebimento esperado",
+      "amount_cents": 505000,
+      "direction": "in",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C25",
+   "nome": "Cliente 25",
+   "segmento": "assalariado",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 25",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 171000,
+    "buffer_cents": 13000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "x0",
+      "date": "2026-10-09",
+      "label": "Assinaturas",
+      "amount_cents": 9000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-12",
+      "label": "Fatura já comprometida",
+      "amount_cents": 102000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-13",
+      "label": "Parcela de financiamento",
+      "amount_cents": 100000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "income",
+      "date": "2026-10-19",
+      "label": "Recebimento esperado",
+      "amount_cents": 291000,
+      "direction": "in",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C26",
+   "nome": "Cliente 26",
+   "segmento": "aposentado",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 26",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 250000,
+    "buffer_cents": 35000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "x1",
+      "date": "2026-10-10",
+      "label": "Lazer previsto",
+      "amount_cents": 46000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-15",
+      "label": "Moradia",
+      "amount_cents": 98000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-16",
+      "label": "Escola ou curso",
+      "amount_cents": 71000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f2",
+      "date": "2026-10-17",
+      "label": "Parcela de financiamento",
+      "amount_cents": 45000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "income",
+      "date": "2026-10-17",
+      "label": "Recebimento esperado",
+      "amount_cents": 317000,
+      "direction": "in",
+      "flexible": false
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-18",
+      "label": "Compras não essenciais",
+      "amount_cents": 10000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "x2",
+      "date": "2026-10-18",
+      "label": "Assinaturas",
+      "amount_cents": 6000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f3",
+      "date": "2026-10-19",
+      "label": "Plano de saúde",
+      "amount_cents": 57000,
+      "direction": "out",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C27",
+   "nome": "Cliente 27",
+   "segmento": "assalariado",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 27",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 271000,
+    "buffer_cents": 37000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "f0",
+      "date": "2026-10-14",
+      "label": "Escola ou curso",
+      "amount_cents": 56000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-17",
+      "label": "Restaurantes e delivery",
+      "amount_cents": 40000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "x2",
+      "date": "2026-10-17",
+      "label": "Lazer previsto",
+      "amount_cents": 18000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "income",
+      "date": "2026-10-18",
+      "label": "Recebimento esperado",
+      "amount_cents": 275000,
+      "direction": "in",
+      "flexible": false
+     },
+     {
+      "id": "x1",
+      "date": "2026-10-19",
+      "label": "Assinaturas",
+      "amount_cents": 9000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-20",
+      "label": "Plano de saúde",
+      "amount_cents": 68000,
+      "direction": "out",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C28",
+   "nome": "Cliente 28",
+   "segmento": "aposentado",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 28",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 218000,
+    "buffer_cents": 38000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "x0",
+      "date": "2026-10-08",
+      "label": "Assinaturas",
+      "amount_cents": 6000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "x1",
+      "date": "2026-10-09",
+      "label": "Restaurantes e delivery",
+      "amount_cents": 23000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-11",
+      "label": "Fatura já comprometida",
+      "amount_cents": 92000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-15",
+      "label": "Energia e água",
+      "amount_cents": 21000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f2",
+      "date": "2026-10-15",
+      "label": "Moradia",
+      "amount_cents": 115000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "income",
+      "date": "2026-10-17",
+      "label": "Recebimento esperado",
+      "amount_cents": 239000,
+      "direction": "in",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C29",
+   "nome": "Cliente 29",
+   "segmento": "aposentado",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 29",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 199000,
+    "buffer_cents": 39000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "f0",
+      "date": "2026-10-08",
+      "label": "Escola ou curso",
+      "amount_cents": 70000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-16",
+      "label": "Moradia",
+      "amount_cents": 101000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "income",
+      "date": "2026-10-17",
+      "label": "Recebimento esperado",
+      "amount_cents": 362000,
+      "direction": "in",
+      "flexible": false
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-17",
+      "label": "Compras não essenciais",
+      "amount_cents": 28000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "x1",
+      "date": "2026-10-17",
+      "label": "Assinaturas",
+      "amount_cents": 6000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f2",
+      "date": "2026-10-19",
+      "label": "Plano de saúde",
+      "amount_cents": 57000,
+      "direction": "out",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C30",
+   "nome": "Cliente 30",
+   "segmento": "estudante",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 30",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 34000,
+    "buffer_cents": 32000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "x2",
+      "date": "2026-10-09",
+      "label": "Restaurantes e delivery",
+      "amount_cents": 25000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "income",
+      "date": "2026-10-14",
+      "label": "Recebimento esperado",
+      "amount_cents": 94000,
+      "direction": "in",
+      "flexible": false
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-14",
+      "label": "Lazer previsto",
+      "amount_cents": 34000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-16",
+      "label": "Energia e água",
+      "amount_cents": 19000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x1",
+      "date": "2026-10-18",
+      "label": "Assinaturas",
+      "amount_cents": 9000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-19",
+      "label": "Escola ou curso",
+      "amount_cents": 58000,
+      "direction": "out",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C31",
+   "nome": "Cliente 31",
+   "segmento": "assalariado",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 31",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 155000,
+    "buffer_cents": 33000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "x0",
+      "date": "2026-10-10",
+      "label": "Assinaturas",
+      "amount_cents": 4000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "x1",
+      "date": "2026-10-11",
+      "label": "Compras não essenciais",
+      "amount_cents": 39000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "x2",
+      "date": "2026-10-11",
+      "label": "Lazer previsto",
+      "amount_cents": 29000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-13",
+      "label": "Energia e água",
+      "amount_cents": 23000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-14",
+      "label": "Escola ou curso",
+      "amount_cents": 74000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "income",
+      "date": "2026-10-17",
+      "label": "Recebimento esperado",
+      "amount_cents": 459000,
+      "direction": "in",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C32",
+   "nome": "Cliente 32",
+   "segmento": "mei",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 32",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 237000,
+    "buffer_cents": 17000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "f0",
+      "date": "2026-10-08",
+      "label": "Fatura já comprometida",
+      "amount_cents": 82000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-08",
+      "label": "Compras não essenciais",
+      "amount_cents": 30000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "x2",
+      "date": "2026-10-08",
+      "label": "Restaurantes e delivery",
+      "amount_cents": 20000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "x1",
+      "date": "2026-10-09",
+      "label": "Lazer previsto",
+      "amount_cents": 55000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "income",
+      "date": "2026-10-17",
+      "label": "Recebimento esperado",
+      "amount_cents": 331000,
+      "direction": "in",
+      "flexible": false
+     },
+     {
+      "id": "f2",
+      "date": "2026-10-19",
+      "label": "Escola ou curso",
+      "amount_cents": 40000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-20",
+      "label": "Plano de saúde",
+      "amount_cents": 37000,
+      "direction": "out",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C33",
+   "nome": "Cliente 33",
+   "segmento": "renda-variavel",
+   "consentimento_open_finance": false,
+   "snapshot": {
+    "title": "Atendimento do Cliente 33",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 5000,
+    "buffer_cents": 29000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "x0",
+      "date": "2026-10-13",
+      "label": "Assinaturas",
+      "amount_cents": 11000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "income",
+      "date": "2026-10-14",
+      "label": "Recebimento esperado",
+      "amount_cents": 409000,
+      "direction": "in",
+      "flexible": false
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-15",
+      "label": "Parcela de financiamento",
+      "amount_cents": 34000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x1",
+      "date": "2026-10-16",
+      "label": "Compras não essenciais",
+      "amount_cents": 37000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-17",
+      "label": "Plano de saúde",
+      "amount_cents": 20000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x2",
+      "date": "2026-10-17",
+      "label": "Restaurantes e delivery",
+      "amount_cents": 11000,
+      "direction": "out",
+      "flexible": true
+     }
+    ]
+   }
+  },
+  {
+   "id": "C34",
+   "nome": "Cliente 34",
+   "segmento": "renda-variavel",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 34",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 356000,
+    "buffer_cents": 39000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "x0",
+      "date": "2026-10-11",
+      "label": "Restaurantes e delivery",
+      "amount_cents": 37000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "x2",
+      "date": "2026-10-11",
+      "label": "Assinaturas",
+      "amount_cents": 5000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-12",
+      "label": "Parcela de financiamento",
+      "amount_cents": 53000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x1",
+      "date": "2026-10-12",
+      "label": "Compras não essenciais",
+      "amount_cents": 34000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f2",
+      "date": "2026-10-19",
+      "label": "Energia e água",
+      "amount_cents": 20000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-20",
+      "label": "Moradia",
+      "amount_cents": 102000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "income",
+      "date": "2026-10-21",
+      "label": "Recebimento esperado",
+      "amount_cents": 295000,
+      "direction": "in",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C35",
+   "nome": "Cliente 35",
+   "segmento": "aposentado",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 35",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 230000,
+    "buffer_cents": 39000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "f1",
+      "date": "2026-10-08",
+      "label": "Moradia",
+      "amount_cents": 60000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-10",
+      "label": "Parcela de financiamento",
+      "amount_cents": 71000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-13",
+      "label": "Lazer previsto",
+      "amount_cents": 47000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f2",
+      "date": "2026-10-19",
+      "label": "Fatura já comprometida",
+      "amount_cents": 63000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "income",
+      "date": "2026-10-20",
+      "label": "Recebimento esperado",
+      "amount_cents": 298000,
+      "direction": "in",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C36",
+   "nome": "Cliente 36",
+   "segmento": "assalariado",
+   "consentimento_open_finance": false,
+   "snapshot": {
+    "title": "Atendimento do Cliente 36",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 183000,
+    "buffer_cents": 28000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "f0",
+      "date": "2026-10-10",
+      "label": "Plano de saúde",
+      "amount_cents": 48000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x1",
+      "date": "2026-10-11",
+      "label": "Assinaturas",
+      "amount_cents": 11000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "income",
+      "date": "2026-10-14",
+      "label": "Recebimento esperado",
+      "amount_cents": 409000,
+      "direction": "in",
+      "flexible": false
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-15",
+      "label": "Escola ou curso",
+      "amount_cents": 43000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f2",
+      "date": "2026-10-17",
+      "label": "Fatura já comprometida",
+      "amount_cents": 53000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-20",
+      "label": "Lazer previsto",
+      "amount_cents": 45000,
+      "direction": "out",
+      "flexible": true
+     }
+    ]
+   }
+  },
+  {
+   "id": "C37",
+   "nome": "Cliente 37",
+   "segmento": "renda-variavel",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 37",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 71000,
+    "buffer_cents": 33000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "f3",
+      "date": "2026-10-12",
+      "label": "Escola ou curso",
+      "amount_cents": 34000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-14",
+      "label": "Assinaturas",
+      "amount_cents": 3000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "x2",
+      "date": "2026-10-14",
+      "label": "Restaurantes e delivery",
+      "amount_cents": 29000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-15",
+      "label": "Fatura já comprometida",
+      "amount_cents": 43000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "income",
+      "date": "2026-10-16",
+      "label": "Recebimento esperado",
+      "amount_cents": 392000,
+      "direction": "in",
+      "flexible": false
+     },
+     {
+      "id": "x1",
+      "date": "2026-10-16",
+      "label": "Compras não essenciais",
+      "amount_cents": 18000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-18",
+      "label": "Plano de saúde",
+      "amount_cents": 40000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f2",
+      "date": "2026-10-20",
+      "label": "Energia e água",
+      "amount_cents": 23000,
+      "direction": "out",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C38",
+   "nome": "Cliente 38",
+   "segmento": "assalariado",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 38",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 341000,
+    "buffer_cents": 11000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "x0",
+      "date": "2026-10-11",
+      "label": "Compras não essenciais",
+      "amount_cents": 9000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-12",
+      "label": "Plano de saúde",
+      "amount_cents": 52000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-13",
+      "label": "Fatura já comprometida",
+      "amount_cents": 114000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x1",
+      "date": "2026-10-15",
+      "label": "Lazer previsto",
+      "amount_cents": 14000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "income",
+      "date": "2026-10-16",
+      "label": "Recebimento esperado",
+      "amount_cents": 467000,
+      "direction": "in",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C39",
+   "nome": "Cliente 39",
+   "segmento": "estudante",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 39",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 317000,
+    "buffer_cents": 31000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "x1",
+      "date": "2026-10-08",
+      "label": "Assinaturas",
+      "amount_cents": 12000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-12",
+      "label": "Plano de saúde",
+      "amount_cents": 52000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-12",
+      "label": "Fatura já comprometida",
+      "amount_cents": 97000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-18",
+      "label": "Lazer previsto",
+      "amount_cents": 33000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "x2",
+      "date": "2026-10-19",
+      "label": "Compras não essenciais",
+      "amount_cents": 22000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "income",
+      "date": "2026-10-21",
+      "label": "Recebimento esperado",
+      "amount_cents": 124000,
+      "direction": "in",
+      "flexible": false
+     }
+    ]
+   }
+  },
+  {
+   "id": "C40",
+   "nome": "Cliente 40",
+   "segmento": "estudante",
+   "consentimento_open_finance": true,
+   "snapshot": {
+    "title": "Atendimento do Cliente 40",
+    "synthetic": true,
+    "as_of": "2026-10-07",
+    "horizon": "2026-10-21",
+    "balance_cents": 289000,
+    "buffer_cents": 38000,
+    "typical_pix_cents": 10000,
+    "events": [
+     {
+      "id": "x2",
+      "date": "2026-10-09",
+      "label": "Lazer previsto",
+      "amount_cents": 26000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "f1",
+      "date": "2026-10-11",
+      "label": "Parcela de financiamento",
+      "amount_cents": 68000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "f0",
+      "date": "2026-10-13",
+      "label": "Plano de saúde",
+      "amount_cents": 22000,
+      "direction": "out",
+      "flexible": false
+     },
+     {
+      "id": "x1",
+      "date": "2026-10-13",
+      "label": "Assinaturas",
+      "amount_cents": 9000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "x0",
+      "date": "2026-10-16",
+      "label": "Restaurantes e delivery",
+      "amount_cents": 8000,
+      "direction": "out",
+      "flexible": true
+     },
+     {
+      "id": "income",
+      "date": "2026-10-17",
+      "label": "Recebimento esperado",
+      "amount_cents": 84000,
+      "direction": "in",
+      "flexible": false
+     }
+    ]
+   }
+  }
+ ]
+}

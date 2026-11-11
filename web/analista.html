@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#132c5c">
+  <title>Elo Financeiro · Visão do analista da agência</title>
+  <link rel="icon" href="/assets/logo-elo-financeiro.png" type="image/png">
+  <link rel="stylesheet" href="/style.css">
+  <script defer src="/analista.js"></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">Pular para o conteúdo</a>
+  <div class="shell">
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="Elo Financeiro, atendimento ao cliente"><img src="/assets/logo-elo-financeiro.png" alt="Elo Financeiro" width="1774" height="887"></a>
+      <p class="side-caption">A carteira inteira,<br>numa conversa.</p>
+      <nav class="view-switch" aria-label="Visões do protótipo">
+        <h2 class="nav-heading">Visões</h2>
+        <a href="/analista" aria-current="page">Analista da agência<span>Carteira inteira, em conversa</span></a>
+        <a href="/">Atendimento ao cliente<span>Um cliente, passo a passo</span></a>
+      </nav>
+      <div class="side-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6l8-3Z"/><path d="m8 12 3 3 5-6"/></svg>
+        <p>Só entram clientes com consentimento.<span>Nenhum dinheiro é movimentado e nenhum crédito é oferecido.</span></p>
+      </div>
+      <div class="side-bottom"><span class="tag">IBM SkillsBuild</span><p>Proposta acadêmica para o desafio de serviços financeiros do Banco do Brasil.</p><p>Sem vínculo oficial com o banco.</p></div>
+    </aside>
+    <main id="main" tabindex="-1">
+      <header class="page-header">
+        <div><h1>Visão do analista da agência</h1><p class="subtitle">Pergunte em português. O agente analisa a carteira e aponta quem precisa de contato antes do aperto.</p></div>
+        <div class="header-actions"><span class="demo-badge"><span aria-hidden="true"></span>Carteira sintética</span></div>
+      </header>
+      <p id="status" role="status" aria-live="polite" class="status-message"></p>
+      <p id="error" role="alert" aria-live="assertive" class="sr-only"></p>
+
+      <section class="insight">
+        <div>
+          <h2 id="agency-title">Carregando a carteira…</h2>
+          <p id="agency-description"></p>
+          <p id="interpreter" class="mode" role="status"></p>
+        </div>
+      </section>
+
+      <section class="metrics" aria-label="Resumo da carteira">
+        <article class="metric-primary"><p>Saldo negativo nos próximos 14 dias</p><strong id="m-negative">–</strong><small id="m-analyzed"></small></article>
+        <article><p>Abaixo da margem</p><strong id="m-margin">–</strong><small>Sem ficar negativo</small></article>
+        <article><p>Resolvem com ajuste de flexíveis</p><strong id="m-resolve">–</strong><small id="m-time"></small></article>
+      </section>
+
+      <section class="card analyst-chat" aria-labelledby="chat-title">
+        <div class="section-head"><h2 id="chat-title">Pergunte à carteira</h2></div>
+        <form id="ask-form" class="ask-form">
+          <label for="question">Sua pergunta</label>
+          <div class="input-action">
+            <input id="question" name="question" maxlength="300" autocomplete="off" placeholder="Ex.: quais clientes ficam no vermelho nos próximos 7 dias?">
+            <button id="ask" class="primary" type="submit">Perguntar</button>
+          </div>
+        </form>
+        <div class="suggestions" aria-label="Perguntas sugeridas">
+          <button type="button" class="chip" data-q="Como está a carteira?">Como está a carteira?</button>
+          <button type="button" class="chip" data-q="Quais clientes ficam no vermelho nos próximos 14 dias?">Quem fica no vermelho?</button>
+          <button type="button" class="chip" data-q="Quem resolve com ajuste de gastos flexíveis?">Quem resolve com ajuste?</button>
+          <button type="button" class="chip" data-q="Top 5 que não resolvem só com gastos flexíveis">Casos mais difíceis</button>
+          <button type="button" class="chip" data-q="Assalariados em risco nos próximos 7 dias">Assalariados, 7 dias</button>
+        </div>
+        <div id="answer" class="answer" aria-live="polite" hidden>
+          <p id="answer-text"></p>
+          <p id="answer-how" class="footnote"></p>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="list-title">
+        <div class="section-head"><h2 id="list-title">Clientes que precisam de contato</h2></div>
+        <div class="table-wrap" tabindex="0" role="region" aria-labelledby="list-title">
+          <table class="client-table">
+            <caption class="sr-only">Clientes da carteira sintética ordenados do menor saldo previsto para o maior</caption>
+            <thead><tr><th scope="col">Cliente</th><th scope="col">Situação</th><th scope="col">Menor saldo</th><th scope="col">Falta para a margem</th><th scope="col">Próximo passo</th></tr></thead>
+            <tbody id="clients"></tbody>
+          </table>
+        </div>
+        <p class="footnote" id="limits">Dados sintéticos. Projeção por fechamento diário com eventos conhecidos; não avalia crédito nem confirma fraude.</p>
+      </section>
+
+      <footer><span>Elo Financeiro</span><span>Protótipo educacional · Carteira e clientes fictícios · Projeções não garantem resultados futuros</span></footer>
+    </main>
+  </div>
+</body>
+</html>

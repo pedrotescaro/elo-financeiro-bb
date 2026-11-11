@@ -16,7 +16,7 @@ Cinco sessões reais, de dois integrantes, em ordem de data. Todas usaram o IBM 
 | 2026-11-05 | Pedro | Encontrou cinco problemas no fluxo de propostas (descarte só visual, prévia sem identidade entre abas, recusa que não cancelava a prévia, entre outros), corrigiu e criou os 30 casos de validação IBM | `7c5e853`, `a121388`, `d76f00d` | [registro](../bob_sessions/2026-11-08-mvp-completion/registro.md) |
 | 2026-11-11 | Pedro | Leu o repositório, escreveu o diagnóstico do feedback por critério, comparou duas rotas e produziu os documentos de resposta (11 arquivos, sem código) | ainda não commitado | [registro](../bob_sessions/2026-11-11-resposta-ao-feedback/registro.md) |
 
-O que **não** foi feito com o Bob: o selo do planejador na interface, `elo/prova_watsonx.py`, o ajuste do modo real em `tests/test_ibm_validation.py` e a ampliação do vocabulário de `elo/retrieval.py`. Esses itens foram feitos em 2026-11-11 fora do Bob e estão separados no registro daquele dia.
+O que **não** foi feito com o Bob: a visão do analista (`elo/carteira.py`, `web/analista.html`, `web/analista.js`, `data/carteira.json` e o método `interpret` do watsonx), o selo do planejador na interface, `elo/prova_watsonx.py`, o ajuste do modo real em `tests/test_ibm_validation.py` e a ampliação do vocabulário de `elo/retrieval.py`. Esses itens foram feitos em 2026-11-11 fora do Bob e estão separados no registro daquele dia.
 
 ### Onde o modo Agent aparece nessas sessões
 
@@ -207,15 +207,63 @@ aos arquivos específicos.
 
 ---
 
+## O Bob no fluxo principal: a visão do analista
+
+O feedback pediu o Bob ligado ao fluxo principal de um stakeholder específico, com ingestão de documentos, tarefas paralelas e subagentes. A visão do analista ainda não passou por uma sessão do Bob. Os três prompts abaixo foram desenhados para isso: cada um produz um artefato útil para o analista, gera um número que entra nas métricas e mostra um recurso do modo Agent na tela. Rode-os nesta ordem, grave a tela e registre cada um em `bob_sessions/`.
+
+### Prompt 11: Ingestão de documentos para medir o que o analista consegue perguntar
+
+```
+No projeto Elo Financeiro, o stakeholder principal é a analista de negócios de uma agência do Banco do Brasil que pergunta em português sobre a carteira de clientes (visão /analista).
+Leia, antes de alterar qualquer coisa: data/carteira.json, elo/carteira.py, docs/PROPOSTA.md, docs/VALIDACAO.md e web/analista.html.
+1. Escreva 30 perguntas realistas que essa analista faria sobre a carteira, variando o jeito de falar (formal, coloquial, com erro de digitação), segmento, prazo e cliente específico.
+2. Para cada pergunta, diga qual consulta estruturada seria a correta (intencao, segmento, dias, limite, cliente) e rode python -c "from elo.carteira import interpretar_por_regras as f; print(f('PERGUNTA'))" para ver o que as regras entendem.
+3. Grave tudo em docs/PERGUNTAS_ANALISTA.md, numa tabela com: pergunta, consulta esperada, consulta obtida, acertou (sim/não).
+4. Informe a taxa de acerto das regras. Não altere elo/carteira.py ainda; só proponha as mudanças para as perguntas que falharam.
+```
+
+**Artefato:** `docs/PERGUNTAS_ANALISTA.md`, um gabarito de 30 perguntas e a taxa de acerto das regras, que vira métrica na proposta.
+**O que aparece na tela:** o Bob abrindo os cinco arquivos antes de escrever e executando os comandos de verificação.
+
+### Prompt 12: Tarefas paralelas por segmento da carteira
+
+```
+No projeto Elo Financeiro, divida o trabalho abaixo em três tarefas independentes e execute-as em paralelo (se a sua edição permitir delegar subtarefas ou subagentes, use; se não, faça em sequência e diga isso no relatório):
+Tarefa A, segmento "renda-variavel"; Tarefa B, segmento "mei"; Tarefa C, segmento "aposentado".
+Para cada segmento: leia os clientes desse segmento em data/carteira.json, rode elo.carteira.analisar_cliente em cada um e escreva, em tests/test_carteira.py, um teste que confira um caso de borda real desse segmento (por exemplo, recebimento no último dia do horizonte, gasto flexível depois do pior dia, cliente sem consentimento).
+Depois junte os resultados: rode python -m unittest tests.test_carteira -v e apresente um relatório com uma seção por segmento.
+```
+
+**Artefato:** novos testes de borda por segmento em `tests/test_carteira.py`.
+**O que aparece na tela:** as três tarefas abertas na lista do Bob, ou o próprio Bob dizendo que fez em sequência. Registre o que de fato aconteceu.
+
+### Prompt 13: Concordância entre o IBM watsonx.ai e o gabarito
+
+Rode depois do Prompt 11, com as credenciais IBM já configuradas no terminal (sem colar valores no chat).
+
+```
+No projeto Elo Financeiro, use o gabarito de docs/PERGUNTAS_ANALISTA.md.
+1. Para cada pergunta, chame elo.watsonx.WatsonxPlanner().interpret(pergunta) e valide com elo.carteira.validar_consulta.
+2. Compare com a consulta esperada e com o resultado das regras.
+3. Acrescente ao documento duas colunas (watsonx.ai, acertou) e informe: taxa de acerto do modelo, taxa de acerto das regras, quantas respostas do modelo saíram do contrato e o model_id informado pela API em planner.last_call.
+4. Rode python -m elo.prova_watsonx e anexe o nome do arquivo de evidência gerado.
+Não leia, não imprima e não grave as variáveis de ambiente.
+```
+
+**Artefato:** taxa de acerto do watsonx.ai contra a das regras, medida em 30 perguntas, e o JSON de evidência da chamada real.
+**Por que importa:** é o número que mostra o ganho da IA para o analista. Hoje, sem esse teste, não dá para afirmar que o modelo interpreta melhor que as regras.
+
+---
+
 ## Mapeamento de evidências por critério de avaliação
 
 | Critério do avaliador | Evidência existente | Próxima evidência |
 | --- | --- | --- |
 | Critério 3: como e onde o Bob foi usado | Cinco registros em `bob_sessions/` com commits e capturas; tabela acima | Prompt 7 ou 10 gravado em vídeo |
-| Área A: Bob incorporado ao projeto | Código de parcelas, propostas, validação IBM e lint feito em sessões do Bob | Prompt 7 (validação IBM conduzida no Bob) |
-| Área B: ingestão de documentos | Sessão de parcelas (dez arquivos lidos antes de alterar); sessão de 2026-11-11 (13 arquivos explorados) | Prompt 10 |
-| Área B: tarefas paralelas ou encadeadas | Sessão de propostas (cinco etapas com verificação); sessão de 2026-11-11 (8 de 8 tarefas) | Prompt 10 |
-| Área B: subagentes | Sem registro | Gravar só se a edição do Bob mostrar delegação |
+| Área A: Bob incorporado ao projeto | Código de parcelas, propostas, validação IBM e lint feito em sessões do Bob | Prompts 11 a 13, sobre a visão do analista |
+| Área B: ingestão de documentos | Sessão de parcelas (dez arquivos lidos antes de alterar); sessão de 2026-11-11 (13 arquivos explorados) | Prompt 11 |
+| Área B: tarefas paralelas ou encadeadas | Sessão de propostas (cinco etapas com verificação); sessão de 2026-11-11 (8 de 8 tarefas) | Prompt 12 |
+| Área B: subagentes | Sem registro | Prompt 12; gravar só se a edição do Bob mostrar delegação |
 | Área B: benefício mensurável para a equipe | Ver abaixo | Cronometrar uma tarefa com e sem o Bob |
 | Área C: produtos IBM nomeados | `docs/DECLARACAO_TECNICA.md` | Prompt 7 com credenciais reais |
 
@@ -229,7 +277,7 @@ Contamos o que as sessões produziram, não o tempo economizado. Exemplo: a sess
 
 O feedback pede o Bob operando no fluxo principal. A forma mais direta:
 
-1. Abrir o Bob no repositório e colar o Prompt 10 (ou o Prompt 7, se as credenciais IBM estiverem configuradas).
+1. Abrir o Bob no repositório e colar o Prompt 11 (ou o Prompt 13, se as credenciais IBM estiverem configuradas).
 2. Gravar a tela enquanto o Bob trabalha: a lista de tarefas, os arquivos sendo abertos e o relatório final.
 3. No vídeo, usar esse trecho na cena do Bob (153 a 172 segundos em `docs/DEMO.md`).
 4. Na narração, dizer os números que apareceram de fato na tela, por exemplo: "O Bob leu [número real] documentos, encontrou [número real] inconsistências e listou os campos em branco." Não usar números de um ensaio anterior.

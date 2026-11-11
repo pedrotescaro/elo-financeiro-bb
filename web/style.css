@@ -441,3 +441,29 @@ footer span:first-child { color: var(--navy); font-weight: 650; white-space: now
   .outcome-label { font-size: .8125rem; }
   .pitch-footer { padding: 16px; }
 }
+
+/* Visões: atendimento ao cliente e analista da agência */
+.view-switch { display: grid; gap: 4px; margin-bottom: 24px; }
+.view-switch a { display: block; padding: 10px 12px; border-radius: 10px; color: var(--muted); font-weight: 600; text-decoration: none; line-height: 1.4; }
+.view-switch a span { display: block; font-size: .75rem; font-weight: 450; }
+.view-switch a[aria-current="page"] { background: var(--blue-soft); color: var(--navy); }
+.view-switch a:hover:not([aria-current="page"]) { background: var(--bg); color: var(--navy); }
+.analyst-chat { display: grid; gap: 12px; margin: 16px 0; }
+.ask-form { display: grid; gap: 8px; }
+.ask-form label { font-size: .8125rem; font-weight: 600; }
+@media (min-width: 701px) { .ask-form .input-action { flex-wrap: nowrap; } .ask-form .input-action button { width: auto; flex: 0 0 auto; } }
+.suggestions { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { padding: 6px 12px; border: 1px solid #bfcce3; border-radius: 999px; background: var(--surface); color: var(--navy); font-size: .8125rem; }
+.chip:hover:not(:disabled) { background: var(--blue-soft); }
+.answer { padding: 14px 16px; border-left: 3px solid var(--blue); border-radius: 8px; background: var(--blue-soft); }
+.answer p:first-child { color: var(--ink); font-size: .9375rem; line-height: 1.6; }
+.client-table td:last-child, .client-table th:last-child { text-align: left; white-space: normal; font-weight: 450; }
+.client-table td { vertical-align: top; }
+.client-table td small { color: var(--muted); }
+.client-table td:nth-child(3), .client-table td:nth-child(4) { white-space: nowrap; font-variant-numeric: tabular-nums; }
+.open-client { display: block; margin-top: 8px; padding: 6px 10px; font-size: .75rem; }
+.risk-tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: .75rem; font-weight: 600; white-space: nowrap; background: var(--bg); color: var(--muted); }
+.risk-tag[data-risk="negativo"] { background: #fbe9ec; color: var(--negative); }
+.risk-tag[data-risk="abaixo_da_margem"] { background: #fff4dd; color: #7a4a00; }
+.client-origin { margin: 0 0 12px; font-size: .8125rem; color: var(--muted); }
+.client-origin a { color: var(--blue); }

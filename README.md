@@ -8,11 +8,11 @@
 
 Proposta acadêmica para a **Trilha 1 do IBM SkillsBuild AI Experiential Learning Lab: Serviços Financeiros Digitais Inteligentes, Seguros e Inclusivos com Banco do Brasil**.
 
-O Elo propõe um agente que antecipa apertos de caixa, explica o impacto de decisões e acompanha planos aprovados. Seu objetivo central é **preservar uma margem financeira até o próximo recebimento**. Na proposta atual, quem usa o agente é o gerente de relacionamento do BB, ao preparar o atendimento de um cliente; os dados são sempre sintéticos.
+O Elo é um agente de IA conversacional para o **analista de negócios de uma agência do Banco do Brasil**. O analista pergunta em português sobre a carteira de clientes ("quem fica no vermelho nos próximos 7 dias?"), o agente aponta quem vai ficar sem dinheiro antes do próximo recebimento e o **gerente de relacionamento** abre cada caso numa tela de atendimento com calendário de saldo, proposta calculada e aprovação explícita. O objetivo é **preservar a margem financeira do cliente até o próximo recebimento**, com contato antes do aperto. Carteira e clientes são sintéticos.
 
 O saldo de hoje pode parecer suficiente, mesmo quando as contas dos próximos dias vão deixá-lo negativo. O Elo considera o calendário: identifica o problema antes do vencimento, consulta ferramentas de cálculo e orientação, apresenta alternativas e acompanha o resultado de uma ação autorizada.
 
-> Status: protótipo executável com dados sintéticos, 233 testes Python e 36 de interface, e pacote para hospedagem demonstrativa. O stakeholder é o gerente de relacionamento do BB. Cinco sessões do IBM Bob, de dois integrantes, estão documentadas com commits e capturas. A chamada IBM real, a publicação e o vídeo novo continuam pendentes. O que mudou depois do feedback está em [Resposta ao feedback](docs/RESPOSTA_AO_FEEDBACK.md). Não é uma integração oficial do Banco do Brasil nem uma entrega IBM finalizada.
+> Status: protótipo executável com dados sintéticos, 258 testes Python e 40 de interface, e pacote para hospedagem demonstrativa. Stakeholders: a analista de negócios da agência e o gerente de relacionamento do BB. Cinco sessões do IBM Bob, de dois integrantes, estão documentadas com commits e capturas. A chamada IBM real, a publicação e o vídeo novo continuam pendentes. O que mudou depois do feedback está em [Resposta ao feedback](docs/RESPOSTA_AO_FEEDBACK.md). Não é uma integração oficial do Banco do Brasil nem uma entrega IBM finalizada.
 
 ## Executar localmente
 
@@ -24,7 +24,7 @@ cd elo-financeiro
 python -m elo.server
 ```
 
-Abra **http://127.0.0.1:8000**. Não é necessário instalar pacotes. A sessão existe apenas na memória, expira após 30 minutos sem uso e é descartada ao reiniciar o servidor.
+Abra **http://127.0.0.1:8000/analista** para a visão do analista ou **http://127.0.0.1:8000** para o atendimento ao cliente. Não é necessário instalar pacotes. A sessão existe apenas na memória, expira após 30 minutos sem uso e é descartada ao reiniciar o servidor.
 
 Para explicar a proposta, clique em **Apresentar a ideia**. A apresentação percorre problema, proposta, jornada prática e tecnologias, com navegação pelos tópicos ou pelas setas do teclado. **Demonstrar na prática** abre o cenário real; a leitura dos dados continua dependendo da autorização na interface. **Reiniciar cenário** restaura os dados fictícios e limpa os planos, mantendo o consentimento atual.
 
@@ -40,7 +40,10 @@ Para comprovar a chamada real ao IBM watsonx.ai, configure as variáveis da seç
 
 | Capacidade | Situação |
 | --- | --- |
-| Três cenários e interface responsiva em português | Implementados |
+| Visão do analista sobre a carteira da agência | Implementada: 40 clientes sintéticos, perguntas em português, resposta com números do código e tempo medido, clientes sem consentimento fora da análise |
+| Interpretação de perguntas pelo IBM watsonx.ai | Implementada com contingência por regras; testada com respostas simuladas; chamada real pendente |
+| Abrir cliente da carteira no atendimento | Implementado; mesmo cálculo nas duas telas, verificado por teste |
+| Três cenários de atendimento e interface responsiva em português | Implementados |
 | Projeção de caixa por fechamento diário | Todos os dias do horizonte, gráfico com o menor saldo e tabela; centavos inteiros |
 | Consentimento demonstrativo e revogação | Implementados por sessão |
 | Plano de redução de gastos flexíveis | Implementado; depende de aprovação; valor ajustável pelo gerente |
@@ -54,8 +57,8 @@ Para comprovar a chamada real ao IBM watsonx.ai, configure as variáveis da seç
 | Explicações e trilha da sessão | Números, hipóteses, exclusões, consultas, autorizações e revogações visíveis |
 | Recursos de acesso | Teclado, foco visível, rótulos, mensagens de estado e opção de ampliar texto; avaliação com leitores de tela pendente |
 | Controles da demonstração pública | Expiração, limites de recursos, origem restrita e cabeçalhos; Dockerfile e guia de deploy preparados; execução da imagem e deploy externos pendentes |
-| IBM Bob | Cinco sessões (28/10 a 11/11/2026) com registro, captura e commits em `bob_sessions/`, conferidas com `git log`; falta o parágrafo de revisão de cada integrante |
-| Stakeholder e caso de uso | Gerente de relacionamento do BB definido como stakeholder; caso de uso com baseline e meta; métricas marcadas como [SUPOSIÇÃO A VALIDAR] |
+| IBM Bob | Cinco sessões (28/10 a 11/11/2026) com registro, captura e commits em `bob_sessions/`, conferidas com `git log`; faltam o parágrafo de revisão de cada integrante e as sessões sobre a visão do analista (Prompts 11 a 13 de `docs/USO_DO_BOB.md`) |
+| Stakeholder e caso de uso | Analista de negócios da agência (principal) e gerente de relacionamento; métricas medidas na carteira sintética e tempo da triagem manual como [SUPOSIÇÃO A VALIDAR] |
 | Declaração técnica dos produtos IBM | `docs/DECLARACAO_TECNICA.md` criado com produtos, finalidades, arquivos e estado de validação |
 | Dossiê de apresentação | `docs/DOSSIE.md` criado com onze slides em sequência definida |
 | Roteiro do vídeo com Bob operando | `docs/DEMO.md` reescrito com cena do Bob no início e no encerramento; vídeo novo ainda não gravado |
@@ -123,9 +126,9 @@ Para hospedar os cenários sintéticos atrás de HTTPS, siga [Deploy](docs/DEPLO
 ## Estrutura
 
 ```text
-elo/          Cálculos e coordenação em core.py; recuperação, servidor e adaptador IBM
-web/          Interface da demonstração
-data/         Cenários sintéticos e orientações curadas
+elo/          Cálculos em core.py; carteira e perguntas do analista em carteira.py; servidor e adaptador IBM
+web/          Visão do analista (analista.html) e do atendimento (index.html)
+data/         Carteira sintética da agência, cenários e orientações curadas
 tests/        Verificações de cálculos, consentimento e aprovação
 docs/         Proposta, arquitetura, pesquisa e entrega
 bob_sessions/ Registros e capturas das sessões reais do IBM Bob

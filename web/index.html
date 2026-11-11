@@ -15,6 +15,7 @@
     <aside class="sidebar">
       <a class="brand" href="/" aria-label="Elo Financeiro, início"><img src="/assets/logo-elo-financeiro.png" alt="Elo Financeiro" width="1774" height="887"></a>
       <p class="side-caption">Sua próxima decisão,<br>com mais clareza.</p>
+      <nav class="view-switch" aria-label="Visões do protótipo"><h2 class="nav-heading">Visões</h2><a href="/analista">Analista da agência<span>Carteira inteira, em conversa</span></a><a href="/" aria-current="page">Atendimento ao cliente<span>Um cliente, passo a passo</span></a></nav>
       <nav aria-label="Cenários da demonstração"><h2 class="nav-heading">Explore os cenários</h2><div id="scenarios"></div></nav>
       <div class="side-note">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="m12 3 8 3v6c0 5-8 9-8 9s-8-4-8-9V6l8-3Z"/><path d="m8 12 3 3 5-6"/></svg>
@@ -92,6 +93,7 @@
           <button class="reset-button" id="demo-reset" title="Restaurar os dados e limpar planos deste cenário"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="M3 10a9 9 0 1 1 2 8M3 4v6h6"/></svg>Reiniciar cenário</button>
         </div>
       </div>
+      <p id="client-origin" class="client-origin" hidden>Cliente aberto a partir da <a href="/analista">visão do analista</a>. Dados sintéticos da carteira da agência.</p>
       <ol class="demo-progress" aria-label="Etapas da demonstração">
         <li id="step-consent" data-state="current" aria-current="step"><span class="step-number" aria-hidden="true">1</span><span>Autorize a análise</span></li>
         <li id="step-plan" data-state="upcoming"><span class="step-number" aria-hidden="true">2</span><span id="step-plan-label">Escolha um plano</span></li>

@@ -7,9 +7,10 @@ Este documento lista cada produto IBM usado no projeto, com a finalidade, o arqu
 | Produto | Finalidade | Onde aparece | Estado em 2026-11-11 |
 | --- | --- | --- | --- |
 | IBM Bob 2.3.0 (modo Agent) | Ferramenta de desenvolvimento da equipe | `bob_sessions/` (cinco registros), commits citados em cada registro | Uso comprovado: cinco sessões de dois integrantes, com commits e capturas do painel |
-| IBM watsonx.ai, API de geração de texto | Escolher quais ferramentas do agente rodam em cada cenário | `elo/watsonx.py`, chamado por `build_report()` em `elo/core.py` | Implementado e testado com respostas simuladas; chamada real na conta do programa ainda não executada |
+| IBM watsonx.ai, API de geração de texto | (1) Interpretar a pergunta do analista em uma consulta estruturada; (2) escolher quais ferramentas do agente rodam para o cliente aberto | `elo/watsonx.py` (`interpret` e `plan`), chamados por `elo/carteira.py` e por `build_report()` em `elo/core.py` | Implementado e testado com respostas simuladas; chamada real na conta do programa ainda não executada |
 | IBM Cloud IAM | Obter o token de acesso antes de cada chamada ao watsonx.ai | `elo/watsonx.py`, classe `_TokenCache` | Implementado e testado com respostas simuladas; execução real junto com o watsonx.ai |
-| IBM watsonx Orchestrate | Nenhuma | Nenhum arquivo | Não utilizado |
+| IBM watsonx Orchestrate | Nenhuma nesta versão | Nenhum arquivo | Não utilizado; próximo passo previsto |
+| IBM Consulting Advantage | Nenhuma | Nenhum arquivo | Não utilizado |
 
 Não há outros serviços IBM neste projeto.
 
@@ -31,13 +32,18 @@ Não há outros serviços IBM neste projeto.
 
 Cada pasta em `bob_sessions/` tem `registro.md` e `resumo-sessao.png`. Os registros foram conferidos com `git log` em 2026-11-11; datas e commits de partida que estavam errados foram corrigidos, e a correção está anotada no próprio registro.
 
-**O que não foi feito com o Bob:** o selo do planejador na interface, o script `elo/prova_watsonx.py`, o ajuste do modo real em `tests/test_ibm_validation.py` e a ampliação do vocabulário em `elo/retrieval.py` foram feitos em 2026-11-11 fora do Bob. Esses itens estão listados no registro de 2026-11-11 e não são apresentados como uso do Bob.
+**O que não foi feito com o Bob:** a visão do analista (`elo/carteira.py`, `web/analista.*`, `data/carteira.json`, o método `interpret`), o selo do planejador na interface, o script `elo/prova_watsonx.py`, o ajuste do modo real em `tests/test_ibm_validation.py` e a ampliação do vocabulário em `elo/retrieval.py` foram feitos em 2026-11-11 fora do Bob. Esses itens estão listados no registro de 2026-11-11 e não são apresentados como uso do Bob.
 
 ## IBM watsonx.ai
 
 **Produto:** IBM watsonx.ai, API REST de geração de texto (`POST /ml/v1/text/generation?version=2024-05-31`) no endpoint regional da conta, por exemplo `https://us-south.ml.cloud.ibm.com`. O modelo é escolhido pela equipe na variável `WATSONX_MODEL_ID`, entre os modelos Granite liberados no projeto da conta. Não fixamos um ID de modelo no código porque a disponibilidade depende da conta.
 
-**Finalidade:** seleção de ferramentas. O modelo recebe o cenário sintético (eventos, presença de compra ou de PIX) entre marcadores de contexto e devolve apenas `{"tools": [...]}` com nomes da lista permitida: `cashflow`, `purchase`, `safety`, `guidance`. Saldos, parcelas, permissões e aprovações são calculados no código Python. O modelo não calcula valores e não executa nenhuma operação.
+**Finalidade:** dois usos, ambos sem cálculo pelo modelo.
+
+1. **Interpretar a pergunta do analista** (`WatsonxPlanner.interpret`). A pergunta em português vai entre marcadores `PERGUNTA_INICIO` e `PERGUNTA_FIM`, e o modelo devolve só uma consulta JSON: intenção (resumo, negativos, abaixo da margem, em risco, resolvem, não resolvem, cliente), segmento, prazo em dias, limite e cliente. `elo/carteira.py` valida essa consulta contra uma lista fechada (`validar_consulta`). Se ela sair do contrato, a pergunta é interpretada por regras e a tela avisa. A resposta ao analista é montada pelo código com os números da análise.
+2. **Escolher as ferramentas** na tela de atendimento (`WatsonxPlanner.plan`). O modelo recebe o cenário sintético do cliente aberto entre marcadores de contexto e devolve apenas `{"tools": [...]}` com nomes da lista permitida: `cashflow`, `purchase`, `safety`, `guidance`.
+
+Saldos, prazos, parcelas, permissões e aprovações são calculados no código Python. O modelo não calcula valores, não vê clientes sem consentimento e não executa nenhuma operação.
 
 **Como entra no fluxo:**
 
@@ -46,10 +52,11 @@ Cada pasta em `bob_sessions/` tem `registro.md` e `resumo-sessao.png`. Os regist
 3. `elo/watsonx.py` obtém o token IAM (reaproveitado até 60 segundos antes de vencer), envia o prompt e valida a resposta. Planos válidos ficam em cache por cenário; falhas não.
 4. Se o plano for válido, o relatório sai com `mode: "watsonx"`. Se a configuração estiver incompleta, a rede falhar, o tempo de 25 segundos acabar ou a resposta sair do contrato, o relatório sai com `mode: "demo_fallback"` e as ferramentas são escolhidas por regras.
 5. A interface mostra esse estado no topo da análise, num selo: "Planejador: IBM watsonx.ai escolheu as ferramentas", "Planejador: contingência por regras" ou "Planejador: regras locais".
+6. Na visão do analista (`/analista`), cada pergunta passa por `POST /api/analista`. Com o planejador ativo, `carteira.responder()` chama `interpret()`; o selo da tela diz se a interpretação veio do IBM watsonx.ai, da contingência ou das regras locais, e a resposta traz o tempo medido.
 
 **Como provar a chamada real:** com as variáveis configuradas só no terminal, `python -m elo.prova_watsonx` roda os três cenários e grava em `docs/evidencias/watsonx/` um JSON com o `model_id`, `model_version` e `created_at` devolvidos pela própria API, a contagem de tokens, a latência e as ferramentas finais. Chave, token e ID do projeto não são gravados. O script só declara "chamada_real_comprovada" quando os três cenários saem em modo `watsonx`. Em seguida, `python -m unittest tests.test_ibm_validation -v` roda os 30 casos inéditos; no modo real, um caso só conta como acerto se quem respondeu foi o modelo, e não a contingência.
 
-**Testes:** `tests/test_watsonx.py`, `tests/test_ibm_cache.py`, `tests/test_prova_watsonx.py` e `tests/test_ibm_validation.py`, todos com respostas simuladas quando não há credenciais.
+**Testes:** `tests/test_watsonx.py`, `tests/test_ibm_cache.py`, `tests/test_prova_watsonx.py`, `tests/test_ibm_validation.py` e a parte de interpretação em `tests/test_carteira.py`, todos com respostas simuladas quando não há credenciais.
 
 **Estado:** implementado e testado com respostas simuladas. **A chamada real na conta do programa ainda não foi executada.** Enquanto o arquivo de evidência não existir em `docs/evidencias/watsonx/`, a demonstração deve ser apresentada como "modo por regras".
 
@@ -65,7 +72,11 @@ Cada pasta em `bob_sessions/` tem `registro.md` e `resumo-sessao.png`. Os regist
 
 ## IBM watsonx Orchestrate
 
-Não utilizado. Não há agente, fluxo, conexão ou implantação Orchestrate neste repositório. A coordenação das ferramentas é feita em Python (`elo/core.py`). Este produto não deve ser declarado na submissão.
+Não utilizado nesta versão. Não há agente, fluxo, conexão ou implantação Orchestrate neste repositório. A coordenação das ferramentas é feita em Python (`elo/core.py` e `elo/carteira.py`). O guia do programa recomenda o Orchestrate; ele é o próximo passo natural para a visão do analista, com as funções atuais expostas como ferramentas. Até existir uma implantação real, este produto não deve ser declarado como usado.
+
+## IBM Consulting Advantage
+
+Não utilizado. O critério de avaliação cita o IBM Consulting Advantage ao lado do IBM Bob, mas ele não foi usado neste projeto. Não declarar uso.
 
 ## O que não é IBM
 

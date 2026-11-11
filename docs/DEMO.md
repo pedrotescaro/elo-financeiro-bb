@@ -1,45 +1,42 @@
 # Roteiro de demonstração: até três minutos
 
-Objetivo: mostrar o problema do gerente de relacionamento do BB, a solução funcionando com dados sintéticos, e o IBM Bob operando no fluxo de desenvolvimento. Duração total: 180 segundos.
+Objetivo: mostrar o problema da analista de negócios da agência, o agente respondendo em português sobre a carteira, o caso aberto no atendimento do gerente e o IBM Bob operando de verdade no desenvolvimento. Duração total: 180 segundos, com mais de 90 segundos de software.
 
 ## Preparação antes de gravar
 
-1. Executar `python -m elo.server` na raiz do projeto e abrir `http://127.0.0.1:8000`.
-2. Selecionar **Chegar ao próximo recebimento** (`scenario-month`). Se a leitura estiver ativa, clicar em **Reiniciar cenário** (`demo-reset`) para restaurar os valores e depois em **Desativar leitura e limpar planos** (`consent-toggle`). O reinício dos dados preserva o consentimento; a revogação é uma escolha separada.
-3. Fechar outros programas e notificações. Ocultar qualquer dado pessoal ou credencial que possa aparecer na tela.
-4. Abrir uma segunda aba com o Bob IDE no repositório Elo Financeiro, deixar pronto para mostrar na cena do Bob (0 s a 20 s).
-5. Conferir que o selo do planejador aparece logo abaixo do título da análise depois de autorizar os dados. Sem credenciais IBM ele diz "Planejador: regras locais"; com o watsonx ativo, "Planejador: IBM watsonx.ai escolheu as ferramentas".
+1. Rodar uma sessão real do Bob com o Prompt 11 ou 12 de `docs/USO_DO_BOB.md` e gravar a tela enquanto ele trabalha. Esse trecho entra nas cenas do Bob. Não usar captura de ensaio.
+2. Executar `python -m elo.server` na raiz do projeto e abrir `http://127.0.0.1:8000/analista`.
+3. Se as credenciais IBM estiverem configuradas no terminal (com `ELO_PLANNER=watsonx`), o selo da tela diz "IBM watsonx.ai". Sem elas, diz "regras locais". Gravar com o que estiver ativo e falar o que o selo mostra.
+4. Fechar outros programas e notificações. Nenhuma chave, e-mail ou dado pessoal pode aparecer na tela.
 
 ## Cenas e narração
 
 | Tempo | Tela e ação | Narração |
 | --- | --- | --- |
-| 0–15 s | Mostrar o Bob IDE com o repositório carregado. Apontar a lista de tarefas recentes e, em seguida, a tabela de sessões em `docs/USO_DO_BOB.md`. | "Começamos pelo desenvolvimento. Usamos o IBM Bob em modo Agent em cinco sessões: ele implementou a projeção de parcelas e a redução personalizada, corrigiu cinco problemas no fluxo de propostas e criou trinta casos de validação IBM. Cada sessão está registrada com commits no repositório." |
-| 15–25 s | Alternar para a interface do protótipo em `http://127.0.0.1:8000`. Mostrar a tela inicial sem dados carregados. | "O problema que o agente resolve: Marcos, gerente de relacionamento do BB, recebe um cliente que precisa de ajuda com o fluxo de caixa. Hoje, Marcos monta esse calendário manualmente. Estimamos quinze a vinte minutos de preparação, isso ainda precisa ser medido com gerentes reais." |
-| 25–35 s | Clicar em **Autorizar dados da demonstração** (`start`). Apontar o selo do planejador abaixo do título. | "Com o Elo, Marcos autoriza a leitura. Os dados são sintéticos, nenhuma conta bancária conectada. Este selo mostra quem escolheu as ferramentas: aqui, [regras locais / o IBM watsonx.ai]. Os cálculos são sempre do código." |
-| 35–53 s | Mostrar **Menor saldo previsto** (`minimum`) e o gráfico. Abrir **Ver os valores de cada dia** para apontar o pior dia; fechar em seguida. | "O saldo começa em mil e quinhentos reais. Mas o calendário leva o menor saldo a menos cem antes do recebimento. O saldo final positivo esconde esse intervalo, é exatamente o que o Marcos não consegue ver na tela de saldo atual." |
-| 53–72 s | Mostrar o efeito da proposta e clicar em **Ativar plano de gastos** (`approve-budget-plan`). Apontar o novo valor de R$ 200. | "O agente propõe reduzir trezentos reais de lazer previsto, preservando as despesas essenciais. Marcos confere o impacto: o menor saldo passa a duzentos reais. Nenhum dinheiro foi movimentado, é um ajuste de orçamento futuro que o gerente aprova explicitamente." |
-| 72–90 s | Clicar em **Simular nova despesa** (`monitor`). Mostrar R$ 50 e o novo estado da margem. | "Surge uma despesa de cento e cinquenta reais. A projeção é recalculada: margem cai para cinquenta. O plano anterior não reautoriza uma nova ação, Marcos precisaria revisar e aprovar novamente. Isso evita que uma aprovação antiga cubra um contexto diferente." |
-| 90–108 s | Abrir **Por que o Elo sugeriu isso**. Mostrar os números, as hipóteses e os limites. Fechar. | "Marcos pode conferir cada número, cada hipótese e o que não foi considerado. A trilha da sessão mostra todas as consultas e aprovações. Transparência para que o gerente confie na análise antes de apresentar ao cliente." |
-| 108–125 s | Selecionar **Decidir sobre uma compra** (`scenario-purchase`). Mostrar comparação à vista, parcelamento e meta. | "Na jornada de compra, o agente compara um celular de três mil e quinhentos reais com o calendário de contas, mostra o impacto da primeira parcela e permite criar uma meta para planejar antes de comprar." |
-| 125–140 s | Selecionar **Verificar sinais de risco** (`scenario-pix`). Apontar urgência, destinatário novo e valor atípico. | "Na jornada de PIX, três sinais sintéticos (urgência, destinatário novo e valor atípico) levam o agente a sugerir uma pausa. São regras ilustrativas; o protótipo não confirma fraude nem executa o pagamento." |
-| 140–153 s | Clicar em **Desativar leitura e limpar planos**. Mostrar o registro na trilha. | "Marcos encerra a sessão revogando o acesso. Os planos são limpos. O registro da revogação fica na trilha temporária, visível para auditoria, mas descartado com a sessão." |
-| 153–172 s | Voltar ao Bob IDE. Mostrar o Prompt 10 sendo digitado: ingestão de documentos em paralelo. | "De volta ao Bob: em modo Agent, ele pode ler múltiplos documentos em paralelo e identificar inconsistências entre eles. Esse é o mesmo modo usado para construir este protótipo, implementação, testes e revisão em uma sessão coordenada." |
-| 172–180 s | Mostrar o repositório no GitHub. Encerrar na interface do protótipo. | "O código é público. O próximo passo é validar a chamada real ao IBM watsonx.ai na conta do programa e medir o tempo de preparação com gerentes reais. Clareza antes da decisão, para o gerente chegar ao atendimento com o cenário mapeado." |
+| 0 a 15 s | Bob IDE com o repositório aberto, executando o Prompt 11 ou 12: arquivos sendo lidos e tarefas na lista. | "O Elo Financeiro foi construído com o IBM Bob em modo Agent. Aqui ele está lendo a carteira e o código da visão do analista para [dizer o que a sessão real está fazendo]." |
+| 15 a 30 s | Visão do analista carregada: título com "15 clientes precisam de atenção" e os três números. | "Carla é analista de negócios de uma agência do Banco do Brasil. Toda semana ela precisa dizer aos gerentes quem procurar antes que o cliente fique sem dinheiro. Cliente por cliente, isso leva horas; é uma estimativa nossa que ainda vamos medir com analistas." |
+| 30 a 55 s | Digitar "Quais clientes ficam no vermelho nos próximos 7 dias?" e enviar. Mostrar a resposta, a linha "Como respondi" e o selo. | "Ela pergunta em português. O agente analisa os 37 clientes que deram consentimento e responde: seis ficam negativos nos próximos sete dias. A linha de baixo mostra quem interpretou a pergunta, aqui [o IBM watsonx.ai / as regras locais], e quanto tempo levou: poucos milissegundos. Os números vêm sempre do cálculo, não do modelo." |
+| 55 a 70 s | Clicar em "Quem resolve com ajuste?". Mostrar os 6 clientes. | "Ela separa os casos simples: seis clientes se resolvem só reduzindo gastos flexíveis já previstos. Os outros vão precisar de uma conversa mais longa." |
+| 70 a 80 s | Clicar em "Abrir no atendimento" no Cliente 06. | "Marcos, o gerente, abre o Cliente 06 direto na tela de atendimento." |
+| 80 a 110 s | Clicar em **Autorizar dados da demonstração**. Mostrar o selo do planejador, o menor saldo de −R$ 120,00 em 11/10 e o gráfico. | "Saldo de mil duzentos e noventa reais hoje, mas as contas deixam o saldo negativo no dia dez, daqui a três dias, e o pior ponto é menos cento e vinte, no dia onze. O aviso chega antes do problema." |
+| 110 a 130 s | Mostrar a proposta: reduzir R$ 230,00 de gastos flexíveis, menor saldo passa a R$ 110,00. Clicar em **Ativar plano de gastos**. | "O agente propõe reduzir duzentos e trinta reais de gastos flexíveis previstos. O menor saldo passa a cento e dez, que é a margem do cliente. Nada é movimentado; o gerente aprova com o cliente." |
+| 130 a 145 s | Clicar em **Simular nova despesa**. Mostrar a projeção recalculada. | "Se aparece uma despesa nova, a projeção é refeita e a aprovação anterior deixa de valer. Uma autorização antiga não cobre um cenário diferente." |
+| 145 a 160 s | Abrir **Por que o Elo sugeriu isso** e a trilha da sessão. | "Cada número tem hipótese e limite visíveis, e a trilha registra consultas e aprovações. Clientes sem consentimento nem entram na análise." |
+| 160 a 172 s | Voltar ao Bob: relatório final da sessão gravada e os testes passando. | "De volta ao Bob: [dizer o resultado real, por exemplo quantas perguntas o agente acertou ou quantos testes foram criados]. Todas as sessões estão registradas com commits no repositório." |
+| 172 a 180 s | Encerrar na visão do analista. | "Elo Financeiro: a carteira inteira numa conversa, e o contato com o cliente antes do aperto." |
 
 ## Pontos de precisão
 
-- Dizer **"menor saldo previsto"**, não "dinheiro economizado": os valores são resultados do cenário sintético.
-- Dizer **"estimamos quinze a vinte minutos"** com a ressalva **"ainda precisa ser medido"**, nunca apresentar como resultado comprovado.
-- Manter o selo do planejador visível e ler o que ele diz. Se estiver em regras locais, dizer "modo por regras"; não fingir que o watsonx está ativo.
-- Na cena do Bob, mostrar o Bob operando de verdade (painel real), não uma captura estática.
-- Não anunciar hospedagem publicada se ainda não estiver disponível. Dizer "execução local durante esta gravação".
-- Atribuir ao Bob apenas o trabalho dos cinco registros em `bob_sessions/`. O selo do planejador e o script de prova do watsonx não foram feitos com o Bob.
+- Os números da carteira (15 em atenção, 6 negativos em 7 dias, 6 que se resolvem) e do Cliente 06 vêm de `data/carteira.json`. Se a carteira for regerada, conferir de novo antes de gravar.
+- Dizer "estimativa" para o tempo da triagem manual. O tempo do agente é medido e aparece na tela.
+- Ler o selo como ele está. Se disser "regras locais", não dizer que é o watsonx.
+- Na cena do Bob, só mostrar uma sessão real e só narrar o que aconteceu nela. A visão do analista não foi construída com o Bob; não dizer isso no vídeo.
+- Não anunciar hospedagem publicada se ela ainda não existir; dizer "execução local".
 
 ## Conferência após gravar
 
-1. Cronometrar: o vídeo deve ter entre 170 e 180 segundos. Ensaiar e ajustar as pausas.
-2. Verificar que os três valores principais aparecem legíveis: -R$ 100, R$ 200, R$ 50.
-3. Verificar que o selo do planejador aparece legível em pelo menos um momento do vídeo.
-4. Verificar que o painel do Bob IDE com as tarefas recentes aparece por pelo menos 5 segundos.
-5. Publicar o vídeo, testar o link em janela anônima sem login do autor, e preencher `docs/INSCRICAO.md`.
+1. Duração entre 170 e 180 segundos.
+2. Os valores −R$ 120,00, R$ 230,00 e R$ 110,00 legíveis na tela.
+3. O selo e a linha "Como respondi" legíveis pelo menos uma vez.
+4. O Bob trabalhando aparece por pelo menos 20 segundos no total.
+5. Publicar o vídeo, testar o link em janela anônima e preencher `docs/INSCRICAO.md`.
